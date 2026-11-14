@@ -658,9 +658,12 @@ _Satisfies: R28, R30–R32, R38–R41, R43, NFR12–NFR14, E4, E13_
 
 One `QuadrantChart` SVG component draws the frame: a square 0–10 grid, dividing
 lines at 5, and the four outer corners (from 7.5 up and from 2.5 down) as lightly
-shaded squares with a thin outline (R28). The corner names sit inside the shaded
-squares; the four inner-band names sit in smaller, quieter text in the
-L-shaped space between each corner and the centre. On a narrow phone screen the
+shaded squares with a thin outline (R28). Each corner's name is written in the
+margin directly above or below its square (_changed in T24: inside the square
+it was hidden by the very points drawn there, since scores of 8, 9 and 10 fall
+inside a corner_). The four inner-band names sit in smaller, quieter text on
+the half-score lines (6.5 and 3.5), between two rows of whole-number points,
+centred across each band. On a narrow phone screen the
 inner-band names are dropped from the chart (the list and filter chips still
 show them) so the dots stay readable. Three pages give the chart different
 contents:
@@ -671,6 +674,12 @@ contents:
 | Friends' films         | one per film, at its group average       | clusters with counts                                                                                           |
 | Film page (spoke map)  | one per member, labelled with their name | viewer's point drawn as the hub; a line from it to each friend (R39); group average as a different shape (R38) |
 
+- **Points are HTML buttons laid over the SVG**, positioned by percentage, not
+  shapes inside it. A button is reachable with Tab, pressed with Enter or
+  Space and announced by screen readers without extra work (NFR12). The SVG
+  frame itself is hidden from screen readers; the buttons and the list below
+  carry the information (NFR13). The frame is exported on its own
+  (`ChartFrame`) for the spoke map to reuse.
 - **Points on a line** (a score of exactly 5) are simply drawn at 5 — on the
   line, visibly belonging to no quadrant. The four half-lines are labelled at
   their outer ends with the axis labels (Bad ← → Good along the horizontal line,
