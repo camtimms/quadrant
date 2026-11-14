@@ -1,6 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { findTitle, saveTitle } from "@/lib/titles/store";
-import { admin, removeAllTestData, TEST_TMDB_ID_START } from "./helpers";
+import {
+  admin,
+  createTestTitle,
+  removeAllTestData,
+  TEST_TMDB_ID_START,
+} from "./helpers";
 
 /**
  * The app's own titles store, run for real against the dev database.
@@ -20,6 +25,7 @@ const FILM = {
   title: "Store Test",
   year: 1999,
   posterPath: "/store-test.jpg",
+  overview: "A film that exists only for this test.",
 };
 
 beforeAll(removeAllTestData);
@@ -41,6 +47,7 @@ describe("the titles store", () => {
       title: "Store Test",
       release_year: 1999,
       poster_path: "/store-test.jpg",
+      overview: "A film that exists only for this test.",
     });
     expect(Date.parse(saved.fetched_at)).toBe(fetchedAt.getTime());
     expect(await findTitle(TMDB_ID)).toEqual(saved);
@@ -54,7 +61,14 @@ describe("the titles store", () => {
     const later = new Date("2026-11-14T00:00:00Z");
 
     const saved = await saveTitle(
-      { ...FILM, title: "Store Test (renamed)", year: null, posterPath: null },
+      {
+        ...FILM,
+        title: "Store Test (renamed)",
+        year: null,
+        posterPath: null,
+        // "TMDB has no description": stored as an empty string, not null.
+        overview: "",
+      },
       later,
     );
 
@@ -63,6 +77,7 @@ describe("the titles store", () => {
       title: "Store Test (renamed)",
       release_year: null,
       poster_path: null,
+      overview: "",
     });
     expect(Date.parse(saved.fetched_at)).toBe(later.getTime());
 
@@ -82,5 +97,13 @@ describe("the titles store", () => {
     expect(a.id).toBe(b.id);
     const rows = await admin.from("titles").select("id").eq("tmdb_id", id);
     expect(rows.data).toHaveLength(1);
+  });
+
+  // Migration 4: null is reserved for "not fetched yet", which is what a
+  // film stored without a description has.
+  it("leaves the description null for a film stored without one", async () => {
+    const title = await createTestTitle("No description yet");
+    expect(title.overview).toBeNull();
+    expect((await findTitle(title.tmdb_id))?.overview).toBeNull();
   });
 });

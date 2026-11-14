@@ -112,6 +112,7 @@ describe("getMovie", () => {
       title: "Commando",
       year: 1985,
       posterPath: "/ollPAAAgZ7euU8VisfqU3cuXhZ6.jpg",
+      overview: movieNormal.overview,
     });
     expect(String(fetchMock.mock.calls[0][0])).toBe(
       "https://api.themoviedb.org/3/movie/10999",

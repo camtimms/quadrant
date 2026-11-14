@@ -131,6 +131,7 @@ export type Database = {
           fetched_at: string
           id: number
           media_type: string
+          overview: string | null
           poster_path: string | null
           release_year: number | null
           title: string
@@ -140,6 +141,7 @@ export type Database = {
           fetched_at: string
           id?: never
           media_type?: string
+          overview?: string | null
           poster_path?: string | null
           release_year?: number | null
           title: string
@@ -149,6 +151,7 @@ export type Database = {
           fetched_at?: string
           id?: never
           media_type?: string
+          overview?: string | null
           poster_path?: string | null
           release_year?: number | null
           title?: string

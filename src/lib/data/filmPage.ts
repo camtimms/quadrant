@@ -28,7 +28,13 @@ import type { RatingInput } from "@/lib/validation/rating";
 export type FilmPageData =
   | {
       status: "ok";
-      film: TmdbFilm;
+      film: TmdbFilm & {
+        /**
+         * TMDB's description: "" when it has none, null when we have a copy
+         * of the film but could not fetch its description yet.
+         */
+        overview: string | null;
+      };
       /** OUR id for the film, or null if nobody has rated it yet. */
       titleId: number | null;
       /** This member's current rating, or null if they have not rated it. */
@@ -69,10 +75,11 @@ export async function loadFilmPage(
     }
   }
 
-  // Situation 1: we have a copy. Refresh it if it has gone stale; ensureTitle
+  // Situation 1: we have a copy. Refresh it if it has gone stale, or if it
+  // was stored before descriptions were kept and so has none yet; ensureTitle
   // falls back to the old copy by itself if the refresh fails.
   let title = stored;
-  if (isStale(stored.fetched_at, new Date())) {
+  if (isStale(stored.fetched_at, new Date()) || stored.overview === null) {
     const refreshed = await ensureTitle(tmdbId);
     if (refreshed.ok) title = refreshed.title;
   }
@@ -95,6 +102,7 @@ export async function loadFilmPage(
       title: title.title,
       year: title.release_year,
       posterPath: title.poster_path,
+      overview: title.overview,
     },
     titleId: title.id,
     myRating: rating

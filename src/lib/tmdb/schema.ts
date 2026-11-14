@@ -29,6 +29,15 @@ export type TmdbFilm = {
 };
 
 /**
+ * A film with its description as well. Only the "one film" endpoint gives
+ * this; search results deliberately do not carry it (see parseMovie).
+ */
+export type TmdbFilmDetails = TmdbFilm & {
+  /** TMDB's description of the film, or "" when it has none (R54). */
+  overview: string;
+};
+
+/**
  * The year from TMDB's "YYYY-MM-DD" release date.
  *
  * Anything that is not a date starting with four digits counts as unknown.
@@ -52,6 +61,9 @@ const rawFilmSchema = z.object({
   // Read only so that adult titles can be dropped from search results; it is
   // not passed on. Present on every film in the captured responses.
   adult: z.boolean().optional(),
+  // TMDB's description. A string in every response captured so far; null
+  // or missing is treated as "no description".
+  overview: z.string().nullish(),
 });
 
 // .transform runs after the checks pass and renames TMDB's snake_case fields
@@ -82,7 +94,14 @@ export function parseSearchResponse(body: unknown): TmdbFilm[] {
     .map(toFilm);
 }
 
-/** Parse the body of `GET /3/movie/{id}`. Throws on any other shape. */
-export function parseMovie(body: unknown): TmdbFilm {
-  return toFilm(rawFilmSchema.parse(body));
+/**
+ * Parse the body of `GET /3/movie/{id}`. Throws on any other shape.
+ *
+ * Unlike a search result, this keeps the film's description. Search results
+ * have one too, but the search page does not show it, and twenty of them
+ * would make every search response several times larger for nothing.
+ */
+export function parseMovie(body: unknown): TmdbFilmDetails {
+  const raw = rawFilmSchema.parse(body);
+  return { ...toFilm(raw), overview: (raw.overview ?? "").trim() };
 }

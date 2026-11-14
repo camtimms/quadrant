@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PendingMark } from "@/components/PendingMark";
 import type { ChartFilm } from "@/components/chart/QuadrantChart";
 import { formatScore } from "@/components/chart/scale";
+import { FilmPageButton } from "@/components/film/FilmPageButton";
 import { PosterImage } from "@/components/film/PosterImage";
 import { InlineRatingEditor } from "@/components/rating/InlineRatingEditor";
 import { classify, PLACEMENT_LABELS } from "@/lib/quadrant";
@@ -78,17 +79,19 @@ export function PointPanel({ films, onClose, editReturnTo }: Props) {
               <PendingMark className="ml-auto" />
             </Link>
 
-            {/* Beside the link, not inside it (see FilmList). */}
-            {editReturnTo !== undefined ? (
-              <div className="px-1 pb-1">
+            {/* The row's buttons, beside the link, not inside it (see
+                FilmList). */}
+            <div className="flex flex-wrap items-start gap-2 px-1 pb-1">
+              {editReturnTo !== undefined ? (
                 <InlineRatingEditor
                   // A new key after each save closes the editor (see FilmList).
                   key={film.changedAt}
                   film={film}
                   returnTo={editReturnTo}
                 />
-              </div>
-            ) : null}
+              ) : null}
+              <FilmPageButton tmdbId={film.tmdbId} title={film.title} />
+            </div>
           </li>
         ))}
       </ul>

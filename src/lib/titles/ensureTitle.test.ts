@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TmdbUnavailableError } from "@/lib/tmdb/client";
-import type { TmdbFilm } from "@/lib/tmdb/schema";
+import type { TmdbFilmDetails } from "@/lib/tmdb/schema";
 import {
   ensureTitle,
   TITLE_MAX_AGE_DAYS,
@@ -17,11 +17,12 @@ import type { StoredTitle } from "@/lib/titles/store";
 const NOW = new Date("2026-11-14T12:00:00Z");
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const COMMANDO: TmdbFilm = {
+const COMMANDO: TmdbFilmDetails = {
   tmdbId: 10999,
   title: "Commando",
   year: 1985,
   posterPath: "/ollPAAAgZ7euU8VisfqU3cuXhZ6.jpg",
+  overview: "A retired commando is forced back into action.",
 };
 
 /** Our stored copy of Commando, last refreshed `daysAgo` days ago. */
@@ -33,6 +34,7 @@ function stored(daysAgo: number, overrides: Partial<StoredTitle> = {}) {
     title: "Commando",
     release_year: 1985,
     poster_path: "/ollPAAAgZ7euU8VisfqU3cuXhZ6.jpg",
+    overview: "A retired commando is forced back into action." as string | null,
     fetched_at: new Date(NOW.getTime() - daysAgo * DAY_MS).toISOString(),
     ...overrides,
   } satisfies StoredTitle;
@@ -58,6 +60,7 @@ beforeEach(() => {
         title: film.title,
         release_year: film.year,
         poster_path: film.posterPath,
+        overview: film.overview,
         fetched_at: fetchedAt.toISOString(),
       })),
     getMovie: vi.fn<EnsureTitleDeps["getMovie"]>().mockResolvedValue(COMMANDO),
@@ -148,6 +151,49 @@ describe("ensureTitle", () => {
       await ensureTitle(10999, deps);
 
       expect(deps.getMovie).not.toHaveBeenCalled();
+    });
+  });
+
+  // R54. Films stored before descriptions were kept have null there.
+  describe("a copy with no description yet", () => {
+    it("is fetched again once, even though it is recent", async () => {
+      deps.findTitle.mockResolvedValue(stored(3, { overview: null }));
+
+      const result = await ensureTitle(10999, deps);
+
+      expect(deps.getMovie).toHaveBeenCalledWith(10999);
+      expect(deps.saveTitle).toHaveBeenCalledWith(COMMANDO, NOW);
+      expect(result).toMatchObject({
+        ok: true,
+        title: { overview: COMMANDO.overview },
+      });
+    });
+
+    // An empty string means "TMDB has none". Asking again would get the
+    // same answer, on every view, for ever.
+    it("is NOT fetched again when TMDB simply has no description", async () => {
+      const copy = stored(3, { overview: "" });
+      deps.findTitle.mockResolvedValue(copy);
+
+      expect(await ensureTitle(10999, deps)).toEqual({ ok: true, title: copy });
+      expect(deps.getMovie).not.toHaveBeenCalled();
+    });
+
+    it("stores 'none' as an empty string, so it is not asked for again", async () => {
+      deps.findTitle.mockResolvedValue(stored(3, { overview: null }));
+      deps.getMovie.mockResolvedValue({ ...COMMANDO, overview: "" });
+
+      const result = await ensureTitle(10999, deps);
+
+      expect(result).toMatchObject({ ok: true, title: { overview: "" } });
+    });
+
+    it("carries on without a description when TMDB is down", async () => {
+      const old = stored(3, { overview: null });
+      deps.findTitle.mockResolvedValue(old);
+      deps.getMovie.mockRejectedValue(new TmdbUnavailableError("down"));
+
+      expect(await ensureTitle(10999, deps)).toEqual({ ok: true, title: old });
     });
   });
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PendingMark } from "@/components/PendingMark";
 import type { ChartFilm } from "@/components/chart/QuadrantChart";
 import { formatScore } from "@/components/chart/scale";
+import { FilmPageButton } from "@/components/film/FilmPageButton";
 import { PosterImage } from "@/components/film/PosterImage";
 import { InlineRatingEditor } from "@/components/rating/InlineRatingEditor";
 import { classify, PLACEMENT_LABELS } from "@/lib/quadrant";
@@ -81,10 +82,12 @@ export function FilmList({ films, editReturnTo }: Props) {
             <PendingMark className="ml-auto" />
           </Link>
 
-          {/* Beside the link, never inside it: a button inside a link would
-              also follow the link when pressed. */}
-          {editReturnTo !== undefined ? (
-            <div className="px-2 pb-2">
+          {/* The row's buttons. They sit beside the link above, never
+              inside it: a button inside a link would also follow the link
+              when pressed. flex-wrap lets the open editor take a full line
+              of its own, with "Film page" dropping below it. */}
+          <div className="flex flex-wrap items-start gap-2 px-2 pb-2">
+            {editReturnTo !== undefined ? (
               <InlineRatingEditor
                 // The key changes whenever the rating is saved (changedAt is
                 // stamped by the database on every save). A new key makes
@@ -94,8 +97,9 @@ export function FilmList({ films, editReturnTo }: Props) {
                 film={film}
                 returnTo={editReturnTo}
               />
-            </div>
-          ) : null}
+            ) : null}
+            <FilmPageButton tmdbId={film.tmdbId} title={film.title} />
+          </div>
         </li>
       ))}
     </ul>

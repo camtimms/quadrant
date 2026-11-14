@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TmdbUnavailableError } from "@/lib/tmdb/client";
-import type { TmdbFilm } from "@/lib/tmdb/schema";
+import type { TmdbFilmDetails } from "@/lib/tmdb/schema";
 import type { EnsureTitleResult } from "@/lib/titles/ensureTitle";
 import { loadFilmPage } from "./filmPage";
 
@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
   tables: {} as Record<string, { data: unknown; error: unknown }>,
   // Every filter applied, per table, so tests can check whose rating was read.
   filters: {} as Record<string, [string, unknown][]>,
-  getMovie: vi.fn<(id: number) => Promise<TmdbFilm | null>>(),
+  getMovie: vi.fn<(id: number) => Promise<TmdbFilmDetails | null>>(),
   ensureTitle: vi.fn<(id: number) => Promise<EnsureTitleResult>>(),
 }));
 
@@ -47,15 +47,21 @@ vi.mock("@/lib/titles/ensureTitle", async (original) => ({
 const USER_ID = "00000000-0000-4000-8000-000000000001";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const COMMANDO: TmdbFilm = {
+const COMMANDO: TmdbFilmDetails = {
   tmdbId: 10999,
   title: "Commando",
   year: 1985,
   posterPath: "/x.jpg",
+  overview: "A retired commando is forced back into action.",
 };
 
-function storedTitle(daysOld: number, title = "Commando") {
+function storedTitle(
+  daysOld: number,
+  title = "Commando",
+  overview: string | null = COMMANDO.overview,
+) {
   return {
+    overview,
     id: 42,
     media_type: "movie",
     tmdb_id: 10999,
@@ -185,6 +191,66 @@ describe("loadFilmPage", () => {
         film: { title: "Comando" },
         titleId: 42,
       });
+    });
+  });
+
+  describe("the description (R54)", () => {
+    it("comes from TMDB for a film nobody has rated", async () => {
+      expect(await loadFilmPage(10999, USER_ID)).toMatchObject({
+        film: { overview: COMMANDO.overview },
+      });
+    });
+
+    it("comes from our stored copy for a rated film, without asking TMDB", async () => {
+      mocks.tables.titles = {
+        data: storedTitle(3, "Commando", "Our stored description."),
+        error: null,
+      };
+
+      expect(await loadFilmPage(10999, USER_ID)).toMatchObject({
+        film: { overview: "Our stored description." },
+      });
+      expect(mocks.getMovie).not.toHaveBeenCalled();
+      expect(mocks.ensureTitle).not.toHaveBeenCalled();
+    });
+
+    // A film stored before descriptions were kept.
+    it("is fetched for a stored film that has none yet", async () => {
+      mocks.tables.titles = {
+        data: storedTitle(3, "Commando", null),
+        error: null,
+      };
+      mocks.ensureTitle.mockResolvedValue({
+        ok: true,
+        title: storedTitle(0, "Commando", "Freshly fetched."),
+      });
+
+      const result = await loadFilmPage(10999, USER_ID);
+
+      expect(mocks.ensureTitle).toHaveBeenCalledWith(10999);
+      expect(result).toMatchObject({ film: { overview: "Freshly fetched." } });
+    });
+
+    it("is simply absent if that fetch fails; the page still works", async () => {
+      mocks.tables.titles = {
+        data: storedTitle(3, "Commando", null),
+        error: null,
+      };
+      mocks.ensureTitle.mockResolvedValue({ ok: false, reason: "unavailable" });
+
+      expect(await loadFilmPage(10999, USER_ID)).toMatchObject({
+        status: "ok",
+        film: { title: "Commando", overview: null },
+      });
+    });
+
+    it("is not fetched again for a film TMDB has no description for", async () => {
+      mocks.tables.titles = {
+        data: storedTitle(3, "Commando", ""),
+        error: null,
+      };
+      await loadFilmPage(10999, USER_ID);
+      expect(mocks.ensureTitle).not.toHaveBeenCalled();
     });
   });
 

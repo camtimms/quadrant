@@ -86,6 +86,7 @@ const TITLE = {
   title: "Commando",
   release_year: 1985,
   poster_path: "/x.jpg",
+  overview: "A description.",
   fetched_at: "2026-11-14T00:00:00Z",
 };
 

@@ -12,8 +12,8 @@ import { findTitle, saveTitle, type StoredTitle } from "@/lib/titles/store";
  *
  *   - we already have a recent copy  -> use it; TMDB is not contacted
  *   - we have none                   -> fetch from TMDB, store, use that
- *   - our copy is over 30 days old   -> try to refresh it; if that fails for
- *                                       any reason, carry on with the old one
+ *   - our copy is over 30 days old,  -> try to refresh it; if that fails for
+ *     or has no description yet         any reason, carry on with the old one
  *
  * The film's title, year and poster always come from TMDB, fetched by the
  * server. The browser only ever supplies the id, so a member cannot make the
@@ -86,11 +86,14 @@ export async function ensureTitle(
   const now = deps.now();
 
   if (existing) {
-    if (!isStale(existing.fetched_at, now)) {
+    // "overview === null" means this film was stored before descriptions
+    // were kept (migration 4). It is fetched again once, to fill that in;
+    // after that the column holds a string, even if an empty one.
+    if (!isStale(existing.fetched_at, now) && existing.overview !== null) {
       return { ok: true, title: existing };
     }
 
-    // Stale. Try to refresh, but a film that has ratings must keep working
+    // Stale, or missing its description. Try to refresh, but a film that has ratings must keep working
     // whatever happens: TMDB down, the film removed from TMDB, or our own
     // save failing. In every such case the old copy is still good enough.
     try {

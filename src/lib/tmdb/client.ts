@@ -7,6 +7,7 @@ import {
   parseMovie,
   parseSearchResponse,
   type TmdbFilm,
+  type TmdbFilmDetails,
 } from "@/lib/tmdb/schema";
 
 /**
@@ -102,7 +103,9 @@ export async function searchMovies(query: string): Promise<TmdbFilm[]> {
  * does not exist (HTTP 404), which is a normal answer rather than a failure:
  * the browser sends us the id, so it may be anything.
  */
-export async function getMovie(tmdbId: number): Promise<TmdbFilm | null> {
+export async function getMovie(
+  tmdbId: number,
+): Promise<TmdbFilmDetails | null> {
   const { status, body } = await tmdbGet(`/movie/${tmdbId}`);
   if (status === 404) return null;
   if (status !== 200) {

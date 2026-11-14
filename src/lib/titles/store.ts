@@ -3,7 +3,7 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
-import type { TmdbFilm } from "@/lib/tmdb/schema";
+import type { TmdbFilmDetails } from "@/lib/tmdb/schema";
 
 /**
  * Reading and writing our stored copies of films: the `titles` table.
@@ -43,7 +43,7 @@ export async function findTitle(tmdbId: number): Promise<StoredTitle | null> {
  * where the second save simply lands on the first one's row.
  */
 export async function saveTitle(
-  film: TmdbFilm,
+  film: TmdbFilmDetails,
   fetchedAt: Date,
 ): Promise<StoredTitle> {
   const { data, error } = await createAdminClient()
@@ -55,6 +55,9 @@ export async function saveTitle(
         title: film.title,
         release_year: film.year,
         poster_path: film.posterPath,
+        // Always a string here ("" when TMDB has none), never null: null
+        // is reserved for "not fetched yet" (see migration 4).
+        overview: film.overview,
         fetched_at: fetchedAt.toISOString(),
       },
       { onConflict: "media_type,tmdb_id" },

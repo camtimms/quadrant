@@ -296,9 +296,10 @@ describe("QuadrantChart", () => {
       expect(panel.textContent).toContain(PLACEMENT_LABELS["cheap-thrills"]);
       expect(
         within(panel)
-          .getByRole("link", { name: /Commando/ })
-          .getAttribute("href"),
-      ).toBe("/film/10999");
+          // Two links go there: the row itself and the "Film page" button.
+          .getAllByRole("link", { name: /Commando/ })
+          .map((link) => link.getAttribute("href")),
+      ).toEqual(["/film/10999", "/film/10999"]);
       // The poster (here its placeholder) is named after the film (NFR15).
       expect(within(panel).getByRole("img", { name: "Commando" })).toBeTruthy();
     });
@@ -313,7 +314,7 @@ describe("QuadrantChart", () => {
       expect(items).toHaveLength(3);
       expect(
         items.map((item) =>
-          within(item).getByRole("link").getAttribute("href"),
+          within(item).getAllByRole("link")[0].getAttribute("href"),
         ),
       ).toEqual(["/film/949", "/film/348", "/film/15196"]);
       expect(panel.textContent).toContain("Year unknown"); // Clue

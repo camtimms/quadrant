@@ -84,6 +84,21 @@ export default async function FilmPage({
         </div>
       </div>
 
+      {/* TMDB's description of the film (R54). Shown only when there is
+          one: an empty heading would be worse than no section. Rendered as
+          plain text, so anything in it that looks like HTML is harmless.
+          "whitespace-pre-line" keeps any line breaks TMDB put in. */}
+      {film.overview ? (
+        <section aria-labelledby="about-film" className="flex flex-col gap-2">
+          <h2 id="about-film" className="text-lg font-semibold">
+            About this film
+          </h2>
+          <p className="text-sm break-words whitespace-pre-line opacity-90">
+            {film.overview}
+          </p>
+        </section>
+      ) : null}
+
       <section aria-labelledby="my-rating" className="flex flex-col gap-4">
         <h2 id="my-rating" className="text-lg font-semibold">
           {myRating ? "Your rating" : "Rate this film"}

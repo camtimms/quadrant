@@ -84,7 +84,7 @@ function OpenEditor({
     <form
       action={formAction}
       aria-label={`Update scores for ${film.title}`}
-      className="flex flex-col gap-4 rounded border border-foreground/30 p-3"
+      className="flex w-full flex-col gap-4 rounded border border-foreground/30 p-3"
     >
       <input type="hidden" name="tmdb_id" value={film.tmdbId} />
       <input type="hidden" name="return_to" value={returnTo} />

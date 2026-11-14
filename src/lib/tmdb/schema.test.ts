@@ -99,7 +99,10 @@ describe("parseMovie", () => {
       title: "Commando",
       year: 1985,
       posterPath: "/ollPAAAgZ7euU8VisfqU3cuXhZ6.jpg",
+      // The real description from the captured response.
+      overview: movieNormal.overview,
     });
+    expect(movieNormal.overview).toContain("John Matrix");
   });
 
   it("reads a film with no poster", () => {
@@ -108,6 +111,7 @@ describe("parseMovie", () => {
       title: "Commando",
       year: 2013,
       posterPath: null,
+      overview: movieNoPoster.overview,
     });
   });
 
@@ -117,6 +121,28 @@ describe("parseMovie", () => {
       tmdbId: 718096,
       year: null,
     });
+  });
+
+  // R54: the description is kept for one film...
+  it("keeps the film's description", () => {
+    expect(parseMovie(movieNoReleaseDate).overview).toBe(
+      movieNoReleaseDate.overview,
+    );
+  });
+
+  it("reads a missing, null or blank description as none", () => {
+    const { overview: _dropped, ...withoutOverview } = movieNormal;
+    void _dropped;
+    expect(parseMovie(withoutOverview).overview).toBe("");
+    expect(parseMovie({ ...movieNormal, overview: null }).overview).toBe("");
+    expect(parseMovie({ ...movieNormal, overview: "   " }).overview).toBe("");
+  });
+
+  // ...but not for search results, which have one too (it is in the
+  // captured response) and drop it.
+  it("is the only place a description is kept: search results drop theirs", () => {
+    expect(searchCommando.results[0].overview.length).toBeGreaterThan(0);
+    expect("overview" in parseSearchResponse(searchCommando)[0]).toBe(false);
   });
 
   it("rejects TMDB's 'not found' body", () => {

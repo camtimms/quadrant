@@ -181,9 +181,54 @@ describe("FilmList (R33)", () => {
 
   it("links each film to its page", () => {
     render(<FilmList films={FILMS} />);
+    const rows = screen.getAllByRole("listitem");
+    // The first link in each row is the row itself.
     expect(
-      screen.getAllByRole("link").map((link) => link.getAttribute("href")),
+      rows.map((row) =>
+        within(row).getAllByRole("link")[0].getAttribute("href"),
+      ),
     ).toEqual(["/film/949", "/film/348", "/film/10999", "/film/1"]);
+  });
+
+  // R55: a visible button to the film's page, as well as the row.
+  describe("the Film page button", () => {
+    it("is on every film, and goes to that film's page", () => {
+      render(<FilmList films={FILMS} />);
+      for (const [index, row] of screen.getAllByRole("listitem").entries()) {
+        const button = within(row).getByRole("link", {
+          name: `Film page for ${FILMS[index].title}`,
+        });
+        expect(button.getAttribute("href")).toBe(
+          `/film/${FILMS[index].tmdbId}`,
+        );
+        expect(button.textContent).toContain("Film page");
+      }
+    });
+
+    // A link inside a link is invalid HTML and behaves unpredictably.
+    it("sits outside the row's own link", () => {
+      render(<FilmList films={[FILMS[0]]} />);
+      const [rowLink, button] = within(
+        screen.getByRole("listitem"),
+      ).getAllByRole("link");
+      expect(rowLink.contains(button)).toBe(false);
+    });
+
+    it("sits beside 'Update scores' on the member's own list", () => {
+      render(<FilmList films={[FILMS[0]]} editReturnTo="/" />);
+      const button = screen.getByRole("link", { name: /Film page for/ });
+      const update = screen.getByRole("button", { name: /update scores/i });
+      // Side by side: the same parent holds both.
+      expect(button.parentElement).toBe(update.parentElement);
+    });
+
+    it("is there without 'Update scores' on a list that is not the member's own", () => {
+      render(<FilmList films={[FILMS[0]]} />);
+      expect(screen.getByRole("link", { name: /Film page for/ })).toBeTruthy();
+      expect(
+        screen.queryByRole("button", { name: /update scores/i }),
+      ).toBeNull();
+    });
   });
 
   // The list shows films in the order it is given. Putting the newest first
