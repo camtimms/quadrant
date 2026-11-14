@@ -4,6 +4,7 @@ import { parsePublicEnv } from "@/lib/env";
 const valid = {
   NEXT_PUBLIC_SUPABASE_URL: "https://abcdefghijklmnop.supabase.co",
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_example",
+  NEXT_PUBLIC_SITE_URL: "http://localhost:3000",
 };
 
 describe("parsePublicEnv", () => {
@@ -18,6 +19,7 @@ describe("parsePublicEnv", () => {
     const withoutUrl = {
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
         valid.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+      NEXT_PUBLIC_SITE_URL: valid.NEXT_PUBLIC_SITE_URL,
     };
     expect(() => parsePublicEnv(withoutUrl)).toThrow(
       /NEXT_PUBLIC_SUPABASE_URL/,
@@ -46,6 +48,18 @@ describe("parsePublicEnv", () => {
           "https://supabase.com/dashboard/project/abcdefghijklmnop",
       }),
     ).toThrow(/dashboard/);
+  });
+
+  // The site URL is glued to "/auth/callback" to build the sign-in return
+  // address, so a trailing slash or a path would produce a broken link.
+  it.each([
+    "http://localhost:3000/",
+    "https://quadrant-db.vercel.app/some/page",
+    "not a url",
+  ])("rejects the site URL %s", (siteUrl) => {
+    expect(() =>
+      parsePublicEnv({ ...valid, NEXT_PUBLIC_SITE_URL: siteUrl }),
+    ).toThrow(/NEXT_PUBLIC_SITE_URL/);
   });
 
   it("names every problem at once, not just the first", () => {

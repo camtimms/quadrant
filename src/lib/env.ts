@@ -24,6 +24,15 @@ const publicEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z
     .string("is missing")
     .min(1, "is empty"),
+  // This app's own address, used to build the link Google sends people back
+  // to after signing in. http://localhost:3000 locally; the Vercel address in
+  // production. Just the origin: no trailing slash and no path.
+  NEXT_PUBLIC_SITE_URL: z
+    .url("must be a full URL such as http://localhost:3000")
+    .refine((url) => URL.canParse(url) && new URL(url).origin === url, {
+      message:
+        "must be just the site address with no trailing slash or path, e.g. http://localhost:3000",
+    }),
 });
 
 /** The checked, typed public variables. */
@@ -76,6 +85,7 @@ export function getPublicEnv(): PublicEnv {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
   });
   return cached;
 }
