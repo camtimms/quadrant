@@ -142,4 +142,5 @@ Running log: date, decision, why. Newest at the bottom.
 | 2026-11-15 | T30: a member page reuses the My films components with the edit prop left out, not a read-only copy. | One chart and one list to maintain. The read-only promise that matters is the database's: a member can only write rows with their own id. |
 | 2026-11-15 | T30: opening your own member page redirects to My films; your own name in a ratings table is not a link. | My choice, for the owner to overrule. A read-only view of your own films beside the editable one would only confuse. |
 | 2026-11-15 | T30: the id in `/members/<id>` must look like a UUID or the page is "not found". | Postgres answers a malformed id with an error, not with "nobody", which would show the error page for a mistyped address. |
+| 2026-11-15 | T30: owner confirmed a friend's member page shows their chart and list, read-only. | Owner's check. |
 | 2026-11-15 | T27: the ratings query is also run against the dev database in `tests/rls/film-ratings.test.ts`. | Same reason as T26: the unit test feeds the loader made-up rows, and this checks the real database nests the member's name the way those rows assume. |
