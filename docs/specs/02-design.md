@@ -462,8 +462,8 @@ The filter and sort choices live in the URL (`?filter=guilty-pleasures`,
 | ------------------------------------------------ | ------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `GET /auth/callback`                             | Route handler | Exchanges the sign-in code for a session                                                                                    |
 | `GET /api/search?q=`                             | Route handler | Members only. Calls TMDB search, returns `{ results: [{ tmdbId, title, year, posterPath }] }` or `{ error: "unavailable" }` |
-| `saveRating(tmdbId, quality, enjoyment, review)` | Server action | Validates with Zod; ensures the `titles` row exists (4.2); calls `save_rating` (3.6); returns the quadrant for R23          |
-| `deleteRating(titleId)`                          | Server action | Deletes the caller's current rating (R21)                                                                                   |
+| `saveRating(previous, formData)` | Server action | Form fields `tmdb_id`, `quality`, `enjoyment`, `review`. Checks the values, then that the caller is a member with a display name, then ensures the `titles` row exists (4.2), then calls `save_rating` (3.6). Returns `{ status: "saved", rating, placement }` for R23, or `{ status: "error", message, field?, values }` |
+| `deleteRating(previous, formData)` | Server action | Form field `title_id` (our id). Deletes the caller's current rating (R21); returns `{ status: "deleted" }` or `{ status: "error", message }`. Deleting a rating that is already gone counts as success |
 | `saveDisplayName(name)`                          | Server action | Inserts or updates the caller's profile (R7)                                                                                |
 | `signOut()`                                      | Server action | Ends the session (R8)                                                                                                       |
 
@@ -725,8 +725,16 @@ _Satisfies: R10–R12, R16, R17, R31, R35, E6, E9, E12, E19_
 
 Rules behind the table:
 
-- Server actions return `{ ok: true, … }` or `{ ok: false, message }`; they
-  never throw for an expected failure. The form shows the message.
+- Server actions take `(previousState, formData)` so they work with React's
+  `useActionState`, and return a state object; they never throw for an
+  expected failure. The rating actions return `{ status: "saved" | "deleted" }`
+  or `{ status: "error", message }`. An error from `saveRating` also carries
+  the field at fault, if any, and the values that were typed, so the form can
+  refill itself (E19). After a successful save or delete the action calls
+  `refresh()` so the page the member is on redraws with the new data.
+- `saveRating` also catches unexpected failures and returns them as an error,
+  instead of letting them reach the error page, because that page would
+  discard a typed review.
 - Reviews are rendered as React text, which escapes HTML automatically; the
   codebase never uses `dangerouslySetInnerHTML` (R18). Long words wrap (E15).
 - Error messages never include another member's email or internal details.

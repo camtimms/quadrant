@@ -1,0 +1,387 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { CurrentMember } from "@/lib/auth/member";
+import { classify, PLACEMENTS } from "@/lib/quadrant";
+import type { EnsureTitleResult } from "@/lib/titles/ensureTitle";
+import type {
+  DeleteRatingState,
+  RatingFormState,
+} from "@/lib/validation/rating";
+import { deleteRating, saveRating } from "./rating";
+
+// The actions sit between four things: who is signed in, our film store,
+// the database, and Next.js's "redraw the page" call. All four are replaced
+// with stand-ins here, so these tests are about the actions' own decisions:
+// what gets checked, in what order, and what the member is told.
+//
+// That the DATABASE really refuses bad data and other people's rows is
+// proven separately, against a real database, in tests/rls/ratings.test.ts.
+
+const mocks = vi.hoisted(() => ({
+  getCurrentMember: vi.fn<() => Promise<CurrentMember | null>>(),
+  ensureTitle: vi.fn<(tmdbId: number) => Promise<EnsureTitleResult>>(),
+  rpc: vi.fn(),
+  deleteResult: vi.fn(),
+  deleteFilters: [] as [string, unknown][],
+  refresh: vi.fn(),
+}));
+
+vi.mock("@/lib/auth/member", () => ({
+  getCurrentMember: mocks.getCurrentMember,
+}));
+vi.mock("@/lib/titles/ensureTitle", () => ({
+  ensureTitle: mocks.ensureTitle,
+}));
+vi.mock("next/cache", () => ({ refresh: mocks.refresh }));
+vi.mock("@/lib/supabase/server", () => ({
+  // A pretend Supabase client with just the two things the actions use:
+  //   .rpc("save_rating", {...})
+  //   .from("ratings").delete().eq(...).eq(...).eq(...)
+  createClient: async () => ({
+    rpc: mocks.rpc,
+    from: (table: string) => ({
+      delete: () => {
+        expect(table).toBe("ratings");
+        const query = {
+          eq(column: string, value: unknown) {
+            mocks.deleteFilters.push([column, value]);
+            return query;
+          },
+          // Awaiting the query "runs" it.
+          then: (resolve: (value: unknown) => void) =>
+            resolve(mocks.deleteResult()),
+        };
+        return query;
+      },
+    }),
+  }),
+}));
+
+const MEMBER: CurrentMember = {
+  userId: "00000000-0000-4000-8000-000000000001",
+  isMember: true,
+  displayName: "Cam",
+  suggestedName: "Cam",
+};
+
+const TITLE = {
+  id: 42,
+  media_type: "movie",
+  tmdb_id: 10999,
+  title: "Commando",
+  release_year: 1985,
+  poster_path: "/x.jpg",
+  fetched_at: "2026-11-14T00:00:00Z",
+};
+
+/** Build the form data a browser would send. */
+function form(fields: Record<string, string>): FormData {
+  const data = new FormData();
+  for (const [name, value] of Object.entries(fields)) data.set(name, value);
+  return data;
+}
+
+const IDLE = { status: "idle" } as const;
+
+function save(fields: Record<string, string> = {}): Promise<RatingFormState> {
+  return saveRating(
+    IDLE,
+    form({
+      tmdb_id: "10999",
+      quality: "3",
+      enjoyment: "9",
+      review: "So bad it's good.",
+      ...fields,
+    }),
+  );
+}
+
+function remove(titleId = "42"): Promise<DeleteRatingState> {
+  return deleteRating(IDLE, form({ title_id: titleId }));
+}
+
+beforeEach(() => {
+  mocks.getCurrentMember.mockResolvedValue(MEMBER);
+  mocks.ensureTitle.mockResolvedValue({ ok: true, title: TITLE });
+  mocks.rpc.mockResolvedValue({ data: { id: 1 }, error: null });
+  mocks.deleteResult.mockReturnValue({ error: null });
+  mocks.deleteFilters.length = 0;
+  vi.spyOn(console, "error").mockImplementation(() => {});
+});
+
+afterEach(() => {
+  vi.resetAllMocks();
+  vi.restoreAllMocks();
+});
+
+describe("saveRating", () => {
+  describe("a good rating (R15, R23)", () => {
+    it("stores the film, saves the scores under it, and reports the placement", async () => {
+      const result = await save({ quality: "2", enjoyment: "9" });
+
+      expect(mocks.ensureTitle).toHaveBeenCalledWith(10999);
+      expect(mocks.rpc).toHaveBeenCalledWith("save_rating", {
+        p_title_id: 42, // OUR id for the film, from ensureTitle
+        p_quality: 2,
+        p_enjoyment: 9,
+        p_review: "So bad it's good.",
+      });
+      expect(result).toEqual({
+        status: "saved",
+        rating: { quality: 2, enjoyment: 9, review: "So bad it's good." },
+        // Both scores are extreme (2 or less, 8 or more): an outer corner.
+        placement: "guilty-pleasures",
+      });
+    });
+
+    it("asks the page to redraw, so charts and lists show the new rating", async () => {
+      await save();
+      expect(mocks.refresh).toHaveBeenCalledTimes(1);
+    });
+
+    // The whole point of having one rule: the placement shown after saving
+    // can never disagree with the one shown everywhere else (R29).
+    it("returns the same placement as classify, for every pair of scores", async () => {
+      const seen = new Set<string>();
+      for (let quality = 0; quality <= 10; quality++) {
+        for (let enjoyment = 0; enjoyment <= 10; enjoyment++) {
+          const result = await save({
+            quality: String(quality),
+            enjoyment: String(enjoyment),
+          });
+          const expected = classify({ quality, enjoyment });
+          expect(result).toMatchObject({
+            status: "saved",
+            placement: expected,
+          });
+          seen.add(expected);
+        }
+      }
+      // All thirteen placements came up along the way.
+      expect(seen.size).toBe(PLACEMENTS.length);
+    });
+
+    // E14: 0 is a score, not "nothing".
+    it("accepts 0 and 10", async () => {
+      const result = await save({ quality: "0", enjoyment: "10" });
+      expect(result).toMatchObject({ status: "saved" });
+      expect(mocks.rpc.mock.calls[0][1]).toMatchObject({
+        p_quality: 0,
+        p_enjoyment: 10,
+      });
+    });
+
+    // E22: untouched sliders are a real 5/5.
+    it("saves untouched sliders as 5/5, on the fence", async () => {
+      expect(await save({ quality: "5", enjoyment: "5" })).toMatchObject({
+        status: "saved",
+        placement: "on-the-fence",
+      });
+    });
+
+    it("sends 'no review' as an empty string", async () => {
+      await save({ review: "   " });
+      expect(mocks.rpc.mock.calls[0][1].p_review).toBe("");
+    });
+
+    it("accepts a 500-character review", async () => {
+      expect(await save({ review: "a".repeat(500) })).toMatchObject({
+        status: "saved",
+      });
+    });
+  });
+
+  describe("a bad rating (R16, R17)", () => {
+    it.each([
+      ["a missing quality", { quality: "" }, "quality"],
+      ["a fractional quality", { quality: "7.5" }, "quality"],
+      ["a quality of 11", { quality: "11" }, "quality"],
+      ["a quality of -1", { quality: "-1" }, "quality"],
+      ["a missing enjoyment", { enjoyment: "" }, "enjoyment"],
+      ["a fractional enjoyment", { enjoyment: "2.5" }, "enjoyment"],
+      ["an enjoyment of 11", { enjoyment: "11" }, "enjoyment"],
+      ["a 501-character review", { review: "a".repeat(501) }, "review"],
+    ])("rejects %s and names the field", async (_name, fields, field) => {
+      const result = await save(fields);
+
+      expect(result).toMatchObject({ status: "error", field });
+      // Nothing was looked up or written.
+      expect(mocks.ensureTitle).not.toHaveBeenCalled();
+      expect(mocks.rpc).not.toHaveBeenCalled();
+      expect(mocks.refresh).not.toHaveBeenCalled();
+    });
+
+    it("rejects a score field left out of the request entirely", async () => {
+      const data = form({ tmdb_id: "10999", enjoyment: "5" });
+      expect(await saveRating(IDLE, data)).toMatchObject({
+        status: "error",
+        field: "quality",
+      });
+    });
+
+    it("hands back what was typed, so the form can refill itself", async () => {
+      const review = "a".repeat(501);
+      const result = await save({ quality: "8", enjoyment: "2", review });
+      expect(result).toMatchObject({
+        status: "error",
+        values: { quality: "8", enjoyment: "2", review },
+      });
+    });
+
+    it("rejects something that is not a film id", async () => {
+      const result = await save({ tmdb_id: "abc" });
+      expect(result).toMatchObject({ status: "error" });
+      expect(mocks.ensureTitle).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("who is asking", () => {
+    // E19: the session ran out while they were writing.
+    it("returns an error, not an exception, when the session has expired", async () => {
+      mocks.getCurrentMember.mockResolvedValue(null);
+
+      const result = await save({ review: "A long, considered review." });
+
+      expect(result).toMatchObject({
+        status: "error",
+        message: expect.stringMatching(/sign in again/i),
+        // The typed review comes back so it is not lost.
+        values: { review: "A long, considered review." },
+      });
+      expect(mocks.ensureTitle).not.toHaveBeenCalled();
+      expect(mocks.rpc).not.toHaveBeenCalled();
+    });
+
+    // The secret key is behind ensureTitle. A non-member must never get
+    // that far, or a stranger with a Google account could fill our
+    // database with films.
+    it("refuses a signed-in non-member before the film store is touched", async () => {
+      mocks.getCurrentMember.mockResolvedValue({ ...MEMBER, isMember: false });
+
+      expect(await save()).toMatchObject({ status: "error" });
+      expect(mocks.ensureTitle).not.toHaveBeenCalled();
+      expect(mocks.rpc).not.toHaveBeenCalled();
+    });
+
+    it("refuses a member who has not chosen a display name yet", async () => {
+      mocks.getCurrentMember.mockResolvedValue({
+        ...MEMBER,
+        displayName: null,
+      });
+
+      expect(await save()).toMatchObject({ status: "error" });
+      expect(mocks.ensureTitle).not.toHaveBeenCalled();
+    });
+
+    // The session can also run out between our check and the database's.
+    it("treats the database's 'permission denied' as an expired session", async () => {
+      mocks.rpc.mockResolvedValue({
+        data: null,
+        error: { code: "42501", message: "permission denied" },
+      });
+
+      expect(await save()).toMatchObject({
+        status: "error",
+        message: expect.stringMatching(/sign in again/i),
+        values: { review: "So bad it's good." },
+      });
+    });
+  });
+
+  describe("when something else goes wrong", () => {
+    it("says the film cannot be found when TMDB has no such film", async () => {
+      mocks.ensureTitle.mockResolvedValue({ ok: false, reason: "not-found" });
+
+      const result = await save();
+
+      expect(result).toMatchObject({
+        status: "error",
+        message: expect.stringMatching(/find that film/i),
+      });
+      expect(mocks.rpc).not.toHaveBeenCalled();
+    });
+
+    // E9
+    it("says to try again when TMDB is down, and keeps the review", async () => {
+      mocks.ensureTitle.mockResolvedValue({ ok: false, reason: "unavailable" });
+
+      expect(await save()).toMatchObject({
+        status: "error",
+        message: expect.stringMatching(/try again/i),
+        values: { review: "So bad it's good." },
+      });
+      expect(mocks.rpc).not.toHaveBeenCalled();
+    });
+
+    it("says it could not be saved when the database refuses, without details", async () => {
+      mocks.rpc.mockResolvedValue({
+        data: null,
+        error: {
+          code: "23514",
+          message: 'violates check "ratings_quality_check"',
+        },
+      });
+
+      const result = await save();
+
+      expect(result).toMatchObject({ status: "error" });
+      // Internal details go to the server log, never to the screen.
+      expect(JSON.stringify(result)).not.toContain("ratings_quality_check");
+      expect(mocks.refresh).not.toHaveBeenCalled();
+    });
+
+    it("returns an error rather than throwing if the film store fails", async () => {
+      mocks.ensureTitle.mockRejectedValue(new Error("database is down"));
+
+      expect(await save()).toMatchObject({
+        status: "error",
+        values: { review: "So bad it's good." },
+      });
+    });
+  });
+});
+
+describe("deleteRating (R21)", () => {
+  it("deletes the member's own current rating of that film", async () => {
+    expect(await remove("42")).toEqual({ status: "deleted" });
+
+    // The user id comes from the session, never from the form.
+    expect(mocks.deleteFilters).toEqual(
+      expect.arrayContaining([
+        ["user_id", MEMBER.userId],
+        ["title_id", 42],
+        ["is_current", true],
+      ]),
+    );
+    expect(mocks.refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([[""], ["abc"], ["-1"], ["1.5"]])(
+    "rejects %j as a film, without touching the database",
+    async (titleId) => {
+      expect(await remove(titleId)).toMatchObject({ status: "error" });
+      expect(mocks.deleteFilters).toEqual([]);
+    },
+  );
+
+  it("returns an error, not an exception, when the session has expired", async () => {
+    mocks.getCurrentMember.mockResolvedValue(null);
+
+    expect(await remove()).toMatchObject({
+      status: "error",
+      message: expect.stringMatching(/sign in again/i),
+    });
+    expect(mocks.deleteFilters).toEqual([]);
+  });
+
+  it("says so when the database refuses", async () => {
+    mocks.deleteResult.mockReturnValue({
+      error: { code: "XX000", message: "boom" },
+    });
+
+    const result = await remove();
+
+    expect(result).toMatchObject({ status: "error" });
+    expect(JSON.stringify(result)).not.toContain("boom");
+    expect(mocks.refresh).not.toHaveBeenCalled();
+  });
+});

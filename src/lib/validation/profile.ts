@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { characterCount } from "@/lib/validation/text";
 
 /**
  * Rules for a member's display name (R7).
@@ -10,16 +11,6 @@ import { z } from "zod";
  * in tests/rls/members.test.ts pin down the same boundaries.
  */
 export const DISPLAY_NAME_MAX_LENGTH = 40;
-
-/**
- * Count characters the way Postgres does.
- *
- * "abc".length is 3, but "🎬".length is 2: JavaScript's .length counts
- * 16-bit units, and most emoji need two. Spreading a string into an array
- * splits it into whole characters instead, which matches the database's
- * char_length().
- */
-const characterCount = (value: string) => [...value].length;
 
 const displayNameSchema = z
   .string("Enter a name.")
