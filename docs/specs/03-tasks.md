@@ -145,7 +145,7 @@ Every requirement appears in at least one task.
 | R9–R13           | T15, T16, T17, T23        |
 | R14              | T19, T21                  |
 | R15–R23, R49     | T19, T20, T22, T23        |
-| R24–R29, R50     | T4, T5, T24               |
+| R24–R29, R50, R52 | T4, T4a, T5, T24 |
 | R30–R36          | T7, T24, T25, T26         |
 | R51              | T26a                      |
 | R37, R42, R45    | T5, T6, T27               |
@@ -163,7 +163,7 @@ Every requirement appears in at least one task.
 | NFR16, NFR17     | T1, T4–T7                 |
 | NFR18            | T15, T18, T34             |
 | NFR19–NFR21      | T5, T19                   |
-| NFR22            | T4, T24                   |
+| NFR22 | T4, T4a, T24 |
 
 ## When you'll be needed
 
