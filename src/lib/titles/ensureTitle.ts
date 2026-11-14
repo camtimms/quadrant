@@ -35,6 +35,14 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 /** The largest value the tmdb_id column (a 32-bit integer) can hold. */
 const MAX_TMDB_ID = 2 ** 31 - 1;
 
+/**
+ * Is a stored copy old enough to need refreshing? Exactly 30 days is still
+ * fine; a moment over is stale.
+ */
+export function isStale(fetchedAt: string, now: Date): boolean {
+  return now.getTime() - Date.parse(fetchedAt) > TITLE_MAX_AGE_DAYS * DAY_MS;
+}
+
 export type EnsureTitleResult =
   | { ok: true; title: StoredTitle }
   // "not-found": TMDB has no such film (or the id is not an id at all).
@@ -78,8 +86,7 @@ export async function ensureTitle(
   const now = deps.now();
 
   if (existing) {
-    const ageMs = now.getTime() - Date.parse(existing.fetched_at);
-    if (ageMs <= TITLE_MAX_AGE_DAYS * DAY_MS) {
+    if (!isStale(existing.fetched_at, now)) {
       return { ok: true, title: existing };
     }
 

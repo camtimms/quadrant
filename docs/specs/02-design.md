@@ -305,6 +305,10 @@ Confirmed from TMDB's API reference:
 - Saving is an upsert on `(media_type, tmdb_id)`, so a refresh, and two
   members rating the same new film at the same moment, both land on one row
   without changing the id that ratings point at.
+- **Viewing a film stores nothing.** The film page (`src/lib/data/filmPage.ts`)
+  reads our copy if one exists, refreshing it when it is over 30 days old; for
+  a film nobody has rated it fetches the details live from TMDB and writes
+  nothing. Only saving a rating creates a `titles` row.
 - **Posters are not stored.** We keep `poster_path` and the browser loads the
   image directly from `https://image.tmdb.org/t/p/<size><poster_path>`
   (confirmed format). Sizes used: `w185` for lists and `w342` for the film

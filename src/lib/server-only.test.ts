@@ -18,6 +18,7 @@ const SERVER_ONLY_MODULES = [
   "src/lib/supabase/admin.ts",
   "src/lib/titles/store.ts",
   "src/lib/titles/ensureTitle.ts",
+  "src/lib/data/filmPage.ts",
 ];
 
 describe("server-only modules", () => {
