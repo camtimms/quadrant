@@ -33,7 +33,8 @@ Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to tha
 
 ## Milestone B — The quadrant maths (needs no accounts)
 
-- [ ] **T4: Levels, classification and labels** — R24, R25, R26, R50, R29, NFR17, NFR22 · `src/lib/quadrant/types.ts`, `classify.ts`, `labels.ts`, `classify.test.ts` · tests: `levelOf` at 4, 4.9, 5, 5.1, 6; `classify` for all 121 whole-number pairs (100 in a quadrant, 20 with an axis label, only 5/5 on the fence); each of the nine placements has a label · S
+- [x] **T4: Levels, classification and labels** — R24, R25, R26, R50, R29, NFR17, NFR22 · `src/lib/quadrant/types.ts`, `classify.ts`, `labels.ts`, `classify.test.ts` · tests: `levelOf` at 4, 4.9, 5, 5.1, 6; `classify` for all 121 whole-number pairs (100 in a quadrant, 20 with an axis label, only 5/5 on the fence); each of the nine placements has a label · S
+  - *Done 2026-11-14.* `classify` is a 3 × 3 lookup table, so the compiler rejects a missing combination. Also added `SCALE_END_LABELS` (slider and axis end words, reusing the placement labels) and a `PLACEMENTS` list in display order. No surprises.
 
 - [ ] **T5: Group average** — R27, R45, NFR17, NFR21 · `src/lib/quadrant/average.ts`, `average.test.ts` · tests: empty → null; one rating → itself; means of 4.94 / 4.95 / 5.04 / 5.05 round and classify correctly; a score of 0 counts as 0, not as missing · S
 
