@@ -1,6 +1,6 @@
 # 03 — Tasks
 
-Status: **amended after approval, awaiting re-approval** (2026-11-14) — T4a added and T7, T24–T26 reworded for the thirteen-placement rule (requirements v4).
+Status: **APPROVED** (amended version, 2026-11-14) — T4a added and T7, T24–T26 reworded for the thirteen-placement rule (requirements v4).
 Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to that document.
 
 **How to read a task**

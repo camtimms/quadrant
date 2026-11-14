@@ -1,6 +1,6 @@
 # 02 — Design
 
-Status: **amended after approval, awaiting re-approval** (2026-11-14) — §7 and
+Status: **APPROVED** (amended version, 2026-11-14) — §7 and
 §8 now have thirteen placements (outer corners need both scores at 7.5+ / 2.5−;
 inner bands fill the rest of each quarter), following requirements v4.
 Implements: `01-requirements.md` (approved v2)

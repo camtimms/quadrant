@@ -1,6 +1,6 @@
 # 01 — Requirements
 
-Status: **v4 — amended after approval, awaiting re-approval** (2026-11-14)
+Status: **APPROVED** (v4, 2026-11-14)
 
 v4 changes (owner’s request during implementation, after T4): the famous four
 labels now need *both* scores to be extreme (7.5 or more / 2.5 or less, which
