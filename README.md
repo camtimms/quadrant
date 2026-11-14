@@ -63,14 +63,67 @@ to the GitHub repository `camtimms/quadrant`.
   the error in its dashboard under the project's Deployments tab.
 
 Environment variables for the deployed site are set in the Vercel dashboard
-(Project → Settings → Environment Variables), never in the repository. None are
-needed yet; the task that introduces each one will say so.
+(Project → Settings → Environment Variables), never in the repository.
+`.env.example` lists every variable the app reads.
+
+## Two Supabase projects
+
+| Project | Used for | Sign-in methods |
+| --- | --- | --- |
+| `quadrant-dev` | Local development and the automated access-control tests | Google, plus email + password for test users only |
+| `quadrant-prod` | The live site and real ratings | Google only |
+
+The Supabase command-line tool is linked to `quadrant-dev`, so every database
+command targets dev unless you deliberately use the production one:
+
+| Command | Target |
+| --- | --- |
+| `npm run db:push` | `quadrant-dev` |
+| `npm run test:rls` | `quadrant-dev` (refuses to run against anything else) |
+| `npm run db:push:prod` | `quadrant-prod` |
+
+**Order for any database change:** write the migration, `npm run db:push`,
+`npm run test:rls`, and only when that passes, `npm run db:push:prod`.
+
+### Production settings that live in dashboards, not in code
+
+If production ever has to be rebuilt, these are the things a fresh project
+needs that no file in this repository sets:
+
+In `quadrant-prod` (Supabase dashboard):
+
+- Authentication → Sign In / Providers: **Google on** (client ID and secret
+  from the Google Cloud OAuth client), **Email off**.
+- Authentication → Hooks: "Before User Created" → Postgres function
+  `public.hook_check_invite`. Creating the function (migration 2) does not
+  switch the hook on.
+- Authentication → URL Configuration: site URL = the live address; redirect
+  URLs include `<live address>/auth/callback`.
+
+In Google Cloud (the OAuth client): each Supabase project's callback URL,
+`https://<project-ref>.supabase.co/auth/v1/callback`, as an authorised redirect
+URI.
+
+In Vercel (Production environment variables): `NEXT_PUBLIC_SUPABASE_URL`,
+`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `NEXT_PUBLIC_SITE_URL`, with
+`quadrant-prod`'s values. Changing a variable needs a redeploy to take effect.
+
+### Inviting and removing people
+
+The invite list is the `allowed_emails` table. Edit it in the Supabase
+dashboard's Table Editor, in the project you mean (production for real friends).
+
+- **Invite:** add a row with the person's Google email address **in lower
+  case**, then send them the site link.
+- **Remove:** delete their row. They are locked out on their next page load;
+  their ratings stay.
 
 ## Privacy
 
 The site asks search engines not to index it (`/robots.txt` and a `noindex` tag
-on every page) and uses no analytics. That is politeness, not security — real
-access control arrives with sign-in and database policies (tasks T8–T14).
+on every page) and uses no analytics. That is politeness, not security. Access
+is controlled by Google sign-in against the invite list, enforced by
+row-level-security rules in the database (see `supabase/migrations/`).
 
 ## Credits
 
