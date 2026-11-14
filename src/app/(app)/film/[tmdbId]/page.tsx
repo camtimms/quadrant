@@ -5,6 +5,7 @@ import { GroupAverage } from "@/components/film/GroupAverage";
 import { PosterImage } from "@/components/film/PosterImage";
 import { RatingsTable } from "@/components/film/RatingsTable";
 import { DeleteRatingButton } from "@/components/rating/DeleteRatingButton";
+import { MyRatingSection } from "@/components/rating/MyRatingSection";
 import { RatingForm } from "@/components/rating/RatingForm";
 import { getCurrentMember } from "@/lib/auth/member";
 import { loadFilmPage } from "@/lib/data/filmPage";
@@ -103,10 +104,9 @@ export default async function FilmPage({
         </section>
       ) : null}
 
-      <section aria-labelledby="my-rating" className="flex flex-col gap-4">
-        <h2 id="my-rating" className="text-lg font-semibold">
-          {myRating ? "Your rating" : "Rate this film"}
-        </h2>
+      {/* Folds down to one line once the film is rated, so the form does
+          not push everything else off a phone screen (R56). */}
+      <MyRatingSection rating={myRating}>
         <RatingForm
           tmdbId={film.tmdbId}
           initialRating={myRating}
@@ -124,7 +124,7 @@ export default async function FilmPage({
         {myRating && titleId !== null ? (
           <DeleteRatingButton titleId={titleId} filmTitle={film.title} />
         ) : null}
-      </section>
+      </MyRatingSection>
 
       {/* Shown whether or not the viewer has rated the film (E12). The
           group's numbers are stated in words here; the chart that joins

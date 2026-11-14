@@ -730,6 +730,15 @@ max="10" step="1">` starting at 5, with the current number shown beside it and
   because browsers already give it arrow-key, Home/End and touch support
   (NFR12). A small live preview under the sliders shows the placement the
   current values would get, using `classify`, before the member saves.
+- **Your rating folds away (R56).** On the film page the rating form sits
+  inside the browser's own `<details>` element (`MyRatingSection`). For a
+  rated film it starts closed and its `<summary>` line states the scores and
+  placement with the word "Change"; for an unrated film it starts open under
+  "Rate this film". Native `<details>` is used because it already handles
+  click, tap, Enter and Space and announces its state to screen readers, with
+  no JavaScript of ours, so the section stays a server component. The form is
+  still in the page while closed, so what a member typed is not lost by
+  closing it. _(Added in T27b.)_
 - **Quick update (R51).** A smaller `InlineRatingEditor` (the two sliders and
   the placement preview, no review box) appears in two places on a member's own
   "My films" page: under each list row, and under each film in the panel

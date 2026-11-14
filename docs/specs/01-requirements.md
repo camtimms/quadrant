@@ -13,6 +13,8 @@ Later the same day the owner asked for the film's description on its page and
 a button to that page beside "Update scores" (R14 amended, new R54 and R55).
 On 2026-11-15 the owner supplied a site icon and asked for it to be used as
 the favicon and wherever else the site shows its identity (new NFR25).
+The same day the owner asked for the "Your rating" section of the film page to
+fold away, since it took up much of the screen (new R56).
 
 v4 changes (owner’s request during implementation, after T4): the famous four
 labels now need *both* scores to be extreme (7.5 or more / 2.5 or less, which
@@ -112,6 +114,7 @@ Tags like `[Q10]` point to the question (sections 6–7) that settled that requi
 - **R22** — WHEN a member attempts to create, edit or delete a rating belonging to another member, THE SYSTEM SHALL reject the attempt at the server/database layer.
 - **R54** — WHEN a member opens a film's page, THE SYSTEM SHALL show the film's description from the movie database, when it has one, together with the member's own review. _(v5, new.)_
 - **R55** — WHEN a film is shown in a list or in the panel opened from a chart point, THE SYSTEM SHALL offer a visible button to that film's page, placed beside "Update scores" where that is shown. (Selecting the film itself goes to the same page; the button is there so the two actions sit side by side.) _(v5, new.)_
+- **R56** — _(v5, new.)_ WHEN a member opens the page of a film they have already rated, THE SYSTEM SHALL show their rating as one line (both scores and the placement) with the rating form folded away beneath it, and SHALL open the form when the member asks. WHEN the member has not rated the film, the form SHALL start open.
 - **R23** — WHEN a rating is saved from a film's page, THE SYSTEM SHALL take the member to "My films", where the film appears on the chart, and SHALL tell them the placement it landed in. _(v5: was "show the member the placement it landed in", on the film page itself.)_
 
 ### D. Quadrant maths (the core mechanic)
