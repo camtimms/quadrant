@@ -505,6 +505,14 @@ underneath: a review can be 500 characters, too long for a table column on a
 phone. A film nobody has rated shows "Nobody has rated this film yet" and no
 average. _(Added in T27.)_
 
+A member page (`/members/[id]`) is My films for someone else: the same
+loader (`loadMemberFilms`) with their id, and the same chart, chips and list
+without the `editReturnTo` prop, which is the only thing that makes edit
+controls appear (R46). The id in the address is checked to be a UUID first
+(`parseMemberId`), and the member's name comes from `profiles`; either
+failing gives "not found". Opening your own id redirects to My films.
+_(Added in T30.)_
+
 `/friends` needs every current rating to work out averages and disagreement. At
 the POC ceiling (~5,000 rows of five small columns) that is a few hundred
 kilobytes read on the server and is comfortably within NFR8. If the app

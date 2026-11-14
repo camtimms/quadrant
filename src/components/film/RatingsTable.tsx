@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { formatScore } from "@/components/chart/scale";
 import { classify, PLACEMENT_LABELS, type Point } from "@/lib/quadrant";
 
@@ -64,10 +65,7 @@ export function RatingsTable({ ratings }: Props) {
           {ratings.map((rating) => (
             <tr key={rating.userId} className="border-b border-foreground/10">
               <th scope="row" className="py-2 pr-2 font-medium break-words">
-                {rating.displayName}
-                {rating.isViewer ? (
-                  <span className="font-normal opacity-70"> (you)</span>
-                ) : null}
+                <MemberName rating={rating} />
               </th>
               <td className="px-2 py-2">{formatScore(rating.point.quality)}</td>
               <td className="px-2 py-2">
@@ -93,10 +91,7 @@ export function RatingsTable({ ratings }: Props) {
                 className="flex flex-col gap-1 text-sm"
               >
                 <span className="font-medium">
-                  {rating.displayName}
-                  {rating.isViewer ? (
-                    <span className="font-normal opacity-70"> (you)</span>
-                  ) : null}
+                  <MemberName rating={rating} />
                 </span>
                 {/* React writes this out as plain text, so anything in a
                     review that looks like HTML is shown, not run.
@@ -110,5 +105,30 @@ export function RatingsTable({ ratings }: Props) {
         </div>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * A member's name. A friend's name is a link to their films (R46). The
+ * viewer's own name is plain text marked "(you)": their films are a tap
+ * away in the header already, and a link among links to other people would
+ * suggest it goes somewhere different.
+ */
+function MemberName({ rating }: { rating: MemberRating }) {
+  if (rating.isViewer) {
+    return (
+      <>
+        {rating.displayName}
+        <span className="font-normal opacity-70"> (you)</span>
+      </>
+    );
+  }
+  return (
+    <Link
+      href={`/members/${rating.userId}`}
+      className="underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 active:opacity-60"
+    >
+      {rating.displayName}
+    </Link>
   );
 }

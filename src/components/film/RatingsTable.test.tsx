@@ -90,6 +90,34 @@ describe("RatingsTable (R37)", () => {
     expect(rowOf("Bob").textContent).not.toContain("(you)");
   });
 
+  // R46: a friend's name leads to their films.
+  it("links each friend's name to their page, but not the viewer's own", () => {
+    render(
+      <RatingsTable
+        ratings={[rating("Cam", 5, 5, { isViewer: true }), rating("Bob", 3, 9)]}
+      />,
+    );
+
+    expect(
+      within(rowOf("Bob"))
+        .getByRole("link", { name: "Bob" })
+        .getAttribute("href"),
+    ).toBe("/members/id-Bob");
+    expect(within(rowOf("Cam")).queryByRole("link")).toBeNull();
+  });
+
+  it("links the name on a friend's review too", () => {
+    render(
+      <RatingsTable ratings={[rating("Bob", 3, 9, { review: "Fun." })]} />,
+    );
+
+    expect(
+      within(screen.getByTestId("review"))
+        .getByRole("link", { name: "Bob" })
+        .getAttribute("href"),
+    ).toBe("/members/id-Bob");
+  });
+
   describe("reviews", () => {
     it("shows a review with the name of the member who wrote it", () => {
       render(
