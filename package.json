@@ -14,7 +14,8 @@
     "format:check": "prettier --check .",
     "db:push": "supabase db push --remote",
     "db:types": "supabase gen types typescript --linked > src/lib/supabase/database.types.ts",
-    "test:rls": "vitest run --config vitest.rls.config.mts"
+    "test:rls": "vitest run --config vitest.rls.config.mts",
+    "db:push:prod": "supabase db push --remote=ykmpktjnqlmmirfciycq"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

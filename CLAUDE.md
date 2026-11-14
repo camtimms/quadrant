@@ -53,7 +53,8 @@ Stack: Next.js 16 (App Router) + TypeScript, Tailwind, Vitest. Node 22 or newer.
 | `npm run format` | Format code and config with Prettier |
 | `npm run format:check` | Check formatting without changing files |
 | `npm run build` | Production build |
-| `npm run db:push` | Apply new files in `supabase/migrations/` to the linked Supabase project |
+| `npm run db:push` | Apply new files in `supabase/migrations/` to the linked project (`quadrant-dev`) |
+| `npm run db:push:prod` | Apply new migrations to `quadrant-prod`. Only after `test:rls` passes on dev |
 | `npm run db:types` | Regenerate `src/lib/supabase/database.types.ts` from the linked project |
 
 Run lint, typecheck and test after every task, plus `test:rls` after any task
