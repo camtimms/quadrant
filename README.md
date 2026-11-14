@@ -130,5 +130,7 @@ row-level-security rules in the database (see `supabase/migrations/`).
 
 ## Credits
 
-Film data will come from [TMDB](https://www.themoviedb.org/). The required
-attribution notice is added in task T18.
+Film data comes from [TMDB](https://www.themoviedb.org/). This product uses the
+TMDB API but is not endorsed or certified by TMDB. The same notice and TMDB's
+logo are shown on the site's `/about` page, linked from the footer of every
+page, as TMDB's terms of use require.

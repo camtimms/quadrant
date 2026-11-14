@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Footer } from "@/components/Footer";
 import { NO_INDEX, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 import "./globals.css";
 
@@ -26,7 +27,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        {/* On every page, signed in or not: the link to the TMDB credit
+            (NFR18). Pages use "flex-1" to fill the height, which keeps this
+            at the bottom of the screen even when a page is short. */}
+        <Footer />
+      </body>
     </html>
   );
 }
