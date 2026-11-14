@@ -42,7 +42,8 @@ Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to tha
 - [x] **T5: Group average** — R27, R45, NFR17, NFR21 · `src/lib/quadrant/average.ts`, `average.test.ts` · tests: empty → null; one rating → itself; means of 4.94 / 4.95 / 5.04 / 5.05 round and classify correctly; a score of 0 counts as 0, not as missing · S
   - *Done 2026-11-14.* `groupAverage` rounds each mean to one decimal by multiplying the whole-number sum by 10 before dividing, so half cases such as 5.05 round up reliably instead of depending on floating-point luck. Also exports `roundToOneDecimal` for displayed values. Added tests for the 7.5 cut-off on averages (7.45 vs 7.44).
 
-- [ ] **T6: Disagreement** — R41, R44, R45, NFR17 · `src/lib/quadrant/disagreement.ts`, `disagreement.test.ts` · tests: identical points → 0; opposite corners → ≈14.14; `filmDisagreement` for 0, 1, 2 and many ratings (null below two) · S
+- [x] **T6: Disagreement** — R41, R44, R45, NFR17 · `src/lib/quadrant/disagreement.ts`, `disagreement.test.ts` · tests: identical points → 0; opposite corners → ≈14.14; `filmDisagreement` for 0, 1, 2 and many ratings (null below two) · S
+  - *Done 2026-11-14.* `disagreement` is the unrounded straight-line distance; `filmDisagreement` is the largest pairwise distance, or null below two ratings. Also exports `MAX_DISAGREEMENT` (about 14.1). Tests and code were written together this time, so the tests were not seen failing first.
 
 - [ ] **T7: Counting and clustering** — R31, R34, NFR17 · `src/lib/quadrant/counts.ts`, `cluster.ts`, tests, `index.ts` · tests: thirteen counts always sum to the total; points in the same cell form one cluster with the right count and mean position; cell sizes 1 and 0.5 · S
 
