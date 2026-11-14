@@ -1,0 +1,3 @@
+# Store text files with LF line endings on every platform, so Prettier and
+# git agree and diffs stay clean between Windows and other machines.
+* text=auto eol=lf

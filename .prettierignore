@@ -1,0 +1,9 @@
+.next
+node_modules
+package-lock.json
+next-env.d.ts
+# Written and re-added by `next dev`; leave its formatting alone.
+AGENTS.md
+# Prose is written by hand; Prettier is for code and config only.
+*.md
+.claude
