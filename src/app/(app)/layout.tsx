@@ -1,8 +1,9 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { signOut } from "@/app/(app)/actions/auth";
+import { getCurrentMember } from "@/lib/auth/member";
 import { SITE_NAME } from "@/lib/site";
-import { createClient } from "@/lib/supabase/server";
 
 /**
  * The frame around every signed-in page: a header with the site name and a
@@ -10,7 +11,7 @@ import { createClient } from "@/lib/supabase/server";
  *
  * "(app)" in the folder name is a route group. The brackets mean it does not
  * appear in the address: (app)/page.tsx is still "/". It exists so that the
- * signed-in pages can share this layout while /login does not.
+ * signed-in pages can share this layout while /login and /welcome do not.
  */
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
@@ -42,12 +43,15 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
 }
 
 /**
- * Shows its contents only to people on the invite list (R4).
+ * Shows its contents only to members who have chosen a display name.
  *
- * proxy.ts has already made sure the visitor is signed in. This asks the
- * further question "are they still invited?", which matters when someone is
- * removed from the list while signed in (R6). If not, they are sent to
- * /auth/not-invited, which signs them out and explains why.
+ * proxy.ts has already made sure the visitor is signed in. This asks two
+ * further questions:
+ *
+ *  - Are they still on the invite list (R4, R6)? If not, they are sent to
+ *    /auth/not-invited, which signs them out and explains why.
+ *  - Have they picked a display name (R7)? If not, they are sent to
+ *    /welcome to choose one, so every rating has a name to show beside it.
  *
  * This is for a clear experience, not for security. The database already
  * refuses an uninvited person every row; without this they would simply see
@@ -61,25 +65,31 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
  * component to hide data.
  */
 async function MembersOnly({ children }: { children: ReactNode }) {
-  const supabase = await createClient();
-  const { data: isMember, error } = await supabase.rpc(
-    "is_current_user_member",
-  );
+  const member = await getCurrentMember();
 
-  // A failed check (database unreachable, say) is not the same as "not a
-  // member". Throwing shows the error page instead of wrongly signing a real
-  // member out.
-  if (error) throw new Error("Could not check membership.", { cause: error });
+  if (!member) redirect("/login");
+  if (!member.isMember) redirect("/auth/not-invited");
+  if (member.displayName === null) redirect("/welcome");
 
-  if (!isMember) redirect("/auth/not-invited");
   return children;
 }
 
-/** Shows the signed-in address. Replaced by the display name in task T13. */
+/**
+ * The member's display name in the header, linking to where they can change
+ * it. getCurrentMember() is shared with MembersOnly above, so this costs no
+ * extra database query.
+ */
 async function SignedInAs() {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  const email = data?.claims.email;
-  if (!email) return null;
-  return <span className="opacity-70">{email}</span>;
+  const member = await getCurrentMember();
+  if (!member?.displayName) return null;
+  return (
+    <Link
+      href="/welcome"
+      className="underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+      // The visible text is just the name; this says what the link does.
+      aria-label={`${member.displayName}: change your display name`}
+    >
+      {member.displayName}
+    </Link>
+  );
 }

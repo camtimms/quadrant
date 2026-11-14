@@ -134,6 +134,33 @@ describe("an invited member", () => {
     expect(data?.[0]?.display_name).toBe("Alice A.");
   });
 
+  // The app saves a display name with one "insert, or update if it exists"
+  // statement (an upsert). It must work for a name change as well as a
+  // first save, and must leave exactly one row.
+  it("can save their name again with an upsert", async () => {
+    const { error } = await alice.client
+      .from("profiles")
+      .upsert({ id: alice.id, display_name: "Alice Again" });
+    expect(error).toBeNull();
+
+    const rows = await admin.from("profiles").select("id").eq("id", alice.id);
+    expect(rows.data).toHaveLength(1);
+  });
+
+  it("cannot use an upsert to overwrite another member's profile", async () => {
+    const { error } = await alice.client
+      .from("profiles")
+      .upsert({ id: bob.id, display_name: "Hacked" });
+    expect(error?.code).toBe(PG.permissionDenied);
+
+    const check = await admin
+      .from("profiles")
+      .select("display_name")
+      .eq("id", bob.id)
+      .single();
+    expect(check.data?.display_name).toBe("Bob");
+  });
+
   // NFR1: a member cannot act as another member.
   it("cannot create a profile for another user", async () => {
     const { error } = await alice.client
