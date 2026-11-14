@@ -1,6 +1,13 @@
 # 01 — Requirements
 
-Status: **APPROVED** (v3, 2026-11-14)
+Status: **v4 — amended after approval, awaiting re-approval** (2026-11-14)
+
+v4 changes (owner’s request during implementation, after T4): the famous four
+labels now need *both* scores to be extreme (8 or more / 2 or less), and the
+bottom-left corner is new: Dumpster Fires. The rest of each quarter gets an
+inner-band label: Worth Watching, Cheap Thrills, Respectable, Not Worth
+Watching. Thirteen placements in total. Affects the glossary, R24, R25, R28,
+R34, new R52, E24–E26, NFR22.
 
 v3 changes (owner's request during Phase 3): a point with exactly one neutral
 value is no longer "On the fence" — it takes a single-axis label (Good, Bad,
@@ -35,13 +42,16 @@ Tags like `[Q10]` point to the question (sections 6–7) that settled that requi
 | **Rating**               | One member's current Quality score + Enjoyment score for one film, plus an optional review. A member has at most one current rating per film.                                                                                                                                                                                                                      |
 | **Review**               | Optional plain-text comment of up to 500 characters attached to a rating.                                                                                                                                                                                                                                                                                          |
 | **Midpoint**             | The value 5 on either scale: "a perfectly fine film that doesn't stand out".                                                                                                                                                                                                                                                                                       |
-| **High / Low / Neutral** | A value is **High** if it is above 5, **Low** if it is below 5, and **Neutral** if it is exactly 5.                                                                                                                                                                                                                                                                |
-| **Quadrant**             | One of four categories: **Masterpieces** (high Q, high E), **Guilty Pleasures** (low Q, high E), **Serious Watches** (high Q, low E), **Not Worth Watching** (low Q, low E).                                                                                                                                                                                       |
+| **High / Low / Neutral** | A value is **High** if it is above 5, **Low** if it is below 5, and **Neutral** if it is exactly 5. |
+| **Extreme** | A value of 8 or more (extremely high) or 2 or less (extremely low). For group averages, 8.0 and 2.0 count as extreme; 7.9 and 2.1 do not. |
+| **Outer corner** | Where both values are Extreme. Four labels: **Masterpieces** (quality 8+, enjoyment 8+), **Guilty Pleasures** (quality 2−, enjoyment 8+), **Serious Watches** (quality 8+, enjoyment 2−), **Dumpster Fires** (quality 2−, enjoyment 2−). These are the rare, stand-out films. |
+| **Inner band** | Neither value is 5 and the point is not in an outer corner. Four labels, by which side of 5 each value is on: **Worth Watching** (both above), **Cheap Thrills** (quality below, enjoyment above), **Respectable** (quality above, enjoyment below), **Not Worth Watching** (both below). A 6/9 is Worth Watching, not a Masterpiece, because both scores must be extreme to reach a corner. |
+| **Quadrant** | One quarter of the chart (for example the top-right quarter). Each quarter contains one outer corner and one inner band. |
 | **Axis label**           | The label for a point where exactly one value is Neutral, taken from the other value alone: **Good** (quality High) or **Bad** (quality Low) when enjoyment is 5; **Enjoyable** (enjoyment High) or **Not Enjoyable** (enjoyment Low) when quality is 5. The point sits on a dividing line. This is what a member gets when they only move one of the two sliders. |
 | **On the fence**         | The label for a point where _both_ values are Neutral — a true 5/5, at the centre of the chart. Expected to be rare `[Q10]`.                                                                                                                                                                                                                                       |
-| **Placement**            | Whichever of the nine labels a point gets: four quadrants, four axis labels, or On the fence.                                                                                                                                                                                                                                                                      |
+| **Placement** | Whichever of the thirteen labels a point gets: four outer corners, four inner bands, four axis labels, or On the fence. |
 | **Group average**        | For one film: the mean of all members' Quality scores and the mean of all members' Enjoyment scores, each rounded to one decimal place. It is a point on the chart like any rating, and is classified by the same rule.                                                                                                                                            |
-| **Quadrant chart**       | A scatter plot with Quality on the x-axis and Enjoyment on the y-axis, both 0–10, with dividing lines at 5.                                                                                                                                                                                                                                                        |
+| **Quadrant chart** | A scatter plot with Quality on the x-axis and Enjoyment on the y-axis, both 0–10, with dividing lines at 5 and the four outer corners marked. |
 | **Spoke map**            | A quadrant chart for one film showing every member's rating as a point, with a line (spoke) from the viewing member's point to each friend's point.                                                                                                                                                                                                                |
 | **Disagreement**         | For two ratings of the same film: the straight-line distance between the two points, `sqrt(ΔQ² + ΔE²)` — i.e. the length of the spoke. For a film: the largest disagreement between any two members who rated it.                                                                                                                                                  |
 
@@ -93,12 +103,13 @@ Tags like `[Q10]` point to the question (sections 6–7) that settled that requi
 
 **Story:** As a member, I want every point placed by one rule I can understand.
 
-- **R24** — WHEN a point (a member's rating or a group average) is classified, THE SYSTEM SHALL label each of its two values High (above 5), Low (below 5) or Neutral (exactly 5).
-- **R25** — WHEN neither value is Neutral, THE SYSTEM SHALL assign exactly one quadrant: Quality High + Enjoyment High → Masterpieces; Quality Low + Enjoyment High → Guilty Pleasures; Quality High + Enjoyment Low → Serious Watches; Quality Low + Enjoyment Low → Not Worth Watching.
+- **R24** — WHEN a point (a member’s rating or a group average) is classified, THE SYSTEM SHALL label each of its two values High (above 5), Low (below 5) or Neutral (exactly 5), and additionally Extreme when the value is 8 or more, or 2 or less.
+- **R25** — WHEN both values are Extreme, THE SYSTEM SHALL assign exactly one outer corner: Quality 8+ and Enjoyment 8+ → Masterpieces; Quality 2− and Enjoyment 8+ → Guilty Pleasures; Quality 8+ and Enjoyment 2− → Serious Watches; Quality 2− and Enjoyment 2− → Dumpster Fires.
+- **R52** — WHEN neither value is Neutral and the point is not in an outer corner, THE SYSTEM SHALL assign exactly one inner band from the side of 5 each value falls on: both above 5 → Worth Watching; Quality below 5 + Enjoyment above 5 → Cheap Thrills; Quality above 5 + Enjoyment below 5 → Respectable; both below 5 → Not Worth Watching.
 - **R26** — WHEN exactly one value is Neutral, THE SYSTEM SHALL classify the point by the other value alone — Enjoyment Neutral + Quality High → Good; Enjoyment Neutral + Quality Low → Bad; Quality Neutral + Enjoyment High → Enjoyable; Quality Neutral + Enjoyment Low → Not Enjoyable — assign no quadrant, and plot it on the dividing line.
 - **R50** — WHEN both values are Neutral, THE SYSTEM SHALL classify the point as "On the fence" and plot it at the centre of the chart `[Q10]`.
 - **R27** — WHEN a film has at least one rating, THE SYSTEM SHALL calculate its group average as the mean Quality score and the mean Enjoyment score across all members' current ratings, each rounded to one decimal place, and SHALL classify the rounded values, so that the number shown and the quadrant shown can never contradict each other.
-- **R28** — WHEN a quadrant chart is drawn, THE SYSTEM SHALL draw the dividing lines at 5 on each axis and label the four quadrants by name.
+- **R28** — WHEN a quadrant chart is drawn, THE SYSTEM SHALL draw the dividing lines at 5 on each axis, visibly mark the four outer corners (8 and above, 2 and below), and label the four corners and the four inner bands by name.
 - **R29** — WHEN the same values are classified anywhere in the app, THE SYSTEM SHALL produce the same result, using one shared rule.
 
 ### E. My films (brief must-have 4)
@@ -109,7 +120,7 @@ Tags like `[Q10]` point to the question (sections 6–7) that settled that requi
 - **R31** — WHEN several points on any chart share the same position or overlap, THE SYSTEM SHALL make every one of them discoverable (for example a count on the point that opens the full set), never hiding one behind another.
 - **R32** — WHEN a member selects a point on the chart, THE SYSTEM SHALL show the film's title, year, poster and both scores, with a link to the film's page.
 - **R33** — WHEN a member opens "My films", THE SYSTEM SHALL also offer the same films as a list showing poster, title, year, both scores and quadrant.
-- **R34** — WHEN a member chooses a filter, THE SYSTEM SHALL show only the films with the chosen placement, and SHALL show the number of films in each of the nine placements (four quadrants, four axis labels, On the fence), which always add up to the total.
+- **R34** — WHEN a member chooses a filter, THE SYSTEM SHALL show only the films with the chosen placement, and SHALL show the number of films in each of the thirteen placements (four corners, four inner bands, four axis labels, On the fence), which always add up to the total.
 - **R35** — WHEN a member has not rated any films, THE SYSTEM SHALL show an empty state that explains the two scores and links to search.
 - **R36** — WHEN the list is shown, THE SYSTEM SHALL order it most-recently-rated first by default.
 
@@ -178,7 +189,7 @@ friends, because displaying that is the point of the app.
 **Maintainability**
 
 - **NFR16** — Code is statically typed; lint, typecheck and tests run with one command each.
-- **NFR22** — _Renameable labels._ The displayed names of all nine placements (four quadrants, four axis labels, "On the fence") and the slider end labels are defined in exactly one place, separate from the classification rule and from stored data, so any of them can be renamed with a one-line change and no data migration. ("Serious Watches" in particular is a working name; the brief's original was "Dense/Active/Serious Watches".)
+- **NFR22** — _Renameable labels._ The displayed names of all thirteen placements (four corners, four inner bands, four axis labels, "On the fence") and the slider end labels are defined in exactly one place, separate from the classification rule and from stored data, so any of them can be renamed with a one-line change and no data migration. All of these names are working names the owner expects to revise: opposite regions should ideally be antonyms (Worth Watching / Not Worth Watching), but film puns and references are welcome where they are more fun.
 - **NFR17** — All classification, averaging, rounding and disagreement maths lives in pure functions with unit tests covering every boundary value (R24–R29, R41, R45).
 
 **Third-party terms**
@@ -200,6 +211,9 @@ friends, because displaying that is the point of the app.
 | E1  | A member scores exactly 5 on one scale                                            | Axis label from the other scale, plotted on the line (R26). 5 on both → On the fence (R50)                                                                                                                        |
 | E2  | Group average lands exactly on 5.0 on one or both axes after rounding             | Same rules as a single rating (R26, R27, R50)                                                                                                                                                                     |
 | E3  | Group average of 5.04 would display as "5.0" but be High if unrounded             | Rounding happens _before_ classifying (R27), so it shows 5.0 and is treated as Neutral                                                                                                                            |
+| E26 | One score is 5 and the other is extreme, e.g. 9/5 | Still the plain single-scale label (Good). Deliberate: it nudges the member to move the slider they left at 5 if they want a stronger label (R26) |
+| E25 | One score extreme and the other not, e.g. 6/9 or 9/6 | Inner band, not the corner: both scores must be extreme to earn a corner label (R25, R52). 6/9 is Worth Watching |
+| E24 | A score of exactly 8 or exactly 2, or a group average of exactly 8.0 or 2.0 | Counts as extreme: the edges of the outer corners are inclusive (R24). 7.9 and 2.1 are not extreme |
 | E22 | A member saves without touching either slider                                     | Saved as 5/5, On the fence (R49). There is no "unscored" state: 5/5 is a real score meaning "an average film", and logging a film always means rating it. _Confirmed by the owner 2026-11-14._                    |
 | E23 | A member logs films quickly at the default and means to score them properly later | Their 5s count as real 5s in group averages until they change them. Mitigated by making updates quick (R51) and by the "On the fence" filter (R34), which lists exactly the films they left at 5/5                |
 | E4  | Many points at or near the same position                                          | R31                                                                                                                                                                                                               |

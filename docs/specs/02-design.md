@@ -1,8 +1,8 @@
 # 02 — Design
 
-Status: **APPROVED** (amended version, 2026-11-14) — §7 now
-has nine placements (axis labels added; only 5/5 is on the fence) and the rating
-form uses sliders starting at 5, following requirements v3.
+Status: **amended after approval, awaiting re-approval** (2026-11-14) — §7 and
+§8 now have thirteen placements (outer corners need both scores at 8+ / 2−;
+inner bands fill the rest of each quarter), following requirements v4.
 Implements: `01-requirements.md` (approved v2)
 
 Every section lists the requirement IDs it satisfies. Section 14 is the reverse
@@ -461,63 +461,93 @@ type Score = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
  *  group averages have one decimal place. */
 type Point = { quality: number; enjoyment: number };
 
-type Level = "low" | "neutral" | "high";
+/** Where one value sits. "very-" means extreme: 8 or more, 2 or less. */
+type Level = "very-low" | "low" | "neutral" | "high" | "very-high";
 
-type Quadrant =
-  | "masterpieces"
-  | "guilty-pleasures"
-  | "serious-watches"
-  | "not-worth-watching";
+/** Both scores are extreme. The rare, stand-out films. */
+type Corner =
+  | "masterpieces" // quality 8+, enjoyment 8+
+  | "guilty-pleasures" // quality 2-, enjoyment 8+
+  | "serious-watches" // quality 8+, enjoyment 2-
+  | "dumpster-fires"; // quality 2-, enjoyment 2-
+
+/** Neither score is 5, and the film is not in a corner. */
+type InnerBand =
+  | "worth-watching" // both above 5
+  | "cheap-thrills" // quality below 5, enjoyment above 5
+  | "respectable" // quality above 5, enjoyment below 5
+  | "not-worth-watching"; // both below 5
 
 /** One score is exactly 5, so only the other one says anything. */
 type AxisLabel = "good" | "bad" | "enjoyable" | "not-enjoyable";
 
-type Placement = Quadrant | AxisLabel | "on-the-fence";
+type Placement = Corner | InnerBand | AxisLabel | "on-the-fence";
 ```
 
 **Labels are separate from the rule (NFR22).** The strings above are internal
-keys describing a _position_ (high quality, low enjoyment), used in code and in
-URLs such as `?filter=serious-watches`. What members read comes from one lookup
-table, `PLACEMENT_LABELS: Record<Placement, string>`, in
-`lib/quadrant/labels.ts` — currently "Masterpieces", "Guilty Pleasures",
-"Serious Watches", "Not Worth Watching", "Good", "Bad", "Enjoyable",
-"Not Enjoyable" and "On the fence". The slider end labels (R49) live in the same
-file and reuse the four axis-label strings. Renaming a placement
-means editing one string there. Placements are never stored in the database
-(they are always recalculated from the scores), so a rename needs no data
-change. If "Serious Watches" is renamed, the internal key can stay as it is;
-its only visible trace is the filter URL.
+keys describing a _position_, used in code and in URLs such as
+`?filter=serious-watches`. What members read comes from one lookup table,
+`PLACEMENT_LABELS: Record<Placement, string>`, in `lib/quadrant/labels.ts`:
+
+| Group       | Labels                                                                 |
+| ----------- | ---------------------------------------------------------------------- |
+| Corners     | Masterpieces · Guilty Pleasures · Serious Watches · Dumpster Fires     |
+| Inner bands | Worth Watching · Cheap Thrills · Respectable · Not Worth Watching      |
+| On a line   | Good · Bad · Enjoyable · Not Enjoyable · On the fence                  |
+
+The slider end labels (R49) live in the same file and reuse the four axis-label
+strings. Renaming a placement means editing one string there. Placements are
+never stored in the database (they are always recalculated from the scores), so
+a rename needs no data change, and the internal key can stay as it is; its only
+visible trace is the filter URL. All thirteen names are working names the owner
+expects to revise.
 
 ### Functions and rules
 
 ```ts
 const MIDPOINT = 5;
+const EXTREME_HIGH = 8; // this value and above
+const EXTREME_LOW = 2; // this value and below
 
 levelOf(value: number): Level
 ```
 
-- `value > 5` → `"high"`; `value < 5` → `"low"`; `value === 5` → `"neutral"`.
+| value         | level       |
+| ------------- | ----------- |
+| 8 or more     | `very-high` |
+| above 5, < 8  | `high`      |
+| exactly 5     | `neutral`   |
+| above 2, < 5  | `low`       |
+| 2 or less     | `very-low`  |
+
+The three thresholds are named constants in one file, so moving the corners
+(say, back to 7 and 3) is a two-number change plus its tests.
 
 ```ts
 classify(point: Point): Placement
 ```
 
-| quality | enjoyment | result               |
-| ------- | --------- | -------------------- |
-| high    | high      | `masterpieces`       |
-| low     | high      | `guilty-pleasures`   |
-| high    | low       | `serious-watches`    |
-| low     | low       | `not-worth-watching` |
-| high    | neutral   | `good`               |
-| low     | neutral   | `bad`                |
-| neutral | high      | `enjoyable`          |
-| neutral | low       | `not-enjoyable`      |
-| neutral | neutral   | `on-the-fence`       |
+Read the table as: find the quality level down the side, the enjoyment level
+across the top.
 
-Three levels on each axis give 3 × 3 = 9 combinations, and each has exactly one
-row, so every point gets exactly one placement. On the 0–10 whole-number grid:
-100 of the 121 possible ratings fall in a quadrant, 20 get an axis label, and 1
-(5/5) is on the fence.
+| quality ↓ / enjoyment → | very-low             | low                  | neutral        | high               | very-high          |
+| ----------------------- | -------------------- | -------------------- | -------------- | ------------------ | ------------------ |
+| **very-high**           | `serious-watches`    | `respectable`        | `good`         | `worth-watching`   | `masterpieces`     |
+| **high**                | `respectable`        | `respectable`        | `good`         | `worth-watching`   | `worth-watching`   |
+| **neutral**             | `not-enjoyable`      | `not-enjoyable`      | `on-the-fence` | `enjoyable`        | `enjoyable`        |
+| **low**                 | `not-worth-watching` | `not-worth-watching` | `bad`          | `cheap-thrills`    | `cheap-thrills`    |
+| **very-low**            | `dumpster-fires`     | `not-worth-watching` | `bad`          | `cheap-thrills`    | `guilty-pleasures` |
+
+Five levels on each axis give 5 × 5 = 25 combinations, and each has exactly one
+cell, so every point gets exactly one placement. Three things to notice:
+
+- A corner label appears in exactly one cell: **both** scores must be extreme.
+  A 6/9 is `worth-watching`; so is a 9/6.
+- The neutral row and column ignore how extreme the other score is: 9/5 is
+  `good`, the same as 6/5. This is deliberate (requirements E26).
+- On the 0–10 whole-number grid: 36 of the 121 possible ratings are in a corner
+  (9 each), 64 in an inner band (16 each), 20 get an axis label (5 each), and 1
+  (5/5) is on the fence.
 
 ```ts
 groupAverage(ratings: Point[]): Point | null
@@ -549,10 +579,11 @@ filmDisagreement(ratings: Point[]): number | null
 countByPlacement(points: Point[]): Record<Placement, number>
 ```
 
-- The nine counts for the filter chips (R34). They always add up to the total.
-  The chips are laid out as the four quadrants first, then the four axis labels
-  and On the fence as a smaller second row; a chip with a count of 0 is shown
-  greyed out rather than hidden, so the layout doesn't jump.
+- The thirteen counts for the filter chips (R34). They always add up to the
+  total. The chips are laid out in three rows matching the label table above:
+  corners, inner bands, then the five on-a-line labels in a smaller row. A chip
+  with a count of 0 is shown greyed out rather than hidden, so the layout
+  doesn’t jump.
 
 ```ts
 clusterPoints<T extends { point: Point }>(items: T[], cellSize: number): Cluster<T>[]
@@ -565,8 +596,10 @@ clusterPoints<T extends { point: Point }>(items: T[], cellSize: number): Cluster
 
 ### Boundary tests this implies (NFR17)
 
-`levelOf` at 4, 4.9, 5, 5.1, 6 · `classify` for all 121 whole-number pairs
-checked against the table (100 quadrant, 20 axis label, 1 on the fence) · `groupAverage` for empty, one rating, means of
+`levelOf` at 1.9, 2, 2.1, 4.9, 5, 5.1, 7.9, 8, 8.1 · `classify` for all 121
+whole-number pairs checked against the table (36 corner, 64 inner band, 20 axis
+label, 1 on the fence), plus 6/9, 9/6, 9/5 and averages of 7.9/8.0 and 2.0/2.1 ·
+`groupAverage` for empty, one rating, means of
 4.94 / 4.95 / 5.04 / 5.05, and 0s (so 0 is never treated as "missing") ·
 `disagreement` for identical points (0) and opposite corners (≈14.14) ·
 `filmDisagreement` for 0, 1, 2 and many ratings.
@@ -578,8 +611,13 @@ checked against the table (100 quadrant, 20 axis label, 1 on the fence) · `grou
 _Satisfies: R28, R30–R32, R38–R41, R43, NFR12–NFR14, E4, E13_
 
 One `QuadrantChart` SVG component draws the frame: a square 0–10 grid, dividing
-lines at 5, and the four quadrant names in their corners (R28). Three pages
-give it different contents:
+lines at 5, and the four outer corners (8 and above, 2 and below) as lightly
+shaded squares with a thin outline (R28). The corner names sit inside the shaded
+squares; the four inner-band names sit in smaller, quieter text in the
+L-shaped space between each corner and the centre. On a narrow phone screen the
+inner-band names are dropped from the chart (the list and filter chips still
+show them) so the dots stay readable. Three pages give the chart different
+contents:
 
 | Page                   | Points                                   | Extras                                                                                                         |
 | ---------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
@@ -661,7 +699,7 @@ _Satisfies: NFR1, NFR16, NFR17, CLAUDE.md "test every piece of business logic"_
 | ------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------- |
 | **Unit**                        | Vitest                   | Everything in `lib/quadrant` (section 7 boundary list); the TMDB response parser (with real captured responses saved as fixtures, including null poster / missing date); Zod schemas for rating input; URL filter/sort parsing                                                                                                                               | Nothing external — milliseconds |
 | **Integration: access control** | Vitest + supabase-js     | The RLS policies, proven from the outside: signed-out client reads nothing; uninvited signed-in user reads nothing; member A cannot insert, update or delete as member B; a second current rating is refused; out-of-range scores and 501-character reviews are refused; removing an email from the list locks that user out; `allowed_emails` is unreadable | The **dev** Supabase project    |
-| **Component**                   | Vitest + Testing Library | `QuadrantChart` renders the right number of points and labels; clusters show counts; spoke map draws no spokes when the viewer has no rating; filter chips show nine counts; sliders start at 5 and the placement preview follows them                                                                                                                       | jsdom                           |
+| **Component**                   | Vitest + Testing Library | `QuadrantChart` renders the right number of points and labels; clusters show counts; spoke map draws no spokes when the viewer has no rating; filter chips show thirteen counts; sliders start at 5 and the placement preview follows them                                                                                                                       | jsdom                           |
 | **End-to-end**                  | Playwright               | Three happy paths: search → rate → appears on My films in the right quadrant; edit then delete; open a film two members rated and see the spoke table. Plus: signed-out visit redirects to `/login`                                                                                                                                                          | Local app + dev project         |
 | **Manual**                      | Checklist in the task    | Real Google sign-in (invited and uninvited account); phone layout; keyboard-only pass; TMDB attribution visible                                                                                                                                                                                                                                              | Deployed preview                |
 
@@ -817,19 +855,20 @@ before the first few tasks (the quadrant maths needs no accounts at all).
 | R22 can't touch others' ratings                      | 3.5                       |
 | R23 show quadrant after saving                       | 6, 7                      |
 | R24 High / Low / Neutral                             | 7                         |
-| R25 four quadrants                                   | 7                         |
+| R25 four outer corners                               | 7                         |
+| R52 four inner bands                                 | 7                         |
 | R26 axis labels when one value is 5                  | 7, 8                      |
 | R49 sliders starting at 5                            | 8                         |
 | R50 on the fence only at 5/5                         | 7, 8                      |
 | R51 update scores in place                           | 8                         |
 | R27 group average, rounded then classified           | 7                         |
-| R28 lines at 5, quadrants labelled                   | 8                         |
+| R28 lines at 5, corners marked, regions labelled     | 8                         |
 | R29 one shared rule                                  | 1, 6, 7                   |
 | R30 My films chart                                   | 6, 8                      |
 | R31 overlapping points discoverable                  | 7 (`clusterPoints`), 8    |
 | R32 selecting a point                                | 8                         |
 | R33 My films list                                    | 6, 8                      |
-| R34 nine filters with counts                         | 6, 7 (`countByPlacement`) |
+| R34 thirteen filters with counts                     | 6, 7 (`countByPlacement`) |
 | R35 empty state                                      | 9                         |
 | R36 newest first                                     | 3.4 (`created_at`), 6     |
 | R37 everyone's ratings on film page                  | 3.5, 6                    |
