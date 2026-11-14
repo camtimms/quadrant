@@ -27,7 +27,8 @@ Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to tha
 - [x] **T2: Keep the site out of search engines** — NFR6, NFR7 · `src/app/robots.ts`, `src/app/layout.tsx` (noindex metadata) · unit test `robots disallows everything`; manual: view page source for the `noindex` tag · S
   - *Done 2026-11-14.* `/robots.txt` disallows every path and every page carries `noindex, nofollow`; both checked in the built site. NFR7 needed no code: the scaffold ships no analytics and none was added. No surprises.
 
-- [ ] 🙋 **T3: First deploy** — R48, NFR4, NFR11 · no code; `README.md` (how to run and deploy) · manual: the Vercel URL shows the placeholder page over HTTPS on a laptop and a phone · S
+- [x] 🙋 **T3: First deploy** — R48, NFR4, NFR11 · no code; `README.md` (how to run and deploy) · manual: the Vercel URL shows the placeholder page over HTTPS on a laptop and a phone · S
+  - *Done 2026-11-14.* Live at https://quadrant-db.vercel.app/ from the existing `camtimms/quadrant` repository. Checked from a laptop: HTTPS with HTTP redirected, placeholder page, `noindex` tag and `/robots.txt` all served. **Still to confirm by the owner:** the page on a phone, and V9 (whether Vercel asked for a payment card).
   - _You:_ create a private GitHub repository and a Vercel account, then import the repository into Vercel. I'll give you the push commands. Check V9 (no payment card asked for).
 
 ## Milestone B — The quadrant maths (needs no accounts)
