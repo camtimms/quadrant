@@ -49,14 +49,15 @@ Stack: Next.js 16 (App Router) + TypeScript, Tailwind, Vitest. Node 22 or newer.
 | `npm run typecheck` | Generate Next.js route types, then `tsc --noEmit` |
 | `npm test` | Unit tests once (Vitest) |
 | `npm run test:watch` | Unit tests, re-running on save |
+| `npm run test:rls` | Access-control tests against the dev Supabase project (needs `.env.test.local`) |
 | `npm run format` | Format code and config with Prettier |
 | `npm run format:check` | Check formatting without changing files |
 | `npm run build` | Production build |
 | `npm run db:push` | Apply new files in `supabase/migrations/` to the linked Supabase project |
 | `npm run db:types` | Regenerate `src/lib/supabase/database.types.ts` from the linked project |
 
-Run lint, typecheck and test after every task. Database, access-control and
-end-to-end commands are added by the tasks that introduce them (T9, T10, T33).
+Run lint, typecheck and test after every task, plus `test:rls` after any task
+that changes a migration or a policy. End-to-end commands arrive in T33.
 
 Next.js 16 differs from older versions in ways that matter (for example
 `proxy.ts` instead of `middleware.ts`). Its own docs are bundled in
