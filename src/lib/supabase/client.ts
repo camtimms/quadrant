@@ -1,5 +1,6 @@
 import { createBrowserClient } from "@supabase/ssr";
 import { getPublicEnv } from "@/lib/env";
+import type { Database } from "@/lib/supabase/database.types";
 
 /**
  * A Supabase client for code that runs in the browser (Client Components).
@@ -14,7 +15,9 @@ import { getPublicEnv } from "@/lib/env";
  */
 export function createClient() {
   const env = getPublicEnv();
-  return createBrowserClient(
+  // <Database> gives TypeScript the shape of every table, so a misspelt
+  // table or column name is a compile error rather than a runtime surprise.
+  return createBrowserClient<Database>(
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
   );

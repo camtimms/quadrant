@@ -5,6 +5,7 @@ import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { getPublicEnv } from "@/lib/env";
+import type { Database } from "@/lib/supabase/database.types";
 
 /**
  * A Supabase client for code that runs on the server: Server Components,
@@ -23,7 +24,9 @@ export async function createClient() {
   // In Next.js 15+ cookies() is asynchronous, hence the await.
   const cookieStore = await cookies();
 
-  return createServerClient(
+  // <Database> gives TypeScript the shape of every table, so a misspelt
+  // table or column name is a compile error rather than a runtime surprise.
+  return createServerClient<Database>(
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     {
