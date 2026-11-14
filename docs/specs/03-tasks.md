@@ -45,7 +45,8 @@ Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to tha
 - [x] **T6: Disagreement** — R41, R44, R45, NFR17 · `src/lib/quadrant/disagreement.ts`, `disagreement.test.ts` · tests: identical points → 0; opposite corners → ≈14.14; `filmDisagreement` for 0, 1, 2 and many ratings (null below two) · S
   - *Done 2026-11-14.* `disagreement` is the unrounded straight-line distance; `filmDisagreement` is the largest pairwise distance, or null below two ratings. Also exports `MAX_DISAGREEMENT` (about 14.1). Tests and code were written together this time, so the tests were not seen failing first.
 
-- [ ] **T7: Counting and clustering** — R31, R34, NFR17 · `src/lib/quadrant/counts.ts`, `cluster.ts`, tests, `index.ts` · tests: thirteen counts always sum to the total; points in the same cell form one cluster with the right count and mean position; cell sizes 1 and 0.5 · S
+- [x] **T7: Counting and clustering** — R31, R34, NFR17 · `src/lib/quadrant/counts.ts`, `cluster.ts`, tests, `index.ts` · tests: thirteen counts always sum to the total; points in the same cell form one cluster with the right count and mean position; cell sizes 1 and 0.5 · S
+  - *Done 2026-11-14.* `countByPlacement` always returns all thirteen placements. `clusterPoints` bins positions into cells centred on multiples of the cell size and keeps input order; clustering only affects what is drawn, so each film keeps its own placement even when it shares a marker. `index.ts` re-exports the whole module. Milestone B complete.
 
 ## Milestone C — Sign-in and "friends only"
 
