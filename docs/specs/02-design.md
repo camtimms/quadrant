@@ -1,7 +1,7 @@
 # 02 — Design
 
 Status: **amended after approval, awaiting re-approval** (2026-11-14) — §7 and
-§8 now have thirteen placements (outer corners need both scores at 8+ / 2−;
+§8 now have thirteen placements (outer corners need both scores at 7.5+ / 2.5−;
 inner bands fill the rest of each quarter), following requirements v4.
 Implements: `01-requirements.md` (approved v2)
 
@@ -461,14 +461,14 @@ type Score = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
  *  group averages have one decimal place. */
 type Point = { quality: number; enjoyment: number };
 
-/** Where one value sits. "very-" means extreme: 8 or more, 2 or less. */
+/** Where one value sits. "very-" means extreme: 7.5 or more, 2.5 or less. */
 type Level = "very-low" | "low" | "neutral" | "high" | "very-high";
 
 /** Both scores are extreme. The rare, stand-out films. */
 type Corner =
-  | "masterpieces" // quality 8+, enjoyment 8+
-  | "guilty-pleasures" // quality 2-, enjoyment 8+
-  | "serious-watches" // quality 8+, enjoyment 2-
+  | "masterpieces" // both extremely high
+  | "guilty-pleasures" // quality extremely low, enjoyment extremely high
+  | "serious-watches" // quality extremely high, enjoyment extremely low
   | "dumpster-fires"; // quality 2-, enjoyment 2-
 
 /** Neither score is 5, and the film is not in a corner. */
@@ -506,22 +506,25 @@ expects to revise.
 
 ```ts
 const MIDPOINT = 5;
-const EXTREME_HIGH = 8; // this value and above
-const EXTREME_LOW = 2; // this value and below
+const EXTREME_HIGH = 7.5; // this value and above
+const EXTREME_LOW = 2.5; // this value and below
 
 levelOf(value: number): Level
 ```
 
 | value         | level       |
 | ------------- | ----------- |
-| 8 or more     | `very-high` |
-| above 5, < 8  | `high`      |
+| 7.5 or more   | `very-high` |
+| above 5, < 7.5 | `high`     |
 | exactly 5     | `neutral`   |
-| above 2, < 5  | `low`       |
-| 2 or less     | `very-low`  |
+| above 2.5, < 5 | `low`      |
+| 2.5 or less   | `very-low`  |
 
-The three thresholds are named constants in one file, so moving the corners
-(say, back to 7 and 3) is a two-number change plus its tests.
+The cut-offs at 2.5, 5 and 7.5 split each scale into four equal bands. Because
+members give whole numbers, an individual score is extreme at 8+ or 2− and can
+never sit on a cut-off; the half-points only decide group averages. The three
+thresholds are named constants in one file, so moving the corners is a
+two-number change plus its tests.
 
 ```ts
 classify(point: Point): Placement
@@ -596,9 +599,9 @@ clusterPoints<T extends { point: Point }>(items: T[], cellSize: number): Cluster
 
 ### Boundary tests this implies (NFR17)
 
-`levelOf` at 1.9, 2, 2.1, 4.9, 5, 5.1, 7.9, 8, 8.1 · `classify` for all 121
+`levelOf` at 2, 2.4, 2.5, 2.6, 3, 4.9, 5, 5.1, 7, 7.4, 7.5, 7.6, 8 · `classify` for all 121
 whole-number pairs checked against the table (36 corner, 64 inner band, 20 axis
-label, 1 on the fence), plus 6/9, 9/6, 9/5 and averages of 7.9/8.0 and 2.0/2.1 ·
+label, 1 on the fence), plus 6/9, 9/6, 9/5 and averages of 7.4/7.5 and 2.5/2.6 ·
 `groupAverage` for empty, one rating, means of
 4.94 / 4.95 / 5.04 / 5.05, and 0s (so 0 is never treated as "missing") ·
 `disagreement` for identical points (0) and opposite corners (≈14.14) ·
@@ -611,7 +614,7 @@ label, 1 on the fence), plus 6/9, 9/6, 9/5 and averages of 7.9/8.0 and 2.0/2.1 �
 _Satisfies: R28, R30–R32, R38–R41, R43, NFR12–NFR14, E4, E13_
 
 One `QuadrantChart` SVG component draws the frame: a square 0–10 grid, dividing
-lines at 5, and the four outer corners (8 and above, 2 and below) as lightly
+lines at 5, and the four outer corners (from 7.5 up and from 2.5 down) as lightly
 shaded squares with a thin outline (R28). The corner names sit inside the shaded
 squares; the four inner-band names sit in smaller, quieter text in the
 L-shaped space between each corner and the centre. On a narrow phone screen the
