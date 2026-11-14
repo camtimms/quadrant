@@ -39,7 +39,8 @@ Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to tha
 - [x] **T4a: Rework classification to thirteen placements** — R24, R25, R52, R26, R50, R29, NFR17, NFR22, E24–E26 · `src/lib/quadrant/types.ts`, `classify.ts`, `labels.ts`, `classify.test.ts` · tests rewritten first: `levelOf` at 2, 2.4, 2.5, 2.6, 3, 4.9, 5, 5.1, 7, 7.4, 7.5, 7.6, 8; `classify` for all 121 whole-number pairs (36 corner, 64 inner band, 20 axis label, 1 on the fence); 6/9 and 9/6 are Worth Watching; 9/5 is Good; averages of 7.4 vs 7.5 and 2.5 vs 2.6; each of the thirteen placements has a label · S
   - *Done 2026-11-14.* `classify` is now a 5 × 5 lookup table over five levels, with the cut-offs as named constants (`EXTREME_HIGH` 7.5, `EXTREME_LOW` 2.5). Tests were rewritten first and 32 failed against the old code before the change. No surprises.
 
-- [ ] **T5: Group average** — R27, R45, NFR17, NFR21 · `src/lib/quadrant/average.ts`, `average.test.ts` · tests: empty → null; one rating → itself; means of 4.94 / 4.95 / 5.04 / 5.05 round and classify correctly; a score of 0 counts as 0, not as missing · S
+- [x] **T5: Group average** — R27, R45, NFR17, NFR21 · `src/lib/quadrant/average.ts`, `average.test.ts` · tests: empty → null; one rating → itself; means of 4.94 / 4.95 / 5.04 / 5.05 round and classify correctly; a score of 0 counts as 0, not as missing · S
+  - *Done 2026-11-14.* `groupAverage` rounds each mean to one decimal by multiplying the whole-number sum by 10 before dividing, so half cases such as 5.05 round up reliably instead of depending on floating-point luck. Also exports `roundToOneDecimal` for displayed values. Added tests for the 7.5 cut-off on averages (7.45 vs 7.44).
 
 - [ ] **T6: Disagreement** — R41, R44, R45, NFR17 · `src/lib/quadrant/disagreement.ts`, `disagreement.test.ts` · tests: identical points → 0; opposite corners → ≈14.14; `filmDisagreement` for 0, 1, 2 and many ratings (null below two) · S
 
