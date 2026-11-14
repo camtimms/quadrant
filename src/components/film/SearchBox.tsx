@@ -167,7 +167,7 @@ export function SearchBox({ initialQuery = "" }: Props) {
           />
           <button
             type="submit"
-            className="rounded bg-foreground px-4 py-2 font-medium text-background hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2"
+            className="rounded bg-foreground px-4 py-2 font-medium text-background hover:opacity-90 active:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2"
           >
             Search
           </button>

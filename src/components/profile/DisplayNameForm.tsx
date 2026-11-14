@@ -62,7 +62,7 @@ export function DisplayNameForm({ initialName, submitLabel }: Props) {
       <button
         type="submit"
         disabled={isPending}
-        className="rounded bg-foreground px-4 py-2 font-medium text-background hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
+        className="rounded bg-foreground px-4 py-2 font-medium text-background hover:opacity-90 active:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
       >
         {isPending ? "Saving…" : submitLabel}
       </button>

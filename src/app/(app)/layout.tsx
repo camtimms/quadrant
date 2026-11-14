@@ -40,7 +40,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
           <form action={signOut}>
             <button
               type="submit"
-              className="rounded border border-foreground/30 px-3 py-1 hover:bg-foreground/10 focus-visible:outline-2 focus-visible:outline-offset-2"
+              className="rounded border border-foreground/30 px-3 py-1 hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2"
             >
               Sign out
             </button>

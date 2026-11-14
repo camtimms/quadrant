@@ -62,7 +62,7 @@ function SignInForm({ next }: { next: string }) {
       <input type="hidden" name="next" value={next} />
       <button
         type="submit"
-        className="w-full rounded bg-foreground px-4 py-3 font-medium text-background hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="w-full rounded bg-foreground px-4 py-3 font-medium text-background hover:opacity-90 active:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2"
       >
         Sign in with Google
       </button>

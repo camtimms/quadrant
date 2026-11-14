@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PendingMark } from "@/components/PendingMark";
 import type { ChartFilm } from "@/components/chart/QuadrantChart";
 import { formatScore } from "@/components/chart/scale";
 import { PosterImage } from "@/components/film/PosterImage";
@@ -35,7 +36,7 @@ export function FilmList({ films }: { films: ListFilm[] }) {
         <li key={film.tmdbId}>
           <Link
             href={`/film/${film.tmdbId}`}
-            className="flex items-center gap-4 rounded p-2 hover:bg-foreground/10 focus-visible:outline-2 focus-visible:outline-offset-2"
+            className="flex items-center gap-4 rounded p-2 hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2"
           >
             <PosterImage
               posterPath={film.posterPath}
@@ -63,6 +64,9 @@ export function FilmList({ films }: { films: ListFilm[] }) {
                 {PLACEMENT_LABELS[classify(film.point)]}
               </span>
             </span>
+            {/* Spins while this film's page is loading. "ml-auto" pushes it
+                to the right-hand end of the row. */}
+            <PendingMark className="ml-auto" />
           </Link>
         </li>
       ))}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PendingMark } from "@/components/PendingMark";
 import { PosterImage } from "@/components/film/PosterImage";
 import type { TmdbFilm } from "@/lib/tmdb/schema";
 
@@ -13,7 +14,7 @@ export function FilmCard({ film }: { film: TmdbFilm }) {
   return (
     <Link
       href={`/film/${film.tmdbId}`}
-      className="flex items-center gap-4 rounded p-2 hover:bg-foreground/10 focus-visible:outline-2 focus-visible:outline-offset-2"
+      className="flex items-center gap-4 rounded p-2 hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2"
     >
       <PosterImage
         posterPath={film.posterPath}
@@ -28,6 +29,9 @@ export function FilmCard({ film }: { film: TmdbFilm }) {
           {film.year ?? "Year unknown"}
         </span>
       </span>
+      {/* Spins while this film's page is loading. "ml-auto" pushes it
+          to the right-hand end of the row. */}
+      <PendingMark className="ml-auto" />
     </Link>
   );
 }

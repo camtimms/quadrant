@@ -34,7 +34,7 @@ export function DeleteRatingButton({ titleId, filmTitle }: Props) {
       <button
         type="button"
         onClick={() => setConfirming(true)}
-        className="self-start rounded border border-foreground/30 px-3 py-1 text-sm hover:bg-foreground/10 focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="self-start rounded border border-foreground/30 px-3 py-1 text-sm hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2"
       >
         Delete rating
       </button>
@@ -55,7 +55,7 @@ export function DeleteRatingButton({ titleId, filmTitle }: Props) {
         <button
           type="submit"
           disabled={isPending}
-          className="rounded bg-red-700 px-3 py-1 text-sm font-medium text-white hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
+          className="rounded bg-red-700 px-3 py-1 text-sm font-medium text-white hover:opacity-90 active:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
         >
           {isPending ? "Deleting…" : "Yes, delete"}
         </button>
@@ -66,7 +66,7 @@ export function DeleteRatingButton({ titleId, filmTitle }: Props) {
           // The safe choice gets the focus, so a stray press of Enter
           // cancels instead of deleting.
           autoFocus
-          className="rounded border border-foreground/30 px-3 py-1 text-sm hover:bg-foreground/10 focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="rounded border border-foreground/30 px-3 py-1 text-sm hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2"
         >
           Cancel
         </button>

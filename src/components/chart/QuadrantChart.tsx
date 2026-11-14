@@ -2,7 +2,7 @@
 
 // "use client" because the chart remembers which point is selected.
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PointPanel } from "@/components/chart/PointPanel";
 import {
   CHART_SIZE,
@@ -371,6 +371,28 @@ export function QuadrantChart({
     cluster.items.some((film) => film.tmdbId === selectedId);
   const open = selectedId === null ? undefined : clusters.find(holdsSelected);
 
+  // On a phone the chart fills the screen, so the panel a point opens is
+  // below it, out of sight: the tap seems to do nothing. After the member
+  // selects a point, the panel is scrolled into view (NFR23).
+  //
+  // The flag is set only by a tap, so a point opened by the page itself
+  // (the just-rated film) does not drag the screen down past the chart.
+  const panelRef = useRef<HTMLDivElement>(null);
+  const scrollToPanel = useRef(false);
+  useEffect(() => {
+    if (!scrollToPanel.current) return;
+    scrollToPanel.current = false;
+    // "nearest" moves the screen as little as possible, and not at all if
+    // the panel is already visible. Smooth scrolling is skipped for members
+    // who have asked their device to reduce motion.
+    const reduceMotion =
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    panelRef.current?.scrollIntoView?.({
+      block: "nearest",
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
+  }, [selectedId]);
+
   const zoom = zoomWindow(zoomTo);
   const scale = zoomScale(zoom);
 
@@ -408,9 +430,10 @@ export function QuadrantChart({
                 // Tells a screen reader this button opens something, and
                 // whether it is open now.
                 aria-expanded={isOpen}
-                onClick={() =>
-                  setSelectedId(isOpen ? null : cluster.items[0].tmdbId)
-                }
+                onClick={() => {
+                  scrollToPanel.current = !isOpen;
+                  setSelectedId(isOpen ? null : cluster.items[0].tmdbId);
+                }}
                 style={{
                   left: toPercent(chartX(cluster.point.quality)),
                   top: toPercent(chartY(cluster.point.enjoyment)),
@@ -420,11 +443,15 @@ export function QuadrantChart({
                   // points out, it does not inflate them.
                   scale: 1 / scale,
                 }}
+                // "before:..." adds an invisible area 8px larger all round,
+                // which also takes the tap: the dot stays small, but a
+                // finger does not have to land exactly on it. "active:" is
+                // the pressed look; phones have no hover.
                 // The button is centred on its position (the two
                 // translates). A cluster is larger and shows its count, so
                 // "several films here" is told by size and a number, not by
                 // colour (NFR14). The selected point gets a ring.
-                className={`absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-background bg-foreground text-xs leading-none font-semibold text-background hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 ${ANIMATE} ${
+                className={`absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-background bg-foreground text-xs leading-none font-semibold text-background before:absolute before:-inset-2 before:content-[''] hover:opacity-80 active:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 ${ANIMATE} ${
                   count > 1 ? "h-7 w-7" : "h-4 w-4"
                 } ${isOpen ? "ring-2 ring-foreground ring-offset-2 ring-offset-background" : ""}`}
               >
@@ -435,9 +462,14 @@ export function QuadrantChart({
         </div>
       </div>
 
-      {open ? (
-        <PointPanel films={open.items} onClose={() => setSelectedId(null)} />
-      ) : null}
+      {/* The wrapper is always here so there is something to scroll to.
+          scroll-mb-4 leaves a little space under the panel when it is
+          scrolled into view. */}
+      <div ref={panelRef} className="scroll-mb-4">
+        {open ? (
+          <PointPanel films={open.items} onClose={() => setSelectedId(null)} />
+        ) : null}
+      </div>
     </div>
   );
 }

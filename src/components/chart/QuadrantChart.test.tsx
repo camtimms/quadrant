@@ -7,7 +7,7 @@ import {
   screen,
   within,
 } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ChartFrame,
   QuadrantChart,
@@ -479,6 +479,63 @@ describe("QuadrantChart", () => {
       );
       rerender(<QuadrantChart films={[heat]} zoomTo="masterpieces" />);
       expect(screen.queryByRole("region")).toBeNull();
+    });
+  });
+
+  // On a phone the panel opens below the chart, off screen.
+  describe("bringing the panel into view (NFR23)", () => {
+    const scrollIntoView = vi.fn();
+    beforeEach(() => {
+      // jsdom has no layout, so it has no scrollIntoView at all.
+      Element.prototype.scrollIntoView = scrollIntoView;
+    });
+    afterEach(() => {
+      scrollIntoView.mockReset();
+    });
+
+    it("scrolls to the panel when the member selects a point", () => {
+      render(<QuadrantChart films={[commando]} />);
+
+      fireEvent.click(screen.getByRole("button", { name: /Commando/ }));
+
+      expect(scrollIntoView).toHaveBeenCalledTimes(1);
+      // As little movement as possible.
+      expect(scrollIntoView.mock.calls[0][0]).toMatchObject({
+        block: "nearest",
+      });
+      // Called on something that holds the panel.
+      const scrolled = scrollIntoView.mock.contexts[0] as HTMLElement;
+      expect(scrolled.contains(screen.getByRole("region"))).toBe(true);
+    });
+
+    it("does not scroll when a point is closed", () => {
+      render(<QuadrantChart films={[commando]} />);
+      const point = screen.getByRole("button", { name: /Commando/ });
+      fireEvent.click(point);
+      scrollIntoView.mockReset();
+
+      fireEvent.click(point);
+
+      expect(scrollIntoView).not.toHaveBeenCalled();
+    });
+
+    // Landing on My films after a save must leave the member at the top,
+    // looking at the "Saved" line and the chart.
+    it("does not scroll for a point the page opened by itself", () => {
+      render(<QuadrantChart films={[commando]} initialSelectedId={10999} />);
+      expect(screen.getByRole("region")).toBeTruthy();
+      expect(scrollIntoView).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("touch (NFR23)", () => {
+    it("gives each point a touch area larger than its dot, and a pressed look", () => {
+      render(<QuadrantChart films={[commando]} />);
+      const classes = screen.getByRole("button", {
+        name: /Commando/,
+      }).className;
+      expect(classes).toContain("before:-inset-2");
+      expect(classes).toMatch(/\bactive:/);
     });
   });
 });

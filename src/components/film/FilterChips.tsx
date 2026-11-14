@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PendingMark } from "@/components/PendingMark";
 import { FILTER_ROWS, filterHref } from "@/lib/filters";
 import { PLACEMENT_LABELS, PLACEMENTS, type Placement } from "@/lib/quadrant";
 
@@ -16,10 +17,10 @@ type Props = {
 // One look for every chip; the variations are added below.
 const CHIP =
   "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm";
-const LINK_CHIP = `${CHIP} border-foreground/30 hover:bg-foreground/10 focus-visible:outline-2 focus-visible:outline-offset-2`;
+const LINK_CHIP = `${CHIP} border-foreground/30 hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2`;
 // The chosen chip is filled in. It is ALSO marked with aria-current, so it
 // is not told apart by colour alone (NFR14).
-const ACTIVE_CHIP = `${CHIP} border-foreground bg-foreground text-background focus-visible:outline-2 focus-visible:outline-offset-2`;
+const ACTIVE_CHIP = `${CHIP} border-foreground bg-foreground text-background active:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2`;
 
 /**
  * The filter chips above a film list: "All", then the thirteen placements
@@ -51,6 +52,7 @@ export function FilterChips({
           className={active === null ? ACTIVE_CHIP : LINK_CHIP}
         >
           All <span className="tabular-nums opacity-80">{total}</span>
+          <PendingMark />
         </Link>
       </div>
 
@@ -90,6 +92,10 @@ export function FilterChips({
                     className={active === placement ? ACTIVE_CHIP : LINK_CHIP}
                   >
                     {label}
+                    {/* Spins on the chip that was tapped while the filtered
+                        page loads. The chart stays on screen meanwhile so
+                        its zoom can animate. */}
+                    <PendingMark />
                   </Link>
                 )}
               </li>

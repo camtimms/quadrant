@@ -40,7 +40,7 @@ export function EmptyState() {
       </p>
       <Link
         href="/search"
-        className="self-start rounded bg-foreground px-4 py-2 font-medium text-background hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="self-start rounded bg-foreground px-4 py-2 font-medium text-background hover:opacity-90 active:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2"
       >
         Find a film to rate
       </Link>
