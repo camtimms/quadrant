@@ -4,6 +4,7 @@ import "server-only";
 
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { getPublicEnv } from "@/lib/env";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -21,6 +22,20 @@ import type { Database } from "@/lib/supabase/database.types";
  */
 export async function createClient() {
   const env = getPublicEnv();
+
+  // Tell Next.js that everything from here on belongs to one live request and
+  // must never be prepared ahead of time.
+  //
+  // Next.js tries to render as much of a page as it can in advance, including
+  // (with Partial Prefetching) a pass that already knows the visitor's
+  // cookies. During that pass it refuses values that differ on every run,
+  // such as the current time, because it cannot know whether they are safe to
+  // reuse. The Supabase client reads the clock to check whether the session
+  // has expired, which triggered: "encountered the unstable value Date.now()
+  // while prerendering". A member's session is exactly the kind of thing that
+  // must be worked out fresh each time, so we say so explicitly.
+  await connection();
+
   // In Next.js 15+ cookies() is asynchronous, hence the await.
   const cookieStore = await cookies();
 
