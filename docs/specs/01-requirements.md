@@ -9,6 +9,8 @@ to My films, where the film is pointed out with its placement (R23).
 After testing on a phone the owner also asked for immediate feedback on every
 tap and while pages load (new NFR23), and for a visual design pass before
 release (new NFR24, to be specified with the owner when that task starts).
+Later the same day the owner asked for the film's description on its page and
+a button to that page beside "Update scores" (R14 amended, new R54 and R55).
 
 v4 changes (owner’s request during implementation, after T4): the famous four
 labels now need *both* scores to be extreme (7.5 or more / 2.5 or less, which
@@ -90,7 +92,7 @@ Tags like `[Q10]` point to the question (sections 6–7) that settled that requi
 - **R11** — WHEN a search returns no results, THE SYSTEM SHALL say so and suggest checking the spelling.
 - **R12** — WHEN the external movie database is unreachable or returns an error, THE SYSTEM SHALL show a clear "search is unavailable, try again" message, and the rest of the app SHALL keep working.
 - **R13** — WHEN a member selects a search result, THE SYSTEM SHALL open that film's page (section F).
-- **R14** — WHEN a film has been rated by anyone, THE SYSTEM SHALL keep its own copy of that film's title, year and poster reference, so that charts and lists display without depending on the external database being up.
+- **R14** — WHEN a film has been rated by anyone, THE SYSTEM SHALL keep its own copy of that film's title, year, poster reference and description _(v5: description added)_, so that charts and lists display without depending on the external database being up.
 
 ### C. Logging a rating (brief must-have 3)
 
@@ -106,6 +108,8 @@ Tags like `[Q10]` point to the question (sections 6–7) that settled that requi
 - **R51** — WHEN a member views one of their own rated films in the "My films" list or in the panel opened from a chart point, THE SYSTEM SHALL let them open that film's sliders in place, already set to their current scores, and save new scores without leaving the page. Updating a rating must never take more steps than: open, drag, save.
 - **R21** — WHEN a member deletes their own rating and confirms, THE SYSTEM SHALL remove it from all charts, lists, averages and comparisons.
 - **R22** — WHEN a member attempts to create, edit or delete a rating belonging to another member, THE SYSTEM SHALL reject the attempt at the server/database layer.
+- **R54** — WHEN a member opens a film's page, THE SYSTEM SHALL show the film's description from the movie database, when it has one, together with the member's own review. _(v5, new.)_
+- **R55** — WHEN a film is shown in a list or in the panel opened from a chart point, THE SYSTEM SHALL offer a visible button to that film's page, placed beside "Update scores" where that is shown. (Selecting the film itself goes to the same page; the button is there so the two actions sit side by side.) _(v5, new.)_
 - **R23** — WHEN a rating is saved from a film's page, THE SYSTEM SHALL take the member to "My films", where the film appears on the chart, and SHALL tell them the placement it landed in. _(v5: was "show the member the placement it landed in", on the film page itself.)_
 
 ### D. Quadrant maths (the core mechanic)

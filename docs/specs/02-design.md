@@ -139,6 +139,7 @@ API does not expose.
 | `title`        | `text`        | not null                                                       |
 | `release_year` | `smallint`    | nullable (R10)                                                 |
 | `poster_path`  | `text`        | nullable (R10) — TMDB's path, e.g. `/abc.jpg`, not a full URL  |
+| `overview`     | `text`        | nullable — TMDB's description of the film (R54). `null` means "not fetched yet" (rows stored before this column existed); a film TMDB has no description for is stored as `''` |
 | `fetched_at`   | `timestamptz` | not null — when this copy was last refreshed from TMDB         |
 
 - `unique (media_type, tmdb_id)` — one row per film; also the lookup index.
@@ -269,7 +270,7 @@ Confirmed from TMDB's API reference:
 | Purpose      | Request                                                                            | Fields we use                                                             |
 | ------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | Search       | `GET https://api.themoviedb.org/3/search/movie?query=…&include_adult=false&page=1` | from each item in `results`: `id`, `title`, `release_date`, `poster_path` |
-| Film details | `GET https://api.themoviedb.org/3/movie/{movie_id}`                                | `id`, `title`, `release_date`, `poster_path`                              |
+| Film details | `GET https://api.themoviedb.org/3/movie/{movie_id}`                                | `id`, `title`, `release_date`, `poster_path`, `overview`                  |
 
 - Authentication: header `Authorization: Bearer <API Read Access Token>`.
 - `release_date` is a `YYYY-MM-DD` string; we keep only the year. Checked with
@@ -305,6 +306,13 @@ Confirmed from TMDB's API reference:
 - Saving is an upsert on `(media_type, tmdb_id)`, so a refresh, and two
   members rating the same new film at the same moment, both land on one row
   without changing the id that ratings point at.
+- **The description (R54)** comes from the details call only. Search results
+  carry one too, but it is dropped there: the search page does not show it,
+  and twenty descriptions would bloat every search response. It is stored with
+  the film like the title and poster path, so the film page works without
+  TMDB. A stored film whose description is still `null` (stored before the
+  column existed) is treated as needing a refresh the next time its page is
+  opened, which fills it in.
 - **Viewing a film stores nothing.** The film page (`src/lib/data/filmPage.ts`)
   reads our copy if one exists, refreshing it when it is over 30 days old; for
   a film nobody has rated it fetches the details live from TMDB and writes
