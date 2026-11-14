@@ -1,6 +1,11 @@
 # 01 — Requirements
 
-Status: **APPROVED** (v4, 2026-11-14)
+Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
+
+v5 changes (owner's request after trying My films in T26): choosing a filter
+now narrows the chart as well as the list, and the chart zooms in on the part
+it shows (R34, new R53); saving a rating from a film's page returns the member
+to My films, where the film is pointed out with its placement (R23).
 
 v4 changes (owner’s request during implementation, after T4): the famous four
 labels now need *both* scores to be extreme (7.5 or more / 2.5 or less, which
@@ -98,7 +103,7 @@ Tags like `[Q10]` point to the question (sections 6–7) that settled that requi
 - **R51** — WHEN a member views one of their own rated films in the "My films" list or in the panel opened from a chart point, THE SYSTEM SHALL let them open that film's sliders in place, already set to their current scores, and save new scores without leaving the page. Updating a rating must never take more steps than: open, drag, save.
 - **R21** — WHEN a member deletes their own rating and confirms, THE SYSTEM SHALL remove it from all charts, lists, averages and comparisons.
 - **R22** — WHEN a member attempts to create, edit or delete a rating belonging to another member, THE SYSTEM SHALL reject the attempt at the server/database layer.
-- **R23** — WHEN a rating is saved, THE SYSTEM SHALL show the member the placement it landed in.
+- **R23** — WHEN a rating is saved from a film's page, THE SYSTEM SHALL take the member to "My films", where the film appears on the chart, and SHALL tell them the placement it landed in. _(v5: was "show the member the placement it landed in", on the film page itself.)_
 
 ### D. Quadrant maths (the core mechanic)
 
@@ -121,7 +126,8 @@ Tags like `[Q10]` point to the question (sections 6–7) that settled that requi
 - **R31** — WHEN several points on any chart share the same position or overlap, THE SYSTEM SHALL make every one of them discoverable (for example a count on the point that opens the full set), never hiding one behind another.
 - **R32** — WHEN a member selects a point on the chart, THE SYSTEM SHALL show the film's title, year, poster and both scores, with a link to the film's page.
 - **R33** — WHEN a member opens "My films", THE SYSTEM SHALL also offer the same films as a list showing poster, title, year, both scores and quadrant.
-- **R34** — WHEN a member chooses a filter, THE SYSTEM SHALL show only the films with the chosen placement, and SHALL show the number of films in each of the thirteen placements (four corners, four inner bands, four axis labels, On the fence), which always add up to the total.
+- **R34** — WHEN a member chooses a filter, THE SYSTEM SHALL show only the films with the chosen placement, in the list and on the chart alike _(v5: the chart used to keep showing every film)_, and SHALL show the number of films in each of the thirteen placements (four corners, four inner bands, four axis labels, On the fence), which always add up to the total.
+- **R53** — WHEN a filter is chosen, THE SYSTEM SHALL zoom the chart in on the part of it where that placement lies, moving there smoothly, and SHALL zoom back out when the filter is cleared. For members whose device asks for reduced motion, the change SHALL happen without animation. _(v5, new.)_
 - **R35** — WHEN a member has not rated any films, THE SYSTEM SHALL show an empty state that explains the two scores and links to search.
 - **R36** — WHEN the list is shown, THE SYSTEM SHALL order it most-recently-rated first by default. "Most recently rated" means when the member first rated the film, not when they last changed the rating _(clarified by the owner, 2026-11-14)_.
 

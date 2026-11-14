@@ -481,9 +481,9 @@ next load (R47).
 
 My films (`src/lib/data/ratings.ts`) reads a member's current ratings with each
 film nested inside its row, in one query. The list is ordered by `created_at`
-(when the film was first rated, R36). The chart always shows every film; the
-filter narrows only the list beneath it, and the chip counts are taken over
-all the films.
+(when the film was first rated, R36). A chosen filter narrows the chart and
+the list alike (R34, v5); the chip counts are always taken over all the films,
+so every chip keeps its number whichever is chosen.
 
 `/friends` needs every current rating to work out averages and disagreement. At
 the POC ceiling (~5,000 rows of five small columns) that is a few hundred
@@ -686,6 +686,19 @@ contents:
   frame itself is hidden from screen readers; the buttons and the list below
   carry the information (NFR13). The frame is exported on its own
   (`ChartFrame`) for the spoke map to reuse.
+- **Zoom (R53).** With a filter chosen, the chart zooms to a square window of
+  6.5 score units (about 1.85×) centred on that placement's part of the chart:
+  the quarter for a corner or inner band (so Masterpieces and Worth Watching
+  share the top-right view), the half-line for Good / Bad / Enjoyable / Not
+  Enjoyable, and the centre for On the fence. Every filter therefore zooms by
+  the same amount, and the margin names beside the window stay in view. The
+  window is worked out by a pure function (`zoomWindow` in `chart/scale.ts`).
+  It is drawn with a CSS `transform` on the layer holding the frame and the
+  points, with a CSS transition, so no animation code runs in JavaScript; the
+  points are scaled back down by the same factor so they keep their size.
+  `prefers-reduced-motion` switches the transition off. The animation plays
+  because the chart component stays mounted when the filter link is followed:
+  only its props change.
 - **Points on a line** (a score of exactly 5) are simply drawn at 5 — on the
   line, visibly belonging to no quadrant. The four half-lines are labelled at
   their outer ends with the axis labels (Bad ← → Good along the horizontal line,
@@ -749,8 +762,12 @@ Rules behind the table:
   expected failure. The rating actions return `{ status: "saved" | "deleted" }`
   or `{ status: "error", message }`. An error from `saveRating` also carries
   the field at fault, if any, and the values that were typed, so the form can
-  refill itself (E19). After a successful save or delete the action calls
-  `refresh()` so the page the member is on redraws with the new data.
+  refill itself (E19). After a successful delete the action calls `refresh()`
+  so the page the member is on redraws with the new data. After a successful
+  save, `saveRating` instead redirects to `/?rated=<tmdbId>` (R23, v5): My
+  films then shows a line saying where the film landed and opens its point on
+  the chart. The placement in that line comes from `classify`, like every
+  other placement on the page.
 - `saveRating` also catches unexpected failures and returns them as an error,
   instead of letting them reach the error page, because that page would
   discard a typed review.
