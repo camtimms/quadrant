@@ -78,7 +78,8 @@ Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to tha
 
 ## Milestone D — Finding films
 
-- [ ] 🙋 **T15: TMDB client and parser** — R9, R10, NFR18 · `src/lib/tmdb/client.ts`, `schema.ts`, `poster.ts`, `fixtures/*.json`, `schema.test.ts` · tests run against **real captured responses**: normal film, film with no poster, film with no release date, empty result; poster URL builder. Checks V1 and V2 · M
+- [x] 🙋 **T15: TMDB client and parser** — R9, R10, NFR18 · `src/lib/tmdb/client.ts`, `schema.ts`, `poster.ts`, `fixtures/*.json`, `schema.test.ts` · tests run against **real captured responses**: normal film, film with no poster, film with no release date, empty result; poster URL builder. Checks V1 and V2 · M
+  - *Done 2026-11-14.* Seven real responses saved as fixtures; the parser and poster tests run against them and a live search and details call went through the finished client. V1 settled: a missing poster is `null` but a missing release date is `""`. V2 settled: poster sizes are `w92`–`w780` and `original`; we use `w185` and `w342`. Not in the original file list: `src/lib/env.server.ts` (the token check, which also catches the short "API Key" pasted by mistake), `client.test.ts`, `poster.test.ts`, and a test that secret-handling modules import `server-only`. **Still to confirm by the owner:** the token is also set in Vercel (needed from T16).
   - _You:_ create a TMDB account, request an API key for personal non-commercial use, and paste the **API Read Access Token** into `.env.local` and Vercel.
 
 - [ ] **T16: Search endpoint** — R9, R12, NFR9, NFR10 · `src/app/api/search/route.ts`, `route.test.ts` · tests (TMDB mocked): signed-out request refused; query under 2 characters refused; TMDB error, timeout and 429 all return `{ error: "unavailable" }`; adult results excluded · S

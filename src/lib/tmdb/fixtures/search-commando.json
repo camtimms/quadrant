@@ -1,0 +1,405 @@
+{
+  "page": 1,
+  "results": [
+    {
+      "adult": false,
+      "backdrop_path": "/gvao0WZchzudp2oMF5sjgzwHY0q.jpg",
+      "genre_ids": [
+        28,
+        12,
+        53
+      ],
+      "id": 10999,
+      "title": "Commando",
+      "original_language": "en",
+      "original_title": "Commando",
+      "overview": "John Matrix, the former leader of a special commando strike force that always got the toughest jobs done, is forced back into action when his young daughter is kidnapped. To find her, Matrix has to fight his way through an array of punks, killers, one of his former commandos, and a fully equipped private army. With the help of a feisty stewardess and an old friend, Matrix has only a few hours to overcome his greatest challenge: finding his daughter before she's killed.",
+      "popularity": 7.4212,
+      "poster_path": "/ollPAAAgZ7euU8VisfqU3cuXhZ6.jpg",
+      "release_date": "1985-10-03",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.76,
+      "vote_count": 3375
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/pnZ9NMxRqbcJ2dPNROIoregruv5.jpg",
+      "genre_ids": [
+        28,
+        80,
+        53
+      ],
+      "id": 753232,
+      "title": "The Commando",
+      "original_language": "en",
+      "original_title": "The Commando",
+      "overview": "An elite DEA agent returns home after a failed mission when his family makes an unexpected discovery in their house – a stash of money worth $3 million. They soon face the danger and threat of a newly released criminal and his crew, who will do whatever it takes to retrieve the money, including kidnap the agent’s daughters. Stakes are high and lives are at risk in this head-to-head battle as the agent stops at nothing to protect his family against the money-hungry criminals.",
+      "popularity": 1.9229,
+      "poster_path": "/mn1GYIQ1tvFuuu0YBNZBvrHyrkO.jpg",
+      "release_date": "2022-01-07",
+      "softcore": false,
+      "video": false,
+      "vote_average": 5.689,
+      "vote_count": 177
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/terZf8tsBWWn5n8JrvZS4KTmaha.jpg",
+      "genre_ids": [
+        28,
+        12,
+        10752
+      ],
+      "id": 86251,
+      "title": "Strike Commando",
+      "original_language": "it",
+      "original_title": "Strike Commando",
+      "overview": "The sole survivor of a Vietnam mission is ordered by his commanding officer to photograph Soviets.",
+      "popularity": 0.8156,
+      "poster_path": "/bwjLhZ781E6tOHPT3TEaAjcUU7e.jpg",
+      "release_date": "1987-08-26",
+      "softcore": false,
+      "video": false,
+      "vote_average": 4.8,
+      "vote_count": 38
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/1Shfc1ceGtqQnnZzUoL8QZlZ13r.jpg",
+      "genre_ids": [
+        28,
+        35,
+        10751,
+        878
+      ],
+      "id": 11504,
+      "title": "Suburban Commando",
+      "original_language": "en",
+      "original_title": "Suburban Commando",
+      "overview": "Shep Ramsey is an interstellar hero, righting wrongs, etc. His ship is damaged after a fight with an interstellar nasty and he must hide out on Earth until it can recharge. He leaves his power suit at home, but still finds himself unable to allow wrongs to go unrighted and so mixes it up with bad drivers, offensive paperboys, muggers and the like.",
+      "popularity": 1.5927,
+      "poster_path": "/wE8WUFEfkZnNDLMpWNmyiJr8E7y.jpg",
+      "release_date": "1991-10-04",
+      "softcore": false,
+      "video": false,
+      "vote_average": 4.717,
+      "vote_count": 212
+    },
+    {
+      "adult": false,
+      "backdrop_path": null,
+      "genre_ids": [
+        28
+      ],
+      "id": 297026,
+      "title": "Deadly Commando",
+      "original_language": "en",
+      "original_title": "Deadly Commando",
+      "overview": "Eight members of a special force have to find and free an American ambassador whose plane has crashed and who is now in the hands of guerillas.",
+      "popularity": 0.4981,
+      "poster_path": "/dILB4LzLJ8lkAkOm4914545m0Vu.jpg",
+      "release_date": "1981-09-04",
+      "softcore": false,
+      "video": false,
+      "vote_average": 5,
+      "vote_count": 4
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/sAOWvNDiDNjluHJObMDx5X8Vlsu.jpg",
+      "genre_ids": [
+        28,
+        35
+      ],
+      "id": 570019,
+      "title": "Commando Ninja",
+      "original_language": "en",
+      "original_title": "Commando Ninja",
+      "overview": "John Hunter is Vietnam Green Beret Veteran, Half Commando, Half Ninja, whose daughter has been abducted by a secret Ninja Organization, led by a Central-American dictator, who wants to create a new-world order - through time.",
+      "popularity": 0.6893,
+      "poster_path": "/1vmoZsIkcCjuTFx1ckO3zYYb88K.jpg",
+      "release_date": "2018-11-18",
+      "softcore": false,
+      "video": false,
+      "vote_average": 5.8,
+      "vote_count": 33
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/vncj6W4yxB3AtbJT4molee5Vyc0.jpg",
+      "genre_ids": [
+        10752
+      ],
+      "id": 315200,
+      "title": "Commando",
+      "original_language": "it",
+      "original_title": "Marcia o crepa",
+      "overview": "A French Foreign Legion commander is told to assemble a unit and capture an Algerian rebel leader. He gathers in his old unit, most of whom are no longer in top form. One is having nightmares of past indiscretions, another is now drinking, another has lost his nerve. He takes them in captures the leader, but then is unable to make it to the pick up. He encounters a rebel patrol and is trapped unless they can escape before their water runs out.",
+      "popularity": 0.5443,
+      "poster_path": "/qY3kksEnXYPVOOlIsAfP7HKOdGL.jpg",
+      "release_date": "1962-11-14",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.2,
+      "vote_count": 6
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/3PJpx2uTnwV1ZMLKLTFS1Whi3XR.jpg",
+      "genre_ids": [
+        18,
+        28,
+        10749
+      ],
+      "id": 78165,
+      "title": "Commando",
+      "original_language": "hi",
+      "original_title": "कमांडो",
+      "overview": "Satish wants his only son, Chander, to be physically fit and join the army. While Satish is protecting the life of Mrs. Indira Gandhi, he is killed by three men; his wife goes insane, and his son is orphaned. Now Chander has grown up and has joined the army as a Commando. The Commander of his company, Mirza is corrupt and is protecting the interests of international criminal don, Marcelloni, by stealing arms and ammunitions. Chander attempts to bring this to the attention of the owner of the arms depot, Kailashpuri Malhotra, who disbelieves him. But Mr. Malhotra's daughter, Asha believes him, as well as loves him, and she along with Jhum Jhum, and Dilher Singh try to expose what's going on. Chander also finds out that the three men who killed his dad also belong to this gang, but then Marcelloni abducts Asha, and uses Chander as a pawn to get what he wants - spread nationwide terror.",
+      "popularity": 0.6775,
+      "poster_path": "/qhfZmikx43PHY7VimlPCubMBH7U.jpg",
+      "release_date": "1988-12-01",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.6,
+      "vote_count": 7
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/sSQ64wYHNisFAdOS95NCCZc5WOV.jpg",
+      "genre_ids": [
+        28,
+        10752
+      ],
+      "id": 150839,
+      "title": "Commando Leopard",
+      "original_language": "it",
+      "original_title": "Kommando Leopard",
+      "overview": "A cruel dictator rules a Latin American state. Corruption, brutality and exploitation are present every day. A few people begin to organise resistance. Under the leader \"El Leopardo\" a small group of guerillas fights against the violent government.",
+      "popularity": 0.9208,
+      "poster_path": "/dKep9x02elJbDvi7w6oIlaonkj9.jpg",
+      "release_date": "1985-10-24",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.175,
+      "vote_count": 20
+    },
+    {
+      "adult": false,
+      "backdrop_path": null,
+      "genre_ids": [
+        28,
+        35
+      ],
+      "id": 1331051,
+      "title": "Football Kommando",
+      "original_language": "en",
+      "original_title": "Football Commando",
+      "overview": "In this Wakaliga Uganda story about human trafficking, a German football player and his wife search for their missing son.",
+      "popularity": 0.3854,
+      "poster_path": "/xHeeDs2RYTHVSfk9rMpOaPQV73J.jpg",
+      "release_date": "2022-06-18",
+      "softcore": false,
+      "video": false,
+      "vote_average": 0,
+      "vote_count": 0
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/z4Xln6pY5rBFcN5kioNDJ5CFYkd.jpg",
+      "genre_ids": [
+        28,
+        10752
+      ],
+      "id": 391414,
+      "title": "Suicide Commando",
+      "original_language": "it",
+      "original_title": "Commando Suicida",
+      "overview": "World War 2 - a British commando squad is tasked with attacking the \"secret\" German airfield from which German fighters have been attacking bombers which are trying to stop German tanks from reinforcing the D Day defences.",
+      "popularity": 0.4932,
+      "poster_path": "/gpsAjJsVuFyv6wZDRQSO7zSLyAn.jpg",
+      "release_date": "1968-10-09",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.5,
+      "vote_count": 2
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/33lu1FX3c3Dty5a6s5Ela4P8Dif.jpg",
+      "genre_ids": [
+        28,
+        12,
+        53,
+        80
+      ],
+      "id": 30883,
+      "title": "Angel of Death",
+      "original_language": "en",
+      "original_title": "Commando Mengele",
+      "overview": "A Jewish commando unit hunting Nazi war criminals tracks down the infamous Dr. Mengele in the jungle, and find that he is torturing nubile young virgins and performing horrible medical experiments on the locals. They prepare to battle their way past Mengele's hordes of fanatic Nazi bodyguards in order to get to him.",
+      "popularity": 0.8384,
+      "poster_path": "/W6aGNbBc3aWeb8XFij7NzQHn7k.jpg",
+      "release_date": "1985-07-23",
+      "softcore": false,
+      "video": false,
+      "vote_average": 4.3,
+      "vote_count": 15
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/pumO7YnMUnaGINxfHoYWqJuo5pA.jpg",
+      "genre_ids": [
+        28
+      ],
+      "id": 58990,
+      "title": "Commando Squad",
+      "original_language": "en",
+      "original_title": "Commando Squad",
+      "overview": "An American narcotics agent takes her squad to Mexico, where she must break up a drug-smuggling gang that has also kidnapped her boyfriend.",
+      "popularity": 0.667,
+      "poster_path": "/6Hda1gvyml3HnzudrwUr6Fm9Pax.jpg",
+      "release_date": "1987-06-01",
+      "softcore": false,
+      "video": false,
+      "vote_average": 3.8,
+      "vote_count": 10
+    },
+    {
+      "adult": false,
+      "backdrop_path": null,
+      "genre_ids": [
+        28
+      ],
+      "id": 1065274,
+      "title": "Commando",
+      "original_language": "ar",
+      "original_title": "الكومندان",
+      "overview": "Prisoners Zaki and Sayed escape to carry out a major smuggling operation with a professional thief and they are already successful, but an unexpected surprise looms after they have completed the operation.",
+      "popularity": 0.4058,
+      "poster_path": "/zGJEbqgjLLRskNHsuFD6mhvuJEt.jpg",
+      "release_date": "1986-06-30",
+      "softcore": false,
+      "video": false,
+      "vote_average": 0,
+      "vote_count": 0
+    },
+    {
+      "adult": false,
+      "backdrop_path": null,
+      "genre_ids": [
+        10752,
+        18
+      ],
+      "id": 102089,
+      "title": "Sky Commando",
+      "original_language": "en",
+      "original_title": "Sky Commando",
+      "overview": "Colonel Ed Wyatt is regarded by pilots under his command as being a ruthless disciplinarian. His co-pilot, Lt. Hobson Lee, and Jo McWethy, a war correspondent assigned to the squadron become more friendly than meets Wyatt's approval. When Wyatt's plane is forced down behind enemy lines, he orders his crew to proceed to the American lines with the vital film they have shot, while he remains behind to hold off the enemy.",
+      "popularity": 0.6105,
+      "poster_path": "/iqYj7LVG5J7Tixe1jHnCF3pDXIY.jpg",
+      "release_date": "1953-08-21",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.7,
+      "vote_count": 3
+    },
+    {
+      "adult": false,
+      "backdrop_path": null,
+      "genre_ids": [
+        28
+      ],
+      "id": 252546,
+      "title": "Nato Commando",
+      "original_language": "fi",
+      "original_title": "Nato Commando",
+      "overview": "Alex Lommo, an Ex-Nato Commando, must rescue his old pal Colonel Fägerlund from the hands of Evil corporation Metacom, which has developed a new terrible biological weapon which turns people into mind controlled zombies.",
+      "popularity": 0.2723,
+      "poster_path": "/7GQwLHMMy1JLWycYvGwe78ZNRRO.jpg",
+      "release_date": "2005-12-10",
+      "softcore": false,
+      "video": false,
+      "vote_average": 8,
+      "vote_count": 1
+    },
+    {
+      "adult": false,
+      "backdrop_path": null,
+      "genre_ids": [
+        35
+      ],
+      "id": 1420715,
+      "title": "Commando",
+      "original_language": "en",
+      "original_title": "Commando",
+      "overview": "Letting it all hang out is not without risk. Entry in the Four4 Very Short Horror Film Competition, 2013.",
+      "popularity": 0.1178,
+      "poster_path": null,
+      "release_date": "2013-01-01",
+      "softcore": false,
+      "video": false,
+      "vote_average": 8,
+      "vote_count": 1
+    },
+    {
+      "adult": false,
+      "backdrop_path": null,
+      "genre_ids": [
+        28
+      ],
+      "id": 718096,
+      "title": "Commando",
+      "original_language": "bn",
+      "original_title": "Commando",
+      "overview": "Upcoming Movie starring Dev",
+      "popularity": 0.0478,
+      "poster_path": "/4byEzdIoJLFE8ABnUvpgZgyYAO1.jpg",
+      "release_date": "",
+      "softcore": false,
+      "video": false,
+      "vote_average": 0,
+      "vote_count": 0
+    },
+    {
+      "adult": false,
+      "backdrop_path": null,
+      "genre_ids": [],
+      "id": 940200,
+      "title": "Commando",
+      "original_language": "ur",
+      "original_title": "کمانڈو",
+      "overview": "Action Movie",
+      "popularity": 0.1639,
+      "poster_path": null,
+      "release_date": "2003-06-06",
+      "softcore": false,
+      "video": false,
+      "vote_average": 0,
+      "vote_count": 0
+    },
+    {
+      "adult": false,
+      "backdrop_path": null,
+      "genre_ids": [
+        16,
+        35
+      ],
+      "id": 1783625,
+      "title": "Commando",
+      "original_language": "en",
+      "original_title": "Commando",
+      "overview": "A young man rushes out of the house, late for work, but forgets to take one very important thing with him.",
+      "popularity": 0.0385,
+      "poster_path": "/7qzEobddIfRsQ8nS7WAWsNv9XLZ.jpg",
+      "release_date": "2026-04-17",
+      "softcore": false,
+      "video": false,
+      "vote_average": 0,
+      "vote_count": 0
+    }
+  ],
+  "total_pages": 12,
+  "total_results": 231
+}

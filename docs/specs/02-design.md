@@ -264,10 +264,14 @@ Confirmed from TMDB's API reference:
 | Film details | `GET https://api.themoviedb.org/3/movie/{movie_id}`                                | `id`, `title`, `release_date`, `poster_path`                              |
 
 - Authentication: header `Authorization: Bearer <API Read Access Token>`.
-- `release_date` is a `YYYY-MM-DD` string; we keep only the year. The reference's
-  examples show path fields can be `null`; whether `release_date` arrives as
-  `null` or `""` for unknown dates is unverified (section 15) — the parser
-  treats both as "year unknown".
+- `release_date` is a `YYYY-MM-DD` string; we keep only the year. Checked with
+  real calls (V1, 2026-11-14): a missing poster arrives as `"poster_path": null`,
+  a missing date as `"release_date": ""` (an empty string, not `null`), on both
+  endpoints. The parser treats `""`, `null` and an absent field all as "year
+  unknown".
+- An id TMDB does not know returns HTTP 404 with a `{ success: false, … }` body;
+  the client returns "no such film" for that, and treats every other non-200
+  answer, a timeout (5 s) or an unreadable body as "unavailable".
 - Using `/search/movie` (not `/search/multi`) is what keeps TV out (R9).
 - Responses are parsed with a Zod schema that keeps only those four fields, so
   an unexpected shape fails loudly in one place instead of leaking `undefined`
@@ -286,9 +290,11 @@ Confirmed from TMDB's API reference:
   to write junk film rows straight into the database.
 - **Posters are not stored.** We keep `poster_path` and the browser loads the
   image directly from `https://image.tmdb.org/t/p/<size><poster_path>`
-  (confirmed format). Sizes used: one small size for lists and one medium for
-  the film page; the exact size names come from TMDB's `/configuration`
-  endpoint (section 15). We use plain `<img>` tags, not Next.js image
+  (confirmed format). Sizes used: `w185` for lists and `w342` for the film
+  page, each about twice the drawn width so posters stay sharp on phone
+  screens. TMDB's `/configuration` endpoint lists the poster sizes it serves
+  (V2, checked 2026-11-14): `w92`, `w154`, `w185`, `w342`, `w500`, `w780`,
+  `original`. We use plain `<img>` tags, not Next.js image
   optimisation, because TMDB already serves resized images and Vercel's free
   tier only includes 5,000 image transformations a month.
 
@@ -911,8 +917,8 @@ before the first few tasks (the quadrant maths needs no accounts at all).
 
 | #   | Assumption                                                                                                                                                                    | Where it matters      | How it will be checked                                                                                                 |
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| V1  | Which TMDB fields arrive as `null` vs `""` (poster, release date). The reference doesn't say.                                                                                 | 4.1 parser            | Make real search and details calls for a film with no poster and one with no date; save the responses as test fixtures |
-| V2  | The exact TMDB poster size names                                                                                                                                              | 4.2                   | Call `/configuration`                                                                                                  |
+| V1  | **Settled in T15:** poster is `null`, release date is `""`. ~~Which TMDB fields arrive as `null` vs `""` (poster, release date). The reference doesn't say.~~                                                                                | 4.1 parser            | Make real search and details calls for a film with no poster and one with no date; save the responses as test fixtures |
+| V2  | **Settled in T15:** `w92`, `w154`, `w185`, `w342`, `w500`, `w780`, `original`. ~~The exact TMDB poster size names~~                                                                                                                                             | 4.2                   | Call `/configuration`                                                                                                  |
 | V3  | How a _Before User Created_ rejection reaches the browser in the Google redirect flow (which query parameters carry the error)                                                | 5.1, `/login` message | Sign in to the dev project with an uninvited Google account and read the redirect                                      |
 | V4  | Whether the sign-up hook also runs for users created through the admin API in tests                                                                                           | 10                    | Try it on the dev project; test emails are added to the invite list regardless                                         |
 | V5  | The API's default cap on rows returned per request (I believe 1,000)                                                                                                          | 6, `/friends`         | Check the dev project's API settings; fetch in pages if needed                                                         |

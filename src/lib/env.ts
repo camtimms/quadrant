@@ -9,7 +9,7 @@ import { z } from "zod";
  *
  * This file holds only PUBLIC variables: names starting with NEXT_PUBLIC_ are
  * copied into the JavaScript sent to browsers, so anything here is visible to
- * everyone. Secrets (added in later tasks) get their own server-only module.
+ * everyone. Secrets live in env.server.ts, which browser code cannot import.
  */
 
 const publicEnvSchema = z.object({
@@ -39,15 +39,19 @@ const publicEnvSchema = z.object({
 export type PublicEnv = z.infer<typeof publicEnvSchema>;
 
 /**
- * Check a set of raw values and return them typed, or throw one error that
- * lists every problem. Kept separate from process.env so it can be unit
- * tested with plain objects.
+ * Check a set of raw values against a schema and return them typed, or throw
+ * one error that lists every problem. Kept separate from process.env so it
+ * can be unit tested with plain objects. Shared with the server-only
+ * variables in env.server.ts.
  *
  * The message names variables but never prints their values, so a mistake
  * cannot leak a key into a log.
  */
-export function parsePublicEnv(raw: Record<string, unknown>): PublicEnv {
-  const result = publicEnvSchema.safeParse(raw);
+export function checkEnv<T>(
+  schema: z.ZodType<T>,
+  raw: Record<string, unknown>,
+): T {
+  const result = schema.safeParse(raw);
   if (result.success) return result.data;
 
   const problems = result.error.issues.map((issue) => {
@@ -65,6 +69,11 @@ export function parsePublicEnv(raw: Record<string, unknown>): PublicEnv {
       "Copy .env.example to .env.local and fill in the values, then restart the dev server.",
     ].join("\n"),
   );
+}
+
+/** Check the public variables. */
+export function parsePublicEnv(raw: Record<string, unknown>): PublicEnv {
+  return checkEnv(publicEnvSchema, raw);
 }
 
 let cached: PublicEnv | undefined;

@@ -33,7 +33,7 @@ npm run dev
 
 Then open http://localhost:3000.
 
-No environment variables are needed yet. When they are, copy `.env.example` to
+Copy `.env.example` to
 `.env.local` and fill in the values. `.env.local` is git-ignored and must never
 be committed.
 
@@ -106,7 +106,10 @@ URI.
 
 In Vercel (Production environment variables): `NEXT_PUBLIC_SUPABASE_URL`,
 `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `NEXT_PUBLIC_SITE_URL`, with
-`quadrant-prod`'s values. Changing a variable needs a redeploy to take effect.
+`quadrant-prod`'s values, plus `TMDB_API_READ_ACCESS_TOKEN` (the long "API Read
+Access Token" from TMDB's API settings page, not the short "API Key"; the same
+token is used locally and in production). Changing a variable needs a redeploy
+to take effect.
 
 ### Inviting and removing people
 

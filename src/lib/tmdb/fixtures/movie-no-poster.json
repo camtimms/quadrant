@@ -1,0 +1,36 @@
+{
+  "adult": false,
+  "backdrop_path": null,
+  "belongs_to_collection": null,
+  "budget": 0,
+  "genres": [
+    {
+      "id": 35,
+      "name": "Comedy"
+    }
+  ],
+  "homepage": "",
+  "id": 1420715,
+  "imdb_id": null,
+  "origin_country": [
+    "US"
+  ],
+  "original_language": "en",
+  "original_title": "Commando",
+  "overview": "Letting it all hang out is not without risk. Entry in the Four4 Very Short Horror Film Competition, 2013.",
+  "popularity": 0.1178,
+  "poster_path": null,
+  "production_companies": [],
+  "production_countries": [],
+  "release_date": "2013-01-01",
+  "revenue": 0,
+  "runtime": 1,
+  "softcore": false,
+  "spoken_languages": [],
+  "status": "Released",
+  "tagline": "",
+  "title": "Commando",
+  "video": false,
+  "vote_average": 8,
+  "vote_count": 1
+}
