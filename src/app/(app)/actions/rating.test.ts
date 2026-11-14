@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CurrentMember } from "@/lib/auth/member";
-import { classify, PLACEMENTS } from "@/lib/quadrant";
 import type { EnsureTitleResult } from "@/lib/titles/ensureTitle";
 import type {
   DeleteRatingState,
@@ -23,6 +22,7 @@ const mocks = vi.hoisted(() => ({
   deleteResult: vi.fn(),
   deleteFilters: [] as [string, unknown][],
   refresh: vi.fn(),
+  redirect: vi.fn<(url: string) => never>(),
 }));
 
 vi.mock("@/lib/auth/member", () => ({
@@ -32,6 +32,7 @@ vi.mock("@/lib/titles/ensureTitle", () => ({
   ensureTitle: mocks.ensureTitle,
 }));
 vi.mock("next/cache", () => ({ refresh: mocks.refresh }));
+vi.mock("next/navigation", () => ({ redirect: mocks.redirect }));
 vi.mock("@/lib/supabase/server", () => ({
   // A pretend Supabase client with just the two things the actions use:
   //   .rpc("save_rating", {...})
@@ -95,6 +96,14 @@ function save(fields: Record<string, string> = {}): Promise<RatingFormState> {
   );
 }
 
+/**
+ * Save, expecting it to work. A successful save ends in a redirect, which
+ * (like the real one) is a thrown signal, not a returned value.
+ */
+async function savedAndRedirected(fields: Record<string, string> = {}) {
+  await expect(save(fields)).rejects.toThrow("NEXT_REDIRECT");
+}
+
 function remove(titleId = "42"): Promise<DeleteRatingState> {
   return deleteRating(IDLE, form({ title_id: titleId }));
 }
@@ -104,6 +113,10 @@ beforeEach(() => {
   mocks.ensureTitle.mockResolvedValue({ ok: true, title: TITLE });
   mocks.rpc.mockResolvedValue({ data: { id: 1 }, error: null });
   mocks.deleteResult.mockReturnValue({ error: null });
+  // The real redirect() never returns: it throws a signal for Next.js.
+  mocks.redirect.mockImplementation(() => {
+    throw new Error("NEXT_REDIRECT");
+  });
   mocks.deleteFilters.length = 0;
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
@@ -115,8 +128,8 @@ afterEach(() => {
 
 describe("saveRating", () => {
   describe("a good rating (R15, R23)", () => {
-    it("stores the film, saves the scores under it, and reports the placement", async () => {
-      const result = await save({ quality: "2", enjoyment: "9" });
+    it("stores the film and saves the scores under it", async () => {
+      await savedAndRedirected({ quality: "2", enjoyment: "9" });
 
       expect(mocks.ensureTitle).toHaveBeenCalledWith(10999);
       expect(mocks.rpc).toHaveBeenCalledWith("save_rating", {
@@ -125,45 +138,42 @@ describe("saveRating", () => {
         p_enjoyment: 9,
         p_review: "So bad it's good.",
       });
-      expect(result).toEqual({
-        status: "saved",
-        rating: { quality: 2, enjoyment: 9, review: "So bad it's good." },
-        // Both scores are extreme (2 or less, 8 or more): an outer corner.
-        placement: "guilty-pleasures",
+    });
+
+    // R23 (v5): after saving, the member lands on My films with the film
+    // they just rated pointed out.
+    it("sends the member to My films, naming the film in the address", async () => {
+      await savedAndRedirected();
+      expect(mocks.redirect).toHaveBeenCalledTimes(1);
+      expect(mocks.redirect).toHaveBeenCalledWith("/?rated=10999");
+    });
+
+    // The stand-in for redirect() throws, as the real one does. If the
+    // redirect were ever moved inside the action's try/catch, that catch
+    // would swallow it and this would come back as an error instead.
+    it("lets the redirect through instead of reporting it as a failure", async () => {
+      await expect(save()).rejects.toThrow("NEXT_REDIRECT");
+    });
+
+    it("only redirects after the rating is stored", async () => {
+      const order: string[] = [];
+      mocks.rpc.mockImplementation(async () => {
+        order.push("saved");
+        return { data: { id: 1 }, error: null };
       });
-    });
+      mocks.redirect.mockImplementation(() => {
+        order.push("redirected");
+        throw new Error("NEXT_REDIRECT");
+      });
 
-    it("asks the page to redraw, so charts and lists show the new rating", async () => {
-      await save();
-      expect(mocks.refresh).toHaveBeenCalledTimes(1);
-    });
+      await savedAndRedirected();
 
-    // The whole point of having one rule: the placement shown after saving
-    // can never disagree with the one shown everywhere else (R29).
-    it("returns the same placement as classify, for every pair of scores", async () => {
-      const seen = new Set<string>();
-      for (let quality = 0; quality <= 10; quality++) {
-        for (let enjoyment = 0; enjoyment <= 10; enjoyment++) {
-          const result = await save({
-            quality: String(quality),
-            enjoyment: String(enjoyment),
-          });
-          const expected = classify({ quality, enjoyment });
-          expect(result).toMatchObject({
-            status: "saved",
-            placement: expected,
-          });
-          seen.add(expected);
-        }
-      }
-      // All thirteen placements came up along the way.
-      expect(seen.size).toBe(PLACEMENTS.length);
+      expect(order).toEqual(["saved", "redirected"]);
     });
 
     // E14: 0 is a score, not "nothing".
     it("accepts 0 and 10", async () => {
-      const result = await save({ quality: "0", enjoyment: "10" });
-      expect(result).toMatchObject({ status: "saved" });
+      await savedAndRedirected({ quality: "0", enjoyment: "10" });
       expect(mocks.rpc.mock.calls[0][1]).toMatchObject({
         p_quality: 0,
         p_enjoyment: 10,
@@ -171,22 +181,34 @@ describe("saveRating", () => {
     });
 
     // E22: untouched sliders are a real 5/5.
-    it("saves untouched sliders as 5/5, on the fence", async () => {
-      expect(await save({ quality: "5", enjoyment: "5" })).toMatchObject({
-        status: "saved",
-        placement: "on-the-fence",
+    it("saves untouched sliders as 5/5", async () => {
+      await savedAndRedirected({ quality: "5", enjoyment: "5" });
+      expect(mocks.rpc.mock.calls[0][1]).toMatchObject({
+        p_quality: 5,
+        p_enjoyment: 5,
       });
     });
 
+    it("accepts every pair of whole-number scores", async () => {
+      for (let quality = 0; quality <= 10; quality++) {
+        for (let enjoyment = 0; enjoyment <= 10; enjoyment++) {
+          await savedAndRedirected({
+            quality: String(quality),
+            enjoyment: String(enjoyment),
+          });
+        }
+      }
+      expect(mocks.rpc).toHaveBeenCalledTimes(121);
+    });
+
     it("sends 'no review' as an empty string", async () => {
-      await save({ review: "   " });
+      await savedAndRedirected({ review: "   " });
       expect(mocks.rpc.mock.calls[0][1].p_review).toBe("");
     });
 
     it("accepts a 500-character review", async () => {
-      expect(await save({ review: "a".repeat(500) })).toMatchObject({
-        status: "saved",
-      });
+      await savedAndRedirected({ review: "a".repeat(500) });
+      expect(mocks.rpc).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -207,7 +229,7 @@ describe("saveRating", () => {
       // Nothing was looked up or written.
       expect(mocks.ensureTitle).not.toHaveBeenCalled();
       expect(mocks.rpc).not.toHaveBeenCalled();
-      expect(mocks.refresh).not.toHaveBeenCalled();
+      expect(mocks.redirect).not.toHaveBeenCalled();
     });
 
     it("rejects a score field left out of the request entirely", async () => {
@@ -326,7 +348,7 @@ describe("saveRating", () => {
       expect(result).toMatchObject({ status: "error" });
       // Internal details go to the server log, never to the screen.
       expect(JSON.stringify(result)).not.toContain("ratings_quality_check");
-      expect(mocks.refresh).not.toHaveBeenCalled();
+      expect(mocks.redirect).not.toHaveBeenCalled();
     });
 
     it("returns an error rather than throwing if the film store fails", async () => {

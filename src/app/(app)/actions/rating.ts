@@ -6,8 +6,8 @@
 // values, without using our form, so each one checks everything itself.
 
 import { refresh } from "next/cache";
+import { redirect } from "next/navigation";
 import { getCurrentMember } from "@/lib/auth/member";
-import { classify } from "@/lib/quadrant";
 import { createClient } from "@/lib/supabase/server";
 import { ensureTitle } from "@/lib/titles/ensureTitle";
 import {
@@ -33,7 +33,8 @@ function text(value: FormDataEntryValue | null): string {
 
 /**
  * Save the member's rating of a film: create it, or change it if they have
- * already rated the film (R15, R19, R20). Returns where it landed (R23).
+ * already rated the film (R15, R19, R20). On success it does not return:
+ * it sends the member to My films, where the film is pointed out (R23).
  *
  * Used with React's useActionState, which is why the first argument is
  * "whatever this returned last time" (unused, hence the underscore).
@@ -125,17 +126,15 @@ export async function saveRating(
     return fail(NOT_SAVED);
   }
 
-  // 5. Tell Next.js to redraw the page the member is on, so the chart, lists
-  //    and averages pick up the new rating.
-  refresh();
-
-  return {
-    status: "saved",
-    rating,
-    // The same function every chart and list uses, so the placement shown
-    // here can never disagree with them (R29).
-    placement: classify(rating),
-  };
+  // 5. Saved. Take the member to My films, where the film now sits on
+  //    their chart (R23). "?rated=" tells that page which film to point
+  //    out; it is only a pointer, and the page works out the placement
+  //    itself from what is stored.
+  //
+  //    redirect() works by throwing a special signal that Next.js catches,
+  //    so it MUST be outside the try/catch above. Inside it, our own catch
+  //    would swallow the signal and report a successful save as a failure.
+  redirect(`/?rated=${tmdbId}`);
 }
 
 /**

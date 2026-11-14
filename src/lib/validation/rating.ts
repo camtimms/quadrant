@@ -1,4 +1,4 @@
-import type { Placement, Score } from "@/lib/quadrant";
+import type { Score } from "@/lib/quadrant";
 import { characterCount } from "@/lib/validation/text";
 
 /**
@@ -110,14 +110,15 @@ export type RatingFormValues = {
  * What the save action hands back to the rating form.
  *
  *  - "idle"   nothing has been submitted yet
- *  - "saved"  it worked; `placement` is where the film landed (R23)
- *  - "error"  it did not; `message` says why, `field` says which input (if
- *             any), and `values` is what was typed, so the form can refill
- *             itself: a failed save must never lose a review (E19)
+ *  - "error"  it did not work; `message` says why, `field` says which input
+ *             (if any), and `values` is what was typed, so the form can
+ *             refill itself: a failed save must never lose a review (E19)
+ *
+ * There is no "saved" state. A successful save leaves the page altogether:
+ * the action redirects to My films (R23).
  */
 export type RatingFormState =
   | { status: "idle" }
-  | { status: "saved"; rating: RatingInput; placement: Placement }
   | {
       status: "error";
       message: string;

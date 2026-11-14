@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { PLACEMENTS } from "@/lib/quadrant";
 import {
   CHART_SIZE,
   PLOT_END,
@@ -7,6 +8,10 @@ import {
   chartY,
   formatScore,
   toPercent,
+  ZOOM_SPAN,
+  zoomScale,
+  zoomTransform,
+  zoomWindow,
 } from "@/components/chart/scale";
 
 describe("chart scale", () => {
@@ -72,5 +77,88 @@ describe("chart scale", () => {
       expect(formatScore(6.3)).toBe("6.3");
       expect(formatScore(6.25)).toBe("6.3");
     });
+  });
+});
+
+describe("zoomWindow (R53)", () => {
+  it("is the whole chart (no window) when no filter is chosen", () => {
+    expect(zoomWindow(null)).toBeNull();
+    expect(zoomScale(null)).toBe(1);
+    expect(zoomTransform(null)).toBe("none");
+  });
+
+  it.each(PLACEMENTS)("gives %s a window inside the drawing", (placement) => {
+    const window = zoomWindow(placement)!;
+    expect(window.left).toBeGreaterThanOrEqual(0);
+    expect(window.top).toBeGreaterThanOrEqual(0);
+    expect(window.left + window.size).toBeLessThanOrEqual(CHART_SIZE);
+    expect(window.top + window.size).toBeLessThanOrEqual(CHART_SIZE);
+  });
+
+  // One zoom level for every filter keeps text and spacing predictable.
+  it("makes every window the same size", () => {
+    const sizes = new Set(PLACEMENTS.map((p) => zoomWindow(p)!.size));
+    expect(sizes.size).toBe(1);
+    expect([...sizes][0]).toBe(chartX(ZOOM_SPAN) - chartX(0));
+  });
+
+  it("zooms by a little under two times", () => {
+    const scale = zoomScale(zoomWindow("masterpieces"));
+    expect(scale).toBeCloseTo(CHART_SIZE / 65);
+    expect(scale).toBeGreaterThan(1.5);
+    expect(scale).toBeLessThan(2);
+  });
+
+  /** Is a score position inside the window? */
+  function shows(placement: (typeof PLACEMENTS)[number], q: number, e: number) {
+    const window = zoomWindow(placement)!;
+    const x = chartX(q);
+    const y = chartY(e);
+    return (
+      x >= window.left &&
+      x <= window.left + window.size &&
+      y >= window.top &&
+      y <= window.top + window.size
+    );
+  }
+
+  // Every whole-number score that HAS a placement must be in that
+  // placement's view, or a filtered film could be off screen.
+  it("keeps every film of a placement in view", async () => {
+    const { classify } = await import("@/lib/quadrant");
+    for (let q = 0; q <= 10; q++) {
+      for (let e = 0; e <= 10; e++) {
+        const placement = classify({ quality: q, enjoyment: e });
+        expect(shows(placement, q, e), `${q}/${e} (${placement})`).toBe(true);
+      }
+    }
+  });
+
+  it("shows the top-right quarter for Masterpieces and for Worth Watching", () => {
+    expect(zoomWindow("masterpieces")).toEqual(zoomWindow("worth-watching"));
+    expect(shows("masterpieces", 10, 10)).toBe(true);
+    expect(shows("masterpieces", 5, 5)).toBe(true);
+    // The opposite corner is out of view.
+    expect(shows("masterpieces", 0, 0)).toBe(false);
+  });
+
+  it("centres On the fence on the crossing", () => {
+    const window = zoomWindow("on-the-fence")!;
+    expect(window.left + window.size / 2).toBe(chartX(5));
+    expect(window.top + window.size / 2).toBe(chartY(5));
+  });
+
+  // The names beside the window are written 5 units into the margin.
+  it("keeps the margin names beside the window in view", () => {
+    const window = zoomWindow("masterpieces")!;
+    expect(window.top).toBeLessThan(chartY(10) - 5);
+    expect(window.left + window.size).toBeGreaterThan(chartX(10) + 5);
+  });
+
+  it("builds a CSS transform that slides, then enlarges", () => {
+    const window = zoomWindow("masterpieces")!;
+    expect(zoomTransform(window)).toBe(
+      `scale(${CHART_SIZE / 65}) translate(-${(window.left / CHART_SIZE) * 100}%, -${(window.top / CHART_SIZE) * 100}%)`,
+    );
   });
 });

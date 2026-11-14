@@ -57,11 +57,9 @@ function sent(): Record<string, FormDataEntryValue> {
 }
 
 beforeEach(() => {
-  actions.saveRating.mockResolvedValue({
-    status: "saved",
-    rating: { quality: 5, enjoyment: 5, review: "" },
-    placement: "on-the-fence",
-  });
+  // The real action redirects to My films after a successful save and so
+  // never answers. Answering "idle" is the nearest a stand-in can get.
+  actions.saveRating.mockResolvedValue({ status: "idle" });
   actions.deleteRating.mockResolvedValue({ status: "deleted" });
 });
 
@@ -225,23 +223,7 @@ describe("RatingForm", () => {
     });
   });
 
-  describe("after saving", () => {
-    // R23
-    it("says which placement the film landed in", async () => {
-      actions.saveRating.mockResolvedValue({
-        status: "saved",
-        rating: { quality: 2, enjoyment: 9, review: "" },
-        placement: "guilty-pleasures",
-      });
-      render(<RatingForm tmdbId={10999} initialRating={null} />);
-
-      await save();
-
-      const status = screen.getByRole("status").textContent;
-      expect(status).toMatch(/saved/i);
-      expect(status).toContain(PLACEMENT_LABELS["guilty-pleasures"]);
-    });
-
+  describe("when a save fails", () => {
     // E19: whatever went wrong, the typing is still there.
     it("shows an error and keeps the typed review and scores", async () => {
       actions.saveRating.mockResolvedValue({

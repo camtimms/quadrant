@@ -10,6 +10,9 @@ import {
   chartY,
   formatScore,
   toPercent,
+  zoomScale,
+  zoomTransform,
+  zoomWindow,
 } from "@/components/chart/scale";
 import {
   classify,
@@ -319,6 +322,16 @@ type Props = {
    * averages. See clusterPoints.
    */
   cellSize?: number;
+  /**
+   * Zoom in on the part of the chart where this placement lies (R53). Null
+   * or left out shows the whole chart.
+   */
+  zoomTo?: Placement | null;
+  /**
+   * A film whose point should start off selected, with its panel open. Used
+   * to point out a film that has just been rated (R23).
+   */
+  initialSelectedId?: number | null;
 };
 
 /**
@@ -331,58 +344,99 @@ type Props = {
  * can be reached with Tab, pressed with Enter or Space, and are announced by
  * screen readers (NFR12). Rebuilding that on an SVG circle is possible but
  * easy to get subtly wrong.
+ *
+ * Zooming is done entirely in CSS. The drawing and the points sit together
+ * in one layer; a `transform` on that layer slides and enlarges it, and a
+ * `transition` makes the browser animate from the old transform to the new
+ * one. No animation code runs here. It animates when a filter is chosen
+ * because this component stays on the page while the filter link is
+ * followed: only the zoomTo prop changes.
  */
-export function QuadrantChart({ films, cellSize = 1 }: Props) {
-  // Which point is open, remembered by position in the list of clusters.
-  const [selected, setSelected] = useState<number | null>(null);
+export function QuadrantChart({
+  films,
+  cellSize = 1,
+  zoomTo = null,
+  initialSelectedId = null,
+}: Props) {
+  // Which point is open, remembered as the id of a film in it (not as a
+  // position in the list). When a filter changes which films are shown, a
+  // remembered position would silently point at a different film; a film id
+  // either still matches a point or matches none, and the panel closes.
+  const [selectedId, setSelectedId] = useState<number | null>(
+    initialSelectedId,
+  );
 
   const clusters = clusterPoints(films, cellSize);
-  // If the films change (after a delete, say), the remembered position may
-  // no longer exist.
-  const open = selected !== null ? clusters[selected] : undefined;
+  const holdsSelected = (cluster: Cluster<ChartFilm>) =>
+    cluster.items.some((film) => film.tmdbId === selectedId);
+  const open = selectedId === null ? undefined : clusters.find(holdsSelected);
+
+  const zoom = zoomWindow(zoomTo);
+  const scale = zoomScale(zoom);
+
+  // Both the layer and the points animate over the same time, in step. The
+  // "motion-reduce" part switches the animation off for anyone whose device
+  // is set to reduce motion: the chart then simply changes.
+  const ANIMATE =
+    "transition-transform duration-500 ease-in-out motion-reduce:transition-none";
 
   return (
     <div className="flex flex-col gap-3">
-      {/* aspect-square keeps the chart square at any width. "relative" lets
-          the drawing and the buttons be stacked on top of each other. */}
-      <div className="relative mx-auto aspect-square w-full max-w-xl">
-        <ChartFrame />
-        {clusters.map((cluster, index) => {
-          const count = cluster.items.length;
-          const label = describePoint(cluster);
-          const isOpen = selected === index;
-          return (
-            <button
-              // Films keep their order, so the first film's id is a stable
-              // name for the point it belongs to.
-              key={cluster.items[0].tmdbId}
-              type="button"
-              aria-label={label}
-              title={label}
-              // Tells a screen reader this button opens something, and
-              // whether it is open now.
-              aria-expanded={isOpen}
-              onClick={() => setSelected(isOpen ? null : index)}
-              style={{
-                left: toPercent(chartX(cluster.point.quality)),
-                top: toPercent(chartY(cluster.point.enjoyment)),
-              }}
-              // The button is centred on its position (the two translates).
-              // A cluster is larger and shows its count, so "several films
-              // here" is told by size and a number, not by colour (NFR14).
-              // The selected point gets a ring.
-              className={`absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-background bg-foreground text-xs leading-none font-semibold text-background hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 ${
-                count > 1 ? "h-7 w-7" : "h-4 w-4"
-              } ${isOpen ? "ring-2 ring-foreground ring-offset-2 ring-offset-background" : ""}`}
-            >
-              {count > 1 ? count : null}
-            </button>
-          );
-        })}
+      {/* aspect-square keeps the chart square at any width. overflow-hidden
+          clips whatever the zoom pushes outside it. */}
+      <div className="relative mx-auto aspect-square w-full max-w-xl overflow-hidden">
+        <div
+          data-zoom-layer
+          // origin-top-left: enlarge from the top-left corner, which is what
+          // the transform's arithmetic assumes (see zoomTransform).
+          className={`absolute inset-0 origin-top-left ${ANIMATE}`}
+          style={{ transform: zoomTransform(zoom) }}
+        >
+          <ChartFrame />
+          {clusters.map((cluster) => {
+            const count = cluster.items.length;
+            const label = describePoint(cluster);
+            const isOpen = holdsSelected(cluster);
+            return (
+              <button
+                // Films keep their order, so the first film's id is a
+                // stable name for the point it belongs to.
+                key={cluster.items[0].tmdbId}
+                type="button"
+                aria-label={label}
+                title={label}
+                // Tells a screen reader this button opens something, and
+                // whether it is open now.
+                aria-expanded={isOpen}
+                onClick={() =>
+                  setSelectedId(isOpen ? null : cluster.items[0].tmdbId)
+                }
+                style={{
+                  left: toPercent(chartX(cluster.point.quality)),
+                  top: toPercent(chartY(cluster.point.enjoyment)),
+                  // The layer is enlarged when zoomed, which would enlarge
+                  // the points too. Shrinking each by the same factor keeps
+                  // them the same size on screen: zooming spreads the
+                  // points out, it does not inflate them.
+                  scale: 1 / scale,
+                }}
+                // The button is centred on its position (the two
+                // translates). A cluster is larger and shows its count, so
+                // "several films here" is told by size and a number, not by
+                // colour (NFR14). The selected point gets a ring.
+                className={`absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-background bg-foreground text-xs leading-none font-semibold text-background hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 ${ANIMATE} ${
+                  count > 1 ? "h-7 w-7" : "h-4 w-4"
+                } ${isOpen ? "ring-2 ring-foreground ring-offset-2 ring-offset-background" : ""}`}
+              >
+                {count > 1 ? count : null}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {open ? (
-        <PointPanel films={open.items} onClose={() => setSelected(null)} />
+        <PointPanel films={open.items} onClose={() => setSelectedId(null)} />
       ) : null}
     </div>
   );

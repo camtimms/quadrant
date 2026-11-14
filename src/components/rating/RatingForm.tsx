@@ -8,7 +8,7 @@ import { useActionState, useState } from "react";
 import { saveRating } from "@/app/(app)/actions/rating";
 import { PlacementPreview } from "@/components/rating/PlacementPreview";
 import { ScoreSlider } from "@/components/rating/ScoreSlider";
-import { PLACEMENT_LABELS, SCALE_END_LABELS } from "@/lib/quadrant";
+import { SCALE_END_LABELS } from "@/lib/quadrant";
 import {
   REVIEW_MAX_LENGTH,
   type RatingFormState,
@@ -34,6 +34,9 @@ const DEFAULT_SCORE = 5;
  * placement preview follow the sliders, and it has a second benefit: a
  * failed save cannot lose what was typed, because the values are held here
  * and not only in the form that was submitted (E19).
+ *
+ * A successful save does not come back here: the action sends the member
+ * to My films, where the film they just rated is pointed out (R23).
  *
  * Nothing is saved until Save is pressed. A slider is easy to brush by
  * accident on a phone, so moving one never saves by itself.
@@ -115,15 +118,6 @@ export function RatingForm({ tmdbId, initialRating }: Props) {
           {state.message}
         </p>
       ) : null}
-
-      {/* role="status" is the calmer cousin of "alert", for good news. The
-          element is always present so that its text CHANGING is what gets
-          announced. R23: say where the film landed. */}
-      <p role="status" className="text-sm">
-        {state.status === "saved" && !isPending
-          ? `Saved. ${state.rating.quality} / ${state.rating.enjoyment} is ${PLACEMENT_LABELS[state.placement]}.`
-          : ""}
-      </p>
 
       <button
         type="submit"

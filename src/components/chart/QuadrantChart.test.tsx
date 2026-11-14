@@ -13,7 +13,13 @@ import {
   QuadrantChart,
   type ChartFilm,
 } from "@/components/chart/QuadrantChart";
-import { chartX, chartY } from "@/components/chart/scale";
+import {
+  chartX,
+  chartY,
+  zoomScale,
+  zoomTransform,
+  zoomWindow,
+} from "@/components/chart/scale";
 import {
   EXTREME_HIGH,
   EXTREME_LOW,
@@ -348,6 +354,130 @@ describe("QuadrantChart", () => {
 
       fireEvent.click(point);
       fireEvent.click(screen.getByRole("button", { name: "Close" }));
+      expect(screen.queryByRole("region")).toBeNull();
+    });
+  });
+
+  describe("zooming to a filter (R53)", () => {
+    const layer = (container: HTMLElement) =>
+      container.querySelector<HTMLElement>("[data-zoom-layer]")!;
+
+    it("shows the whole chart when no filter is chosen", () => {
+      const { container } = render(<QuadrantChart films={[commando]} />);
+      expect(layer(container).style.transform).toBe("none");
+      expect(screen.getByRole("button", { name: /Commando/ }).style.scale).toBe(
+        "1",
+      );
+    });
+
+    it("moves and enlarges the chart to the chosen placement", () => {
+      const { container } = render(
+        <QuadrantChart films={[heat]} zoomTo="masterpieces" />,
+      );
+      expect(layer(container).style.transform).toBe(
+        zoomTransform(zoomWindow("masterpieces")),
+      );
+      expect(layer(container).style.transform).toMatch(
+        /^scale\(.+\) translate/,
+      );
+    });
+
+    // The frame and the points are in the one layer, so they move together.
+    it("zooms the frame and the points together", () => {
+      const { container } = render(
+        <QuadrantChart films={[heat]} zoomTo="masterpieces" />,
+      );
+      expect(layer(container).querySelector("svg")).not.toBeNull();
+      expect(
+        layer(container).contains(screen.getByRole("button", { name: /Heat/ })),
+      ).toBe(true);
+    });
+
+    it("keeps the points the same size on screen", () => {
+      render(<QuadrantChart films={[heat]} zoomTo="masterpieces" />);
+      const point = screen.getByRole("button", { name: /Heat/ });
+      // Shrunk by exactly as much as the layer is enlarged.
+      expect(Number(point.style.scale)).toBeCloseTo(
+        1 / zoomScale(zoomWindow("masterpieces")),
+      );
+    });
+
+    it("zooms back out when the filter is cleared", () => {
+      const { container, rerender } = render(
+        <QuadrantChart films={[heat]} zoomTo="masterpieces" />,
+      );
+      // The same component, given new props: what following a filter link
+      // does. This is why the change can animate.
+      rerender(<QuadrantChart films={[heat, commando]} zoomTo={null} />);
+      expect(layer(container).style.transform).toBe("none");
+    });
+
+    // jsdom does not run animations, so the test checks the instructions
+    // given to the browser: animate the transform, but not for anyone who
+    // has asked their device to reduce motion.
+    it("animates, except for members who have asked for reduced motion", () => {
+      const { container } = render(
+        <QuadrantChart films={[heat]} zoomTo="masterpieces" />,
+      );
+      for (const element of [
+        layer(container),
+        screen.getByRole("button", { name: /Heat/ }),
+      ]) {
+        expect(element.classList.contains("transition-transform")).toBe(true);
+        expect(
+          element.classList.contains("motion-reduce:transition-none"),
+        ).toBe(true);
+      }
+    });
+
+    it("clips what the zoom pushes out of view", () => {
+      const { container } = render(
+        <QuadrantChart films={[heat]} zoomTo="masterpieces" />,
+      );
+      expect(
+        layer(container).parentElement!.classList.contains("overflow-hidden"),
+      ).toBe(true);
+    });
+  });
+
+  describe("pointing out a film (R23)", () => {
+    it("starts with that film's point open", () => {
+      render(
+        <QuadrantChart films={[commando, heat]} initialSelectedId={10999} />,
+      );
+      const panel = screen.getByRole("region", { name: /selected/i });
+      expect(within(panel).getByText("Commando")).toBeTruthy();
+      expect(
+        screen
+          .getByRole("button", { name: /Commando/ })
+          .getAttribute("aria-expanded"),
+      ).toBe("true");
+    });
+
+    it("opens the whole cluster when the film shares its point", () => {
+      render(
+        <QuadrantChart
+          films={[heat, alien, clue]}
+          initialSelectedId={348} // Alien, the second film at 9/9
+        />,
+      );
+      const panel = screen.getByRole("region", { name: /selected/i });
+      expect(within(panel).getAllByRole("listitem")).toHaveLength(3);
+    });
+
+    it("opens nothing when the film is not on the chart", () => {
+      render(<QuadrantChart films={[commando]} initialSelectedId={424242} />);
+      expect(screen.queryByRole("region")).toBeNull();
+    });
+
+    // A filter can remove the selected film from the chart. The panel must
+    // close, not jump to whichever film now sits at the same position in
+    // the list.
+    it("closes the panel when a filter removes the selected film", () => {
+      const { rerender } = render(
+        <QuadrantChart films={[commando, heat]} initialSelectedId={10999} />,
+      );
+      rerender(<QuadrantChart films={[heat]} zoomTo="masterpieces" />);
       expect(screen.queryByRole("region")).toBeNull();
     });
   });

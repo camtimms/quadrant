@@ -1,3 +1,5 @@
+import type { Placement, Point } from "@/lib/quadrant";
+
 /**
  * Turning scores into positions on the chart (design section 8).
  *
@@ -56,4 +58,78 @@ export function toPercent(units: number): string {
  */
 export function formatScore(score: number): string {
   return Number.isInteger(score) ? String(score) : score.toFixed(1);
+}
+
+// ---------------------------------------------------------------------------
+// Zooming in on one placement (R53)
+// ---------------------------------------------------------------------------
+
+/**
+ * How much of each scale is in view when zoomed in: 6.5 of the 0–10 points.
+ * That is one half of the chart (5 points) plus 0.75 either side, so points
+ * on the edge of the view are not cut in half and the names written in the
+ * margin beside it stay visible.
+ */
+export const ZOOM_SPAN = 6.5;
+
+/**
+ * The middle of each placement's part of the chart, in scores.
+ *
+ * A corner and its neighbouring inner band share a view (the quarter they
+ * are both in), so Masterpieces and Worth Watching both centre on 7.5 / 7.5.
+ * The four "on a line" placements centre on their half of a dividing line,
+ * and On the fence on the crossing itself. Because every view is the same
+ * size, every filter zooms by the same amount.
+ */
+const ZOOM_CENTRES: Record<Placement, Point> = {
+  masterpieces: { quality: 7.5, enjoyment: 7.5 },
+  "worth-watching": { quality: 7.5, enjoyment: 7.5 },
+  "guilty-pleasures": { quality: 2.5, enjoyment: 7.5 },
+  "cheap-thrills": { quality: 2.5, enjoyment: 7.5 },
+  "serious-watches": { quality: 7.5, enjoyment: 2.5 },
+  respectable: { quality: 7.5, enjoyment: 2.5 },
+  "dumpster-fires": { quality: 2.5, enjoyment: 2.5 },
+  "not-worth-watching": { quality: 2.5, enjoyment: 2.5 },
+  good: { quality: 7.5, enjoyment: 5 },
+  bad: { quality: 2.5, enjoyment: 5 },
+  enjoyable: { quality: 5, enjoyment: 7.5 },
+  "not-enjoyable": { quality: 5, enjoyment: 2.5 },
+  "on-the-fence": { quality: 5, enjoyment: 5 },
+};
+
+/** The square part of the drawing that is in view, in chart units. */
+export type ZoomWindow = { left: number; top: number; size: number };
+
+/**
+ * Which part of the chart to show for a chosen filter, or null (the whole
+ * chart) when there is none.
+ */
+export function zoomWindow(placement: Placement | null): ZoomWindow | null {
+  if (placement === null) return null;
+  const centre = ZOOM_CENTRES[placement];
+  const half = ZOOM_SPAN / 2;
+  return {
+    left: chartX(centre.quality - half),
+    // The TOP edge of the view is the HIGHEST enjoyment score in it.
+    top: chartY(centre.enjoyment + half),
+    size: chartX(ZOOM_SPAN) - chartX(0),
+  };
+}
+
+/** How many times bigger things are drawn when zoomed to a window. */
+export function zoomScale(window: ZoomWindow | null): number {
+  return window ? CHART_SIZE / window.size : 1;
+}
+
+/**
+ * The CSS `transform` that brings a window into view, or "none".
+ *
+ * Read it right to left, which is the order CSS applies it: first slide the
+ * drawing so the window's top-left corner is at the top-left of the chart,
+ * then enlarge everything from that corner until the window fills the chart.
+ * The percentages are of the chart's own size, so this works at any width.
+ */
+export function zoomTransform(window: ZoomWindow | null): string {
+  if (!window) return "none";
+  return `scale(${zoomScale(window)}) translate(-${toPercent(window.left)}, -${toPercent(window.top)})`;
 }
