@@ -8,13 +8,24 @@ import type { Placement } from "@/lib/quadrant/types";
  * To rename a placement, change the string on the right and nothing else:
  * placements are never stored in the database, so no data needs migrating.
  *
- * "Serious Watches" is a working name the owner expects may change.
+ * All of these are working names the owner expects to revise. The guideline:
+ * opposite regions should ideally be antonyms (Worth Watching / Not Worth
+ * Watching), but film puns and references are welcome where they are more fun.
  */
 export const PLACEMENT_LABELS: Record<Placement, string> = {
+  // Outer corners: both scores extreme.
   masterpieces: "Masterpieces",
   "guilty-pleasures": "Guilty Pleasures",
   "serious-watches": "Serious Watches",
+  "dumpster-fires": "Dumpster Fires",
+
+  // Inner bands: off the midpoint, but not in a corner.
+  "worth-watching": "Worth Watching",
+  "cheap-thrills": "Cheap Thrills",
+  respectable: "Respectable",
   "not-worth-watching": "Not Worth Watching",
+
+  // On a line: one score is exactly 5 (or, for the last one, both are).
   good: "Good",
   bad: "Bad",
   enjoyable: "Enjoyable",

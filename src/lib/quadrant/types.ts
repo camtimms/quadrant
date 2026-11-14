@@ -18,25 +18,36 @@ export type Score = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
  */
 export type Point = { quality: number; enjoyment: number };
 
-/** Where one value sits relative to the midpoint of 5. */
-export type Level = "low" | "neutral" | "high";
+/**
+ * Where one value sits on its 0-10 scale. The scale is cut at 2.5, 5 and 7.5
+ * into four equal bands, with 5 itself as its own "neutral" level.
+ * "very-" means extreme: 7.5 or more, or 2.5 or less.
+ */
+export type Level = "very-low" | "low" | "neutral" | "high" | "very-high";
 
-/** Both scores are off the midpoint: the film is in one of the four corners. */
-export type Quadrant =
-  | "masterpieces"
-  | "guilty-pleasures"
-  | "serious-watches"
-  | "not-worth-watching";
+/** Both scores are extreme. The rare, stand-out films. */
+export type Corner =
+  | "masterpieces" // both extremely high
+  | "guilty-pleasures" // quality extremely low, enjoyment extremely high
+  | "serious-watches" // quality extremely high, enjoyment extremely low
+  | "dumpster-fires"; // both extremely low
+
+/** Neither score is 5, and the film is not in a corner. */
+export type InnerBand =
+  | "worth-watching" // both above 5
+  | "cheap-thrills" // quality below 5, enjoyment above 5
+  | "respectable" // quality above 5, enjoyment below 5
+  | "not-worth-watching"; // both below 5
 
 /** Exactly one score is 5, so only the other one says anything. */
 export type AxisLabel = "good" | "bad" | "enjoyable" | "not-enjoyable";
 
 /** Every label a point can get. Each point gets exactly one. */
-export type Placement = Quadrant | AxisLabel | "on-the-fence";
+export type Placement = Corner | InnerBand | AxisLabel | "on-the-fence";
 
 /**
- * All nine placements, in the order they are shown (filter chips, counts):
- * the four quadrants first, then the four single-scale labels, then 5/5.
+ * All thirteen placements, in the order they are shown (filter chips, counts):
+ * the four corners, the four inner bands, then the five that sit on a line.
  *
  * `satisfies` makes TypeScript check every entry is a real Placement while
  * keeping the exact literal types, so a typo here is a compile error.
@@ -45,6 +56,10 @@ export const PLACEMENTS = [
   "masterpieces",
   "guilty-pleasures",
   "serious-watches",
+  "dumpster-fires",
+  "worth-watching",
+  "cheap-thrills",
+  "respectable",
   "not-worth-watching",
   "good",
   "bad",
