@@ -321,6 +321,11 @@ when exceeded. At 15 members we are nowhere near it, but:
 
 - The search box sends a request on submit, or 300 ms after typing stops —
   never per keystroke — and only for 2 or more characters (R9).
+- The search page keeps the current query in its address (`/search?q=heat`)
+  and searches for it on arrival, so opening a film and pressing Back returns
+  to the same results (R13).
+- A request still in flight is cancelled when a newer one starts, so a slow
+  answer to an old query can never replace newer results.
 - `/api/search` requires a signed-in member, so it cannot be used by strangers
   as a free TMDB proxy.
 - A 429 or any other failure becomes the "search is unavailable" state (R12).

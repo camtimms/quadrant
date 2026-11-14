@@ -17,8 +17,21 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <>
       <header className="flex items-center justify-between gap-4 border-b border-foreground/15 px-4 py-3">
-        <span className="font-semibold">{SITE_NAME}</span>
+        <Link
+          href="/"
+          className="font-semibold focus-visible:outline-2 focus-visible:outline-offset-2"
+        >
+          {SITE_NAME}
+        </Link>
         <div className="flex items-center gap-3 text-sm">
+          {/* A stop-gap so the search page can be reached. The full
+              navigation arrives in task T31. */}
+          <Link
+            href="/search"
+            className="underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+          >
+            Search
+          </Link>
           {/* Who is signed in differs per request, so it streams in inside
               Suspense while the rest of the header is ready immediately. */}
           <Suspense fallback={null}>
