@@ -475,9 +475,15 @@ The filter and sort choices live in the URL (`?filter=guilty-pleasures`,
 
 Pages are Server Components. Each one fetches the plain rows it needs with the
 member's session, passes them through `lib/quadrant`, and renders. There is no
-client-side data store. After a server action succeeds it calls
-`revalidatePath`, so the page re-renders with fresh data; other members see the
-change on their next load (R47).
+client-side data store. After a server action succeeds it calls `refresh()`,
+so the page re-renders with fresh data; other members see the change on their
+next load (R47).
+
+My films (`src/lib/data/ratings.ts`) reads a member's current ratings with each
+film nested inside its row, in one query. The list is ordered by `created_at`
+(when the film was first rated, R36). The chart always shows every film; the
+filter narrows only the list beneath it, and the chip counts are taken over
+all the films.
 
 `/friends` needs every current rating to work out averages and disagreement. At
 the POC ceiling (~5,000 rows of five small columns) that is a few hundred

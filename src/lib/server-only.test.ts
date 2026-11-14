@@ -19,6 +19,7 @@ const SERVER_ONLY_MODULES = [
   "src/lib/titles/store.ts",
   "src/lib/titles/ensureTitle.ts",
   "src/lib/data/filmPage.ts",
+  "src/lib/data/ratings.ts",
 ];
 
 describe("server-only modules", () => {

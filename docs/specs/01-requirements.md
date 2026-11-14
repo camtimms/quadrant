@@ -123,7 +123,7 @@ Tags like `[Q10]` point to the question (sections 6–7) that settled that requi
 - **R33** — WHEN a member opens "My films", THE SYSTEM SHALL also offer the same films as a list showing poster, title, year, both scores and quadrant.
 - **R34** — WHEN a member chooses a filter, THE SYSTEM SHALL show only the films with the chosen placement, and SHALL show the number of films in each of the thirteen placements (four corners, four inner bands, four axis labels, On the fence), which always add up to the total.
 - **R35** — WHEN a member has not rated any films, THE SYSTEM SHALL show an empty state that explains the two scores and links to search.
-- **R36** — WHEN the list is shown, THE SYSTEM SHALL order it most-recently-rated first by default.
+- **R36** — WHEN the list is shown, THE SYSTEM SHALL order it most-recently-rated first by default. "Most recently rated" means when the member first rated the film, not when they last changed the rating _(clarified by the owner, 2026-11-14)_.
 
 ### F. The film page and friends' ratings (brief must-have 5)
 
