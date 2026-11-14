@@ -20,7 +20,7 @@ import {
  * request cookies, which a test has none of.
  */
 const SELECT =
-  "quality, enjoyment, created_at, titles (tmdb_id, title, release_year, poster_path)";
+  "quality, enjoyment, created_at, updated_at, titles (tmdb_id, title, release_year, poster_path)";
 
 let alice: TestUser;
 let bob: TestUser;
@@ -82,6 +82,7 @@ describe("the My films query", () => {
       quality: 9,
       enjoyment: 8,
       created_at: expect.any(String),
+      updated_at: expect.any(String),
       titles: {
         tmdb_id: heat.tmdb_id,
         title: "Heat",

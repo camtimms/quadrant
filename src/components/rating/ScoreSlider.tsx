@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { SCORE_MAX, SCORE_MIN } from "@/lib/validation/rating";
 
 type Props = {
@@ -35,7 +36,11 @@ export function ScoreSlider({
   highLabel,
   invalid = false,
 }: Props) {
-  const id = `score_${name}`;
+  // useId() gives an id that is unique on the page. A fixed id such as
+  // "score_quality" would be shared by every slider of that kind, and once
+  // two rating forms are open at once (the in-place editors on My films), a
+  // label would point at the wrong slider.
+  const id = `${useId()}_${name}`;
 
   return (
     <div className="flex flex-col gap-1">

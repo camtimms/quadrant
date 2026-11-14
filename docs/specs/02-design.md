@@ -710,12 +710,25 @@ max="10" step="1">` starting at 5, with the current number shown beside it and
   because browsers already give it arrow-key, Home/End and touch support
   (NFR12). A small live preview under the sliders shows the placement the
   current values would get, using `classify`, before the member saves.
-- **Quick update (R51).** The same `RatingForm` component is reused in two more
-  places on a member's own "My films" page: each list row has an "Update scores"
-  button that expands the sliders inside the row, and the panel opened from a
-  chart point has the same button. Both are pre-filled with the current scores
-  and call the same `saveRating` action, after which the page re-renders and the
-  point moves. Saving needs an explicit Save button rather than saving as the
+- **Quick update (R51).** A smaller `InlineRatingEditor` (the two sliders and
+  the placement preview, no review box) appears in two places on a member's own
+  "My films" page: under each list row, and under each film in the panel
+  opened from a chart point. Both are pre-filled with the current scores and
+  call the same `saveRating` action. _(Changed in T26a: the design first said
+  the whole `RatingForm` would be reused. An editor for scores alone is the
+  shorter route R51 asks for, and it must not touch the review.)_ Three details:
+  - It sends no `review` field, and `saveRating` treats a missing field as
+    "keep the existing review" (an empty field still means "remove it"). The
+    action reads the current review and passes it back, and saves nothing if
+    that read fails.
+  - It sends `return_to`, the page with its current filter, so after saving
+    the member is back on the same filtered view with the "Saved. … is …" line
+    saying where the film landed. That line is what explains a film leaving
+    the filtered list (a 5/5 corrected to 8/7 is no longer On the fence).
+    `return_to` is passed through `safeNextPath`, so it cannot lead off-site.
+  - Each editor is keyed by the rating's `updated_at`, which the database
+    stamps on every save, so a successful save replaces it with a fresh,
+    closed one. Saving needs an explicit Save button rather than saving as the
   slider moves: on a phone a slider is easy to brush by accident, and a
   stray touch should not silently change a score. These controls appear only on
   the member's own films, never on `/members/[id]` (R46).

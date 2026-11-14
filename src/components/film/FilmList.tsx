@@ -3,6 +3,7 @@ import { PendingMark } from "@/components/PendingMark";
 import type { ChartFilm } from "@/components/chart/QuadrantChart";
 import { formatScore } from "@/components/chart/scale";
 import { PosterImage } from "@/components/film/PosterImage";
+import { InlineRatingEditor } from "@/components/rating/InlineRatingEditor";
 import { classify, PLACEMENT_LABELS } from "@/lib/quadrant";
 
 /**
@@ -12,6 +13,17 @@ import { classify, PLACEMENT_LABELS } from "@/lib/quadrant";
 export type ListFilm = ChartFilm & {
   /** A timestamp as the database writes it. */
   ratedAt: string;
+};
+
+type Props = {
+  films: ListFilm[];
+  /**
+   * Give this, and each film gets an "Update scores" control that saves and
+   * comes back to this address (R51). Leave it out for a list that is not
+   * the viewer's own, such as another member's films or group averages:
+   * there is then no way to edit anything (R46).
+   */
+  editReturnTo?: string;
 };
 
 /**
@@ -25,7 +37,7 @@ export type ListFilm = ChartFilm & {
  * by the page, with the functions in src/lib/filters.ts, before the list
  * gets here.
  */
-export function FilmList({ films }: { films: ListFilm[] }) {
+export function FilmList({ films, editReturnTo }: Props) {
   if (films.length === 0) {
     return <p className="text-sm opacity-70">No films to show here.</p>;
   }
@@ -33,7 +45,7 @@ export function FilmList({ films }: { films: ListFilm[] }) {
   return (
     <ul className="flex flex-col gap-1">
       {films.map((film) => (
-        <li key={film.tmdbId}>
+        <li key={film.tmdbId} className="flex flex-col gap-1">
           <Link
             href={`/film/${film.tmdbId}`}
             className="flex items-center gap-4 rounded p-2 hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2"
@@ -68,6 +80,22 @@ export function FilmList({ films }: { films: ListFilm[] }) {
                 to the right-hand end of the row. */}
             <PendingMark className="ml-auto" />
           </Link>
+
+          {/* Beside the link, never inside it: a button inside a link would
+              also follow the link when pressed. */}
+          {editReturnTo !== undefined ? (
+            <div className="px-2 pb-2">
+              <InlineRatingEditor
+                // The key changes whenever the rating is saved (changedAt is
+                // stamped by the database on every save). A new key makes
+                // React replace the editor with a fresh, closed one, which
+                // is how it shuts after a successful save.
+                key={film.changedAt}
+                film={film}
+                returnTo={editReturnTo}
+              />
+            </div>
+          ) : null}
         </li>
       ))}
     </ul>

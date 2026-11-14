@@ -8,6 +8,7 @@
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentMember } from "@/lib/auth/member";
+import { safeNextPath } from "@/lib/auth/paths";
 import { createClient } from "@/lib/supabase/server";
 import { ensureTitle } from "@/lib/titles/ensureTitle";
 import {
@@ -39,7 +40,12 @@ function text(value: FormDataEntryValue | null): string {
  * Used with React's useActionState, which is why the first argument is
  * "whatever this returned last time" (unused, hence the underscore).
  *
- * The form sends: tmdb_id, quality, enjoyment, review.
+ * The form sends: tmdb_id, quality, enjoyment, and optionally:
+ *   review     the review text. If the field is LEFT OUT altogether, the
+ *              existing review is kept; that is what the in-place editor
+ *              does, since it only changes scores (R51). An empty review
+ *              field, by contrast, means "remove my review".
+ *   return_to  where on this site to go afterwards (default: My films).
  *
  * Expected problems are RETURNED as { status: "error", ... } together with
  * what was typed, so the form can show the message and refill itself. A
@@ -73,6 +79,8 @@ export async function saveRating(
   });
   if (!parsed.ok) return fail(parsed.message, parsed.field);
   const rating = parsed.value;
+  // null means the form had no review field at all (not an empty one).
+  const keepExistingReview = formData.get("review") === null;
 
   try {
     // 2. Who is asking? This MUST come before step 3. Storing a film uses
@@ -104,12 +112,32 @@ export async function saveRating(
     //    database's own rules apply: it stores the rating under THEIR id
     //    whatever this code says, and re-checks the scores and the review.
     const supabase = await createClient();
+
+    // save_rating always writes a review, so "leave it alone" means reading
+    // the current one and sending it back unchanged.
+    let review = rating.review;
+    if (keepExistingReview) {
+      const { data: current, error: readError } = await supabase
+        .from("ratings")
+        .select("review")
+        .eq("user_id", member.userId)
+        .eq("title_id", film.title.id)
+        .eq("is_current", true)
+        .maybeSingle();
+      if (readError) {
+        console.error("Reading the existing review failed:", readError);
+        // Better to save nothing than to risk wiping a review.
+        return fail(NOT_SAVED);
+      }
+      review = current?.review ?? "";
+    }
+
     const { error } = await supabase.rpc("save_rating", {
       p_title_id: film.title.id,
       p_quality: rating.quality,
       p_enjoyment: rating.enjoyment,
       // "No review" is sent as "", which save_rating stores as null.
-      p_review: rating.review,
+      p_review: review,
     });
     if (error) {
       console.error("save_rating failed:", error);
@@ -134,7 +162,18 @@ export async function saveRating(
   //    redirect() works by throwing a special signal that Next.js catches,
   //    so it MUST be outside the try/catch above. Inside it, our own catch
   //    would swallow the signal and report a successful save as a failure.
-  redirect(`/?rated=${tmdbId}`);
+  //
+  //    return_to comes from the form, so it is treated like any address
+  //    typed by a stranger: safeNextPath only lets through a plain path on
+  //    this site, and anything else becomes "/". new URL(...) with a dummy
+  //    origin is just a tidy way to add one more setting to whatever query
+  //    string the path already has.
+  const destination = new URL(
+    safeNextPath(text(formData.get("return_to"))),
+    "http://placeholder",
+  );
+  destination.searchParams.set("rated", String(tmdbId));
+  redirect(destination.pathname + destination.search);
 }
 
 /**

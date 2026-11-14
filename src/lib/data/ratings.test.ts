@@ -40,6 +40,7 @@ function row(overrides: Record<string, unknown> = {}) {
     quality: 3,
     enjoyment: 9,
     created_at: "2026-11-01T10:00:00+00:00",
+    updated_at: "2026-11-09T18:30:00+00:00",
     titles: {
       tmdb_id: 10999,
       title: "Commando",
@@ -69,6 +70,7 @@ describe("loadMemberFilms", () => {
         posterPath: "/x.jpg",
         point: { quality: 3, enjoyment: 9 },
         ratedAt: "2026-11-01T10:00:00+00:00",
+        changedAt: "2026-11-09T18:30:00+00:00",
       },
     ]);
   });
@@ -88,9 +90,10 @@ describe("loadMemberFilms", () => {
   // The owner's decision: "most recently rated" is when the film was first
   // rated, so editing a score later does not move it up the list.
   it("uses when the film was first rated, not when it was last changed", async () => {
-    await loadMemberFilms(USER_ID);
-    expect(mocks.select).toContain("created_at");
-    expect(mocks.select).not.toContain("updated_at");
+    const [film] = await loadMemberFilms(USER_ID);
+    // Ordered by the first rating; the later change is kept separately.
+    expect(film.ratedAt).toBe("2026-11-01T10:00:00+00:00");
+    expect(film.changedAt).toBe("2026-11-09T18:30:00+00:00");
   });
 
   // Reviews are not needed for the chart or list, so they are not fetched.

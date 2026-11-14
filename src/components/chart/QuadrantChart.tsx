@@ -34,6 +34,12 @@ export type ChartFilm = {
   posterPath: string | null;
   /** A member's own scores, or a group average. */
   point: Point;
+  /**
+   * When the member's rating was last saved, if this is one member's
+   * rating. It changes on every save, which the in-place editor uses to
+   * know it should close (R51).
+   */
+  changedAt?: string;
 };
 
 // ---------------------------------------------------------------------------
@@ -332,6 +338,11 @@ type Props = {
    * to point out a film that has just been rated (R23).
    */
   initialSelectedId?: number | null;
+  /**
+   * Give this on the viewer's OWN chart, and films in the panel get an
+   * "Update scores" control that saves and returns to this address (R51).
+   */
+  editReturnTo?: string;
 };
 
 /**
@@ -357,6 +368,7 @@ export function QuadrantChart({
   cellSize = 1,
   zoomTo = null,
   initialSelectedId = null,
+  editReturnTo,
 }: Props) {
   // Which point is open, remembered as the id of a film in it (not as a
   // position in the list). When a filter changes which films are shown, a
@@ -467,7 +479,11 @@ export function QuadrantChart({
           scrolled into view. */}
       <div ref={panelRef} className="scroll-mb-4">
         {open ? (
-          <PointPanel films={open.items} onClose={() => setSelectedId(null)} />
+          <PointPanel
+            films={open.items}
+            onClose={() => setSelectedId(null)}
+            editReturnTo={editReturnTo}
+          />
         ) : null}
       </div>
     </div>

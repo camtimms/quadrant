@@ -3,12 +3,18 @@ import { PendingMark } from "@/components/PendingMark";
 import type { ChartFilm } from "@/components/chart/QuadrantChart";
 import { formatScore } from "@/components/chart/scale";
 import { PosterImage } from "@/components/film/PosterImage";
+import { InlineRatingEditor } from "@/components/rating/InlineRatingEditor";
 import { classify, PLACEMENT_LABELS } from "@/lib/quadrant";
 
 type Props = {
   /** Every film at the selected point: one, or a whole cluster. */
   films: ChartFilm[];
   onClose: () => void;
+  /**
+   * Give this, and each film gets an "Update scores" control (R51). Left
+   * out on any chart that is not the viewer's own (R46).
+   */
+  editReturnTo?: string;
 };
 
 /**
@@ -19,7 +25,7 @@ type Props = {
  * For a cluster this is the answer to "which films are under that dot?".
  * Every one is listed, so no film is ever hidden behind another (R31).
  */
-export function PointPanel({ films, onClose }: Props) {
+export function PointPanel({ films, onClose, editReturnTo }: Props) {
   return (
     <section
       // A labelled <section> is a "region" that screen reader users can jump
@@ -42,7 +48,7 @@ export function PointPanel({ films, onClose }: Props) {
       </div>
       <ul className="flex flex-col gap-1">
         {films.map((film) => (
-          <li key={film.tmdbId}>
+          <li key={film.tmdbId} className="flex flex-col gap-1">
             <Link
               href={`/film/${film.tmdbId}`}
               className="flex items-center gap-3 rounded p-1 hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2"
@@ -71,6 +77,18 @@ export function PointPanel({ films, onClose }: Props) {
                   to the right-hand end of the row. */}
               <PendingMark className="ml-auto" />
             </Link>
+
+            {/* Beside the link, not inside it (see FilmList). */}
+            {editReturnTo !== undefined ? (
+              <div className="px-1 pb-1">
+                <InlineRatingEditor
+                  // A new key after each save closes the editor (see FilmList).
+                  key={film.changedAt}
+                  film={film}
+                  returnTo={editReturnTo}
+                />
+              </div>
+            ) : null}
           </li>
         ))}
       </ul>

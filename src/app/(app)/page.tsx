@@ -5,7 +5,12 @@ import { FilmList } from "@/components/film/FilmList";
 import { FilterChips } from "@/components/film/FilterChips";
 import { getCurrentMember } from "@/lib/auth/member";
 import { loadMemberFilms } from "@/lib/data/ratings";
-import { filterFilms, newestFirst, parseFilter } from "@/lib/filters";
+import {
+  filterFilms,
+  filterHref,
+  newestFirst,
+  parseFilter,
+} from "@/lib/filters";
 import { classify, countByPlacement, PLACEMENT_LABELS } from "@/lib/quadrant";
 import { parseTmdbId } from "@/lib/validation/rating";
 
@@ -54,6 +59,10 @@ export default async function MyFilmsPage({ searchParams }: PageProps<"/">) {
   // two can never show different films (R34).
   const shown = filterFilms(films, filter);
 
+  // Where the in-place editor returns to after saving: this page, with the
+  // same filter still on (R51).
+  const here = filterHref("/", filter);
+
   // The film the member has just rated, if the address names one and it
   // really is among their films. Looked up in ALL their films, so it is
   // found whatever filter is on.
@@ -88,6 +97,8 @@ export default async function MyFilmsPage({ searchParams }: PageProps<"/">) {
         zoomTo={filter}
         // Open the just-rated film's point, so it is easy to spot.
         initialSelectedId={justRated?.tmdbId ?? null}
+        // This is the member's own chart, so scores can be changed in place.
+        editReturnTo={here}
       />
 
       <section aria-labelledby="film-list" className="flex flex-col gap-4">
@@ -104,7 +115,7 @@ export default async function MyFilmsPage({ searchParams }: PageProps<"/">) {
           active={filter}
           basePath="/"
         />
-        <FilmList films={shown} />
+        <FilmList films={shown} editReturnTo={here} />
       </section>
     </main>
   );

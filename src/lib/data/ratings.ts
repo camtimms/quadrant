@@ -24,7 +24,7 @@ export async function loadMemberFilms(userId: string): Promise<ListFilm[]> {
   const { data, error } = await supabase
     .from("ratings")
     .select(
-      "quality, enjoyment, created_at, titles (tmdb_id, title, release_year, poster_path)",
+      "quality, enjoyment, created_at, updated_at, titles (tmdb_id, title, release_year, poster_path)",
     )
     .eq("user_id", userId)
     // Only the member's current opinion of each film. Older viewings (when
@@ -46,5 +46,8 @@ export async function loadMemberFilms(userId: string): Promise<ListFilm[]> {
     // list then stays in the order films were logged, and correcting a
     // score in place does not make the film jump to the top.
     ratedAt: row.created_at,
+    // Stamped by the database on every save. Used only to tell that a
+    // rating has just been saved again, never for ordering.
+    changedAt: row.updated_at,
   }));
 }

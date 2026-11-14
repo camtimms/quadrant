@@ -21,6 +21,8 @@ const mocks = vi.hoisted(() => ({
   rpc: vi.fn(),
   deleteResult: vi.fn(),
   deleteFilters: [] as [string, unknown][],
+  existingReview: vi.fn(),
+  reviewFilters: [] as [string, unknown][],
   refresh: vi.fn(),
   redirect: vi.fn<(url: string) => never>(),
 }));
@@ -40,6 +42,19 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
     rpc: mocks.rpc,
     from: (table: string) => ({
+      // .select("review").eq(...).eq(...).eq(...).maybeSingle()
+      select: (columns: string) => {
+        expect(table).toBe("ratings");
+        expect(columns).toBe("review");
+        const query = {
+          eq(column: string, value: unknown) {
+            mocks.reviewFilters.push([column, value]);
+            return query;
+          },
+          maybeSingle: async () => mocks.existingReview(),
+        };
+        return query;
+      },
       delete: () => {
         expect(table).toBe("ratings");
         const query = {
@@ -118,6 +133,11 @@ beforeEach(() => {
     throw new Error("NEXT_REDIRECT");
   });
   mocks.deleteFilters.length = 0;
+  mocks.reviewFilters.length = 0;
+  mocks.existingReview.mockResolvedValue({
+    data: { review: "My earlier review." },
+    error: null,
+  });
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
 
@@ -358,6 +378,115 @@ describe("saveRating", () => {
         status: "error",
         values: { review: "So bad it's good." },
       });
+    });
+  });
+});
+
+// The in-place editor (R51) changes only the scores.
+describe("saveRating from the in-place editor", () => {
+  /** Save as the editor does: scores, no review field, and a return address. */
+  function saveInPlace(fields: Record<string, string> = {}) {
+    return saveRating(
+      IDLE,
+      form({
+        tmdb_id: "10999",
+        quality: "8",
+        enjoyment: "7",
+        return_to: "/?filter=on-the-fence",
+        ...fields,
+      }),
+    );
+  }
+
+  describe("the review", () => {
+    it("is kept when the form has no review field", async () => {
+      await expect(saveInPlace()).rejects.toThrow("NEXT_REDIRECT");
+
+      expect(mocks.rpc.mock.calls[0][1]).toEqual({
+        p_title_id: 42,
+        p_quality: 8,
+        p_enjoyment: 7,
+        p_review: "My earlier review.",
+      });
+      // Read for THIS member and THIS film only.
+      expect(mocks.reviewFilters).toEqual(
+        expect.arrayContaining([
+          ["user_id", MEMBER.userId],
+          ["title_id", 42],
+          ["is_current", true],
+        ]),
+      );
+    });
+
+    it("stays empty when there was no review", async () => {
+      mocks.existingReview.mockResolvedValue({
+        data: { review: null },
+        error: null,
+      });
+      await expect(saveInPlace()).rejects.toThrow("NEXT_REDIRECT");
+      expect(mocks.rpc.mock.calls[0][1].p_review).toBe("");
+    });
+
+    // The difference that matters: a field that is PRESENT but empty means
+    // the member cleared their review on the film page.
+    it("is removed when the form sends an empty review field", async () => {
+      await expect(saveInPlace({ review: "" })).rejects.toThrow(
+        "NEXT_REDIRECT",
+      );
+      expect(mocks.rpc.mock.calls[0][1].p_review).toBe("");
+      expect(mocks.existingReview).not.toHaveBeenCalled();
+    });
+
+    // Never trade a review for a score: if the old review cannot be read,
+    // nothing is saved at all.
+    it("saves nothing if the existing review cannot be read", async () => {
+      mocks.existingReview.mockResolvedValue({
+        data: null,
+        error: { message: "boom" },
+      });
+
+      expect(await saveInPlace()).toMatchObject({ status: "error" });
+      expect(mocks.rpc).not.toHaveBeenCalled();
+      expect(mocks.redirect).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("where it goes afterwards", () => {
+    it("returns to the page it came from, keeping the filter", async () => {
+      await expect(saveInPlace()).rejects.toThrow("NEXT_REDIRECT");
+      expect(mocks.redirect).toHaveBeenCalledWith(
+        "/?filter=on-the-fence&rated=10999",
+      );
+    });
+
+    it("goes to My films when no return address is given", async () => {
+      await expect(saveInPlace({ return_to: "" })).rejects.toThrow(
+        "NEXT_REDIRECT",
+      );
+      expect(mocks.redirect).toHaveBeenCalledWith("/?rated=10999");
+    });
+
+    // return_to is typed by whoever sends the form. It must never be able
+    // to send a member to another site (an "open redirect").
+    it.each([
+      ["https://evil.example/"],
+      ["//evil.example/"],
+      ["/\\evil.example"],
+      ["javascript:alert(1)"],
+    ])("refuses to send the member to %s", async (returnTo) => {
+      await expect(saveInPlace({ return_to: returnTo })).rejects.toThrow(
+        "NEXT_REDIRECT",
+      );
+      expect(mocks.redirect).toHaveBeenCalledWith("/?rated=10999");
+    });
+
+    it("does not let a return address set which film is pointed out", async () => {
+      await expect(
+        saveInPlace({ return_to: "/?rated=555&filter=good" }),
+      ).rejects.toThrow("NEXT_REDIRECT");
+      const url = new URL(mocks.redirect.mock.calls[0][0], "http://x");
+      expect(url.searchParams.getAll("rated")).toEqual(["10999"]);
+      expect(url.searchParams.get("filter")).toBe("good");
     });
   });
 });
