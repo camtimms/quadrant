@@ -2,6 +2,7 @@
 // secret-key store, so server only.
 import "server-only";
 
+import type { MemberRating } from "@/components/film/RatingsTable";
 import { createClient } from "@/lib/supabase/server";
 import { getMovie, TmdbUnavailableError } from "@/lib/tmdb/client";
 import type { TmdbFilm } from "@/lib/tmdb/schema";
@@ -9,7 +10,8 @@ import { ensureTitle, isStale } from "@/lib/titles/ensureTitle";
 import type { RatingInput } from "@/lib/validation/rating";
 
 /**
- * Everything the film page needs, gathered in one place (R13, R14, R19).
+ * Everything the film page needs, gathered in one place (R13, R14, R19,
+ * R37).
  *
  * There are two quite different situations, and the difference matters:
  *
@@ -39,6 +41,12 @@ export type FilmPageData =
       titleId: number | null;
       /** This member's current rating, or null if they have not rated it. */
       myRating: RatingInput | null;
+      /**
+       * Every member's current rating of the film, the viewer's included:
+       * the viewer's first, then the others by name. Empty if nobody has
+       * rated it.
+       */
+      ratings: MemberRating[];
     }
   // TMDB has no film with this id.
   | { status: "not-found" }
@@ -67,7 +75,13 @@ export async function loadFilmPage(
     try {
       const film = await getMovie(tmdbId);
       if (!film) return { status: "not-found" };
-      return { status: "ok", film, titleId: null, myRating: null };
+      return {
+        status: "ok",
+        film,
+        titleId: null,
+        myRating: null,
+        ratings: [],
+      };
     } catch (error) {
       if (!(error instanceof TmdbUnavailableError)) throw error;
       console.error(`Could not load film ${tmdbId} from TMDB.`, error);
@@ -84,16 +98,44 @@ export async function loadFilmPage(
     if (refreshed.ok) title = refreshed.title;
   }
 
-  const { data: rating, error: ratingError } = await supabase
+  // Everyone's current rating of this film, in one query (R37). There is no
+  // filter on the member: row-level security already limits ratings to
+  // members, and a member may see every member's ratings. The viewer's own
+  // rating is picked out of the same rows below, which saves a second query.
+  //
+  // "profiles (display_name)" follows the link from ratings.user_id to the
+  // profiles table and nests the member's name inside each row.
+  const { data: rows, error: ratingsError } = await supabase
     .from("ratings")
-    .select("quality, enjoyment, review")
-    .eq("user_id", userId)
+    .select("user_id, quality, enjoyment, review, profiles (display_name)")
     .eq("title_id", title.id)
-    .eq("is_current", true)
-    .maybeSingle();
-  if (ratingError) {
-    throw new Error("Could not load your rating.", { cause: ratingError });
+    .eq("is_current", true);
+  if (ratingsError) {
+    throw new Error("Could not load the ratings.", { cause: ratingsError });
   }
+
+  const ratings: MemberRating[] = rows
+    .map((row) => ({
+      userId: row.user_id,
+      displayName: row.profiles.display_name,
+      point: { quality: row.quality, enjoyment: row.enjoyment },
+      // "No review" is stored as null; treat empty text the same way.
+      review: row.review || null,
+      isViewer: row.user_id === userId,
+    }))
+    // The viewer's own rating first, then everyone else by name. Sorting
+    // here, not in the database, keeps "whose page is this" out of the query.
+    // localeCompare with "base" sensitivity ignores capitals, so "bob" sorts
+    // beside "Bob" instead of after "Zoe".
+    .sort(
+      (a, b) =>
+        Number(b.isViewer) - Number(a.isViewer) ||
+        a.displayName.localeCompare(b.displayName, undefined, {
+          sensitivity: "base",
+        }),
+    );
+
+  const mine = ratings.find((rating) => rating.isViewer);
 
   return {
     status: "ok",
@@ -105,15 +147,16 @@ export async function loadFilmPage(
       overview: title.overview,
     },
     titleId: title.id,
-    myRating: rating
+    myRating: mine
       ? {
           // The database guarantees these are whole numbers from 0 to 10
           // (a CHECK constraint), which is what the Score type means.
-          quality: rating.quality as RatingInput["quality"],
-          enjoyment: rating.enjoyment as RatingInput["enjoyment"],
+          quality: mine.point.quality as RatingInput["quality"],
+          enjoyment: mine.point.enjoyment as RatingInput["enjoyment"],
           // The form works with "" for "no review"; the database stores null.
-          review: rating.review ?? "",
+          review: mine.review ?? "",
         }
       : null,
+    ratings,
   };
 }

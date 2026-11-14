@@ -1,0 +1,131 @@
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import {
+  createTestTitle,
+  createTestUser,
+  removeAllTestData,
+  type TestTitle,
+  type TestUser,
+} from "./helpers";
+
+/**
+ * The query behind "Everyone's ratings" on the film page (R37), run for
+ * real against the dev database.
+ *
+ * src/lib/data/filmPage.ts asks for every rating of one film with the
+ * member's display name nested inside it. The unit test for that file feeds
+ * it made-up rows; this test checks that the real database answers in the
+ * shape those rows assume.
+ *
+ * The SELECT text here is the same as in filmPage.ts and must stay in step
+ * with it. It is repeated because that file builds its own client from
+ * request cookies, which a test has none of.
+ */
+const SELECT = "user_id, quality, enjoyment, review, profiles (display_name)";
+
+let alice: TestUser;
+let bob: TestUser;
+let mallory: TestUser;
+let heat: TestTitle;
+let alien: TestTitle;
+
+beforeAll(async () => {
+  await removeAllTestData();
+
+  [alice, bob, mallory] = await Promise.all([
+    createTestUser("alice"),
+    createTestUser("bob"),
+    // Signed in, but not on the invite list.
+    createTestUser("mallory", { invited: false }),
+  ]);
+  for (const [user, name] of [
+    [alice, "Alice"],
+    [bob, "Bob"],
+  ] as const) {
+    const { error } = await user.client
+      .from("profiles")
+      .insert({ id: user.id, display_name: name });
+    if (error) throw error;
+  }
+
+  heat = await createTestTitle("Heat");
+  alien = await createTestTitle("Alien");
+
+  for (const [user, title, quality, enjoyment, review] of [
+    [alice, heat, 9, 8, "Pacino and De Niro."],
+    [bob, heat, 0, 2, ""],
+    [alice, alien, 10, 10, ""],
+  ] as const) {
+    const { error } = await user.client.rpc("save_rating", {
+      p_title_id: title.id,
+      p_quality: quality,
+      p_enjoyment: enjoyment,
+      p_review: review,
+    });
+    if (error) throw error;
+  }
+});
+
+afterAll(removeAllTestData);
+
+describe("the film page's ratings query", () => {
+  it("returns every member's rating of the film with their name nested inside", async () => {
+    const { data, error } = await alice.client
+      .from("ratings")
+      .select(SELECT)
+      .eq("title_id", heat.id)
+      .eq("is_current", true);
+
+    expect(error).toBeNull();
+    // Alice's and Bob's ratings of Heat; not Alice's rating of Alien.
+    expect(data).toHaveLength(2);
+
+    const mine = data!.find((row) => row.user_id === alice.id)!;
+    // The profile is ONE nested object, not a list.
+    expect(Array.isArray(mine.profiles)).toBe(false);
+    expect(mine).toEqual({
+      user_id: alice.id,
+      quality: 9,
+      enjoyment: 8,
+      review: "Pacino and De Niro.",
+      profiles: { display_name: "Alice" },
+    });
+  });
+
+  it("returns a friend's rating, with a 0 as the number 0 and no review as null", async () => {
+    const { data } = await alice.client
+      .from("ratings")
+      .select(SELECT)
+      .eq("title_id", heat.id)
+      .eq("is_current", true);
+
+    expect(data!.find((row) => row.user_id === bob.id)).toEqual({
+      user_id: bob.id,
+      quality: 0,
+      enjoyment: 2,
+      review: null,
+      profiles: { display_name: "Bob" },
+    });
+  });
+
+  // E12: a member who has not rated the film still sees friends' ratings.
+  it("shows a film's ratings to a member who has not rated it", async () => {
+    const { data, error } = await bob.client
+      .from("ratings")
+      .select(SELECT)
+      .eq("title_id", alien.id)
+      .eq("is_current", true);
+
+    expect(error).toBeNull();
+    expect(data).toHaveLength(1);
+    expect(data?.[0]).toMatchObject({ profiles: { display_name: "Alice" } });
+  });
+
+  it("shows nothing to someone who is not a member", async () => {
+    const { data } = await mallory.client
+      .from("ratings")
+      .select(SELECT)
+      .eq("title_id", heat.id);
+
+    expect(data ?? []).toEqual([]);
+  });
+});

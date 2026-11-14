@@ -493,6 +493,18 @@ film nested inside its row, in one query. The list is ordered by `created_at`
 the list alike (R34, v5); the chip counts are always taken over all the films,
 so every chip keeps its number whichever is chosen.
 
+The film page (`src/lib/data/filmPage.ts`) reads every member's current rating
+of the film in one query, with each member's display name nested inside its
+row (R37). The viewer's own rating, which fills the form, is picked out of
+those rows by user id, so there is no second query. The rows are ordered
+viewer first, then by display name ignoring capitals. `GroupAverage` states
+the average of each score, the number of members, the average's placement and
+the film's disagreement (R42; "—" with one rating, R45). `RatingsTable` shows
+name, both scores and placement as a table, with the reviews as a list
+underneath: a review can be 500 characters, too long for a table column on a
+phone. A film nobody has rated shows "Nobody has rated this film yet" and no
+average. _(Added in T27.)_
+
 `/friends` needs every current rating to work out averages and disagreement. At
 the POC ceiling (~5,000 rows of five small columns) that is a few hundred
 kilobytes read on the server and is comfortably within NFR8. If the app

@@ -19,6 +19,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/lib/supabase/server", () => ({
   // A pretend client supporting .from(t).select().eq()....maybeSingle()
+  // for one row, and `await` on the query itself for a list of rows.
   createClient: async () => ({
     from: (table: string) => {
       const query = {
@@ -28,6 +29,11 @@ vi.mock("@/lib/supabase/server", () => ({
           return query;
         },
         maybeSingle: async () => mocks.tables[table],
+        // The real query builder can be awaited directly: it has a then()
+        // method, like a promise. This gives the stand-in the same ability.
+        then(resolve: (answer: { data: unknown; error: unknown }) => void) {
+          resolve(mocks.tables[table]);
+        },
       };
       return query;
     },
@@ -45,6 +51,25 @@ vi.mock("@/lib/titles/ensureTitle", async (original) => ({
 }));
 
 const USER_ID = "00000000-0000-4000-8000-000000000001";
+const BOB_ID = "00000000-0000-4000-8000-000000000002";
+const ZOE_ID = "00000000-0000-4000-8000-000000000003";
+
+/** A rating row as the database returns it, with the member's name nested. */
+function ratingRow(
+  userId: string,
+  name: string,
+  quality: number,
+  enjoyment: number,
+  review: string | null = null,
+) {
+  return {
+    user_id: userId,
+    quality,
+    enjoyment,
+    review,
+    profiles: { display_name: name },
+  };
+}
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const COMMANDO: TmdbFilmDetails = {
@@ -74,7 +99,7 @@ function storedTitle(
 
 beforeEach(() => {
   mocks.tables.titles = { data: null, error: null };
-  mocks.tables.ratings = { data: null, error: null };
+  mocks.tables.ratings = { data: [], error: null };
   mocks.filters.titles = [];
   mocks.filters.ratings = [];
   mocks.getMovie.mockResolvedValue(COMMANDO);
@@ -94,6 +119,7 @@ describe("loadFilmPage", () => {
         film: COMMANDO,
         titleId: null,
         myRating: null,
+        ratings: [],
       });
     });
 
@@ -128,6 +154,7 @@ describe("loadFilmPage", () => {
         film: COMMANDO,
         titleId: 42,
         myRating: null,
+        ratings: [],
       });
       expect(mocks.getMovie).not.toHaveBeenCalled();
       expect(mocks.ensureTitle).not.toHaveBeenCalled();
@@ -137,18 +164,21 @@ describe("loadFilmPage", () => {
     it("returns this member's current rating of it", async () => {
       mocks.tables.titles = { data: storedTitle(3), error: null };
       mocks.tables.ratings = {
-        data: { quality: 2, enjoyment: 9, review: "So bad it's good." },
+        data: [
+          ratingRow(BOB_ID, "Bob", 7, 7),
+          ratingRow(USER_ID, "Cam", 2, 9, "So bad it's good."),
+        ],
         error: null,
       };
 
       const result = await loadFilmPage(10999, USER_ID);
 
+      // Picked out of everyone's ratings by user id: Bob's 7/7 is not it.
       expect(result).toMatchObject({
         myRating: { quality: 2, enjoyment: 9, review: "So bad it's good." },
       });
       expect(mocks.filters.ratings).toEqual(
         expect.arrayContaining([
-          ["user_id", USER_ID],
           ["title_id", 42],
           ["is_current", true],
         ]),
@@ -159,7 +189,7 @@ describe("loadFilmPage", () => {
     it("keeps a score of 0, and turns a missing review into empty text", async () => {
       mocks.tables.titles = { data: storedTitle(3), error: null };
       mocks.tables.ratings = {
-        data: { quality: 0, enjoyment: 0, review: null },
+        data: [ratingRow(USER_ID, "Cam", 0, 0, null)],
         error: null,
       };
 
@@ -251,6 +281,96 @@ describe("loadFilmPage", () => {
       };
       await loadFilmPage(10999, USER_ID);
       expect(mocks.ensureTitle).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("everyone's ratings (R37)", () => {
+    beforeEach(() => {
+      mocks.tables.titles = { data: storedTitle(3), error: null };
+    });
+
+    it("returns every member's rating with their name, scores and review", async () => {
+      mocks.tables.ratings = {
+        data: [ratingRow(BOB_ID, "Bob", 7, 3, "Well made, no fun.")],
+        error: null,
+      };
+
+      expect(await loadFilmPage(10999, USER_ID)).toMatchObject({
+        ratings: [
+          {
+            userId: BOB_ID,
+            displayName: "Bob",
+            point: { quality: 7, enjoyment: 3 },
+            review: "Well made, no fun.",
+            isViewer: false,
+          },
+        ],
+      });
+    });
+
+    // The query must not be narrowed to the viewer, or friends would vanish.
+    it("does not filter by member", async () => {
+      await loadFilmPage(10999, USER_ID);
+      const columns = mocks.filters.ratings.map(([column]) => column);
+      expect(columns).not.toContain("user_id");
+    });
+
+    // E12
+    it("returns friends' ratings when the viewer has not rated the film", async () => {
+      mocks.tables.ratings = {
+        data: [ratingRow(BOB_ID, "Bob", 7, 3), ratingRow(ZOE_ID, "Zoe", 1, 9)],
+        error: null,
+      };
+
+      const result = await loadFilmPage(10999, USER_ID);
+
+      expect(result).toMatchObject({ myRating: null });
+      expect(result.status === "ok" && result.ratings).toHaveLength(2);
+    });
+
+    it("puts the viewer first, then the others by name", async () => {
+      mocks.tables.ratings = {
+        data: [
+          ratingRow(ZOE_ID, "Zoe", 1, 9),
+          ratingRow(USER_ID, "Cam", 5, 5),
+          ratingRow(BOB_ID, "bob", 7, 3),
+        ],
+        error: null,
+      };
+
+      const result = await loadFilmPage(10999, USER_ID);
+
+      expect(
+        result.status === "ok" &&
+          result.ratings.map((r) => [r.displayName, r.isViewer]),
+      ).toEqual([
+        ["Cam", true],
+        ["bob", false],
+        ["Zoe", false],
+      ]);
+    });
+
+    it("reads 'no review' as null, whether stored as null or as empty text", async () => {
+      mocks.tables.ratings = {
+        data: [
+          ratingRow(BOB_ID, "Bob", 7, 3, null),
+          ratingRow(ZOE_ID, "Zoe", 1, 9, ""),
+        ],
+        error: null,
+      };
+
+      const result = await loadFilmPage(10999, USER_ID);
+
+      expect(
+        result.status === "ok" && result.ratings.map((r) => r.review),
+      ).toEqual([null, null]);
+    });
+
+    it("lets a failure to read the ratings surface as an error", async () => {
+      mocks.tables.ratings = { data: null, error: { message: "down" } };
+      await expect(loadFilmPage(10999, USER_ID)).rejects.toThrow(
+        "Could not load the ratings.",
+      );
     });
   });
 

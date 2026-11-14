@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { GroupAverage } from "@/components/film/GroupAverage";
 import { PosterImage } from "@/components/film/PosterImage";
+import { RatingsTable } from "@/components/film/RatingsTable";
 import { DeleteRatingButton } from "@/components/rating/DeleteRatingButton";
 import { RatingForm } from "@/components/rating/RatingForm";
 import { getCurrentMember } from "@/lib/auth/member";
@@ -11,8 +13,10 @@ import { parseTmdbId } from "@/lib/validation/rating";
 export const metadata: Metadata = { title: "Film" };
 
 /**
- * /film/10999 — one film: its poster, title and year, and the member's own
- * rating form (R13, R15–R21). Friends' ratings join it in task T27.
+ * /film/10999 — one film: its poster, title and year, the member's own
+ * rating form (R13, R15–R21), and what everyone made of it: the group
+ * average and each member's rating (R37, R42). The spoke map joins them in
+ * task T28.
  *
  * "[tmdbId]" in the folder name is a dynamic segment: whatever is in that
  * position of the address arrives here as params.tmdbId. It is text typed
@@ -68,7 +72,7 @@ export default async function FilmPage({
     );
   }
 
-  const { film, titleId, myRating } = data;
+  const { film, titleId, myRating, ratings } = data;
 
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 p-6">
@@ -120,6 +124,17 @@ export default async function FilmPage({
         {myRating && titleId !== null ? (
           <DeleteRatingButton titleId={titleId} filmTitle={film.title} />
         ) : null}
+      </section>
+
+      {/* Shown whether or not the viewer has rated the film (E12). The
+          group's numbers are stated in words here; the chart that joins
+          them in T28 is never the only way to read them (NFR13). */}
+      <section aria-labelledby="everyone" className="flex flex-col gap-4">
+        <h2 id="everyone" className="text-lg font-semibold">
+          Everyone&apos;s ratings
+        </h2>
+        <GroupAverage points={ratings.map((rating) => rating.point)} />
+        <RatingsTable ratings={ratings} />
       </section>
     </main>
   );
