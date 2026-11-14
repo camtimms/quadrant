@@ -734,6 +734,27 @@ max="10" step="1">` starting at 5, with the current number shown beside it and
 
 ---
 
+### Feedback while things load (NFR23)
+
+- **A new page:** each slow page has a `loading.tsx` beside it. Next.js shows
+  it the instant a link is followed and swaps the real page in when it is
+  ready; without one, the old page stays on screen until the new one has
+  finished loading. There is a general one for all signed-in pages and a
+  film-shaped one for the film page.
+- **A filter:** following a filter chip only changes the query string, which
+  deliberately does not show the loading file (the chart must stay mounted for
+  the zoom to animate). Instead a small spinner appears on the chip that was
+  tapped, using Next.js's `useLinkStatus` hook. The same mark is on film links.
+  It is always in the layout and only changes opacity, so nothing shifts.
+- **A press:** every link and button has an `active:` style, which phones show
+  on touch (they have no hover).
+- **A chart point:** selecting one scrolls the panel it opens into view, since
+  on a phone the panel is below the chart and off screen. Points have a larger
+  invisible touch area than the dot that is drawn.
+- Spinners stop spinning under `prefers-reduced-motion` but stay visible.
+
+---
+
 ## 9. Error handling and empty states
 
 _Satisfies: R10–R12, R16, R17, R31, R35, E6, E9, E12, E19_

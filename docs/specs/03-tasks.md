@@ -123,6 +123,8 @@ Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to tha
 - [x] **T26b: Filter and zoom the chart; return to My films after saving** — R34, R53, R23 (requirements v5) · `src/components/chart/scale.ts` + test (`zoomWindow`), `QuadrantChart.tsx` + test, `src/app/(app)/page.tsx`, `src/app/(app)/actions/rating.ts` + test, `src/components/rating/RatingForm.tsx` + test, `src/lib/validation/rating.ts` · tests: a zoom window for each of the thirteen placements, all the same size and inside the drawing; the chart is transformed when zoomed and not when it isn't; points keep their size; the transition is switched off for reduced motion; `saveRating` redirects to `/?rated=<id>` on success and still returns errors with the typed values. Manual: choose a filter and watch the chart narrow and zoom; clear it and watch it zoom out; rate a film and land on My films with the film pointed out · M
   - *Done 2026-11-14.* Built and tested. `zoomWindow` (17 tests) gives every placement a same-sized window that contains all of its whole-number scores. The chart filters and zooms with a CSS transform, and now remembers the selected point by film, so a filter that removes the film closes its panel. `saveRating` redirects to `/?rated=<id>`; My films shows "Saved. … is …" with the placement and opens that film's point. The form's own "Saved" message and the action's returned placement are gone, with their tests; the placement is now worked out on My films. Looked at on a temporary preview page (since removed): the Masterpieces filter showed only those films in the top-right quarter, points the same size. Names on the chart are about 1.85 times larger when zoomed. Owner confirmed 2026-11-14 that the filter zoom and the return to My films both work. Owner's note from testing on a phone: the app feels slow to respond and it is hard to tell when something has been selected; opening a film holds on the old screen before the film page appears. Not yet addressed.
 
+- [ ] **T26c: Loading and pressed feedback** — NFR23 · `src/app/(app)/loading.tsx`, `src/app/(app)/film/[tmdbId]/loading.tsx`, `src/components/PendingMark.tsx` + test, `src/components/Spinner.tsx`, `FilmCard.tsx`, `FilmList.tsx`, `FilterChips.tsx`, `PointPanel.tsx`, `QuadrantChart.tsx` + test, pressed styles across `src/components/**` and `src/app/**` · component tests: the pending mark is invisible until its link is pending and never changes size; a loading placeholder announces itself; selecting a chart point scrolls its panel into view. Manual, on a phone on the live site: tapping a film shows a placeholder at once; tapping a filter shows a spinner on the chip and the zoom still animates; taps visibly register · S
+
 - [ ] **T26a: Update scores in place** — R51, R20, E23 · `src/components/film/FilmList.tsx`, `src/components/chart/PointPanel.tsx`, `src/components/rating/InlineRatingEditor.tsx` + test, `src/app/(app)/page.tsx` · component tests: "Update scores" opens sliders pre-filled with the current scores; nothing is saved until Save is pressed; cancel restores the old values; the control is absent when viewing another member's films. Manual: on a phone, change a 5/5 film from the "On the fence" filter in three steps (open, drag, save) and watch it move on the chart · M
 
 ## Milestone G — Friends
@@ -140,6 +142,9 @@ Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to tha
 - [ ] **T31: Navigation, error pages and phone layout** — R48, NFR8, E15, E20 · `src/components/Nav.tsx`, `src/app/(app)/error.tsx`, `src/app/not-found.tsx`, layout tweaks · manual: every page usable at phone width; long review words wrap; error page shows on a forced failure · M
 
 - [ ] **T32: Accessibility pass** — NFR12, NFR13, NFR14, NFR15 · small fixes across `src/components/**` · manual checklist: complete search → rate → view chart with the keyboard only; contrast check; every poster has alt text; every field has a label · S
+
+- [ ] 🙋 **T32a: Visual design pass** — NFR24 · to be listed when specified · the look of the whole app: a consistent modern theme, keeping every element and behaviour. Starts with two or three concrete options for the owner to choose from; NFR24 and this task are filled in from that choice before any code is written · M
+  - _You:_ choose between the options.
 
 - [ ] **T33: End-to-end tests** — R1, R15, R20, R21, R30, R41 · `playwright.config.ts`, `tests/e2e/auth.setup.ts`, `tests/e2e/*.spec.ts`, `package.json` (`test:e2e`) · tests: signed-out visit redirects to `/login`; search → rate → appears on My films in the right quadrant; edit then delete; a film two members rated shows the disagreement table · M
 
@@ -184,6 +189,7 @@ Every requirement appears in at least one task.
 | NFR2, NFR3, NFR4 | T1, T3, T8, T11, T21, T35 |
 | NFR5, NFR6, NFR7 | T2, T9                    |
 | NFR8–NFR10       | T16, T17, T31             |
+| NFR23, NFR24     | T26c, T32a                |
 | NFR11            | T3, T34                   |
 | NFR12–NFR15      | T17, T23, T24, T28, T32   |
 | NFR16, NFR17     | T1, T4–T7                 |
@@ -203,6 +209,7 @@ Every requirement appears in at least one task.
 | T14  | Production Supabase + Vercel settings                        |
 | T15  | TMDB account and token                                       |
 | T21  | Secret keys into `.env.local` and Vercel                     |
+| T32a | Choose a visual design from the options                      |
 | T35  | Invite your friends                                          |
 
 T1, T2 and T4–T7 need nothing from you, so they can be done before any account exists.

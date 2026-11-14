@@ -6,6 +6,9 @@ v5 changes (owner's request after trying My films in T26): choosing a filter
 now narrows the chart as well as the list, and the chart zooms in on the part
 it shows (R34, new R53); saving a rating from a film's page returns the member
 to My films, where the film is pointed out with its placement (R23).
+After testing on a phone the owner also asked for immediate feedback on every
+tap and while pages load (new NFR23), and for a visual design pass before
+release (new NFR24, to be specified with the owner when that task starts).
 
 v4 changes (owner’s request during implementation, after T4): the famous four
 labels now need *both* scores to be extreme (7.5 or more / 2.5 or less, which
@@ -180,6 +183,8 @@ friends, because displaying that is the point of the app.
 
 - **NFR8** — Pages showing charts or lists become usable within 2 seconds on a typical home connection.
 - **NFR9** — Search results appear within 1.5 seconds of submitting, when the external database responds normally.
+- **NFR23** — _Immediate feedback (v5, new)._ Anything a member can tap or click shows that it was pressed straight away, without relying on hover. WHEN a page or a filter takes time to load, THE SYSTEM SHALL show at once that it is loading (a placeholder for a new page, a progress mark on the thing that was tapped) instead of leaving the old screen unchanged. WHEN a chart point is selected, what it opens SHALL be brought into view.
+- **NFR24** — _Visual design (v5, new; details to be agreed)._ Before release to friends the app gets a consistent, modern visual theme, keeping every existing element and behaviour. The specifics (colour, type, spacing) are a product decision to be made with the owner from concrete options when the task starts.
 - **NFR10** — Searching does not send a request on every keystroke in a way that could exhaust the movie database's rate limit.
 
 **Cost**
