@@ -34,6 +34,18 @@ export function isPublicPath(pathname: string): boolean {
 }
 
 /**
+ * Is this one of our data endpoints (such as /api/search) rather than a page?
+ *
+ * They are called by JavaScript, not visited by a person, so a signed-out
+ * request gets a short "401" answer instead of a redirect to the sign-in
+ * page. A redirect would hand the calling code a page of HTML where it
+ * expected data.
+ */
+export function isApiPath(pathname: string): boolean {
+  return pathname === "/api" || pathname.startsWith("/api/");
+}
+
+/**
  * Where to send someone after they sign in.
  *
  * The destination comes from the URL (?next=/film/603), which means anyone

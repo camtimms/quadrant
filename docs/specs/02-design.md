@@ -324,6 +324,17 @@ when exceeded. At 15 members we are nowhere near it, but:
 - `/api/search` requires a signed-in member, so it cannot be used by strangers
   as a free TMDB proxy.
 - A 429 or any other failure becomes the "search is unavailable" state (R12).
+- `/api/search` answers with one of: `200 { results }`, `400 { error:
+  "query-too-short" }`, `401 { error: "signed-out" }`, `403 { error:
+  "not-a-member" }` or `503 { error: "unavailable" }`. It checks who is asking
+  before it looks at the query, and looks at the query before it calls TMDB, so
+  a refused request never costs a TMDB call. Responses are sent with
+  `Cache-Control: private, no-store`.
+- For a signed-out request to any `/api/…` path the proxy itself answers `401`
+  with JSON instead of redirecting to `/login`: the caller is code, and a
+  redirect would hand it a page of HTML where it expected data.
+- Adult titles: the request sets `include_adult=false`, and the parser also
+  drops any search result that still arrives marked `adult: true`.
 
 ---
 

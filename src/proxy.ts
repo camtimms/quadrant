@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { isPublicPath } from "@/lib/auth/paths";
+import { isApiPath, isPublicPath } from "@/lib/auth/paths";
 import { getPublicEnv } from "@/lib/env";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -65,6 +65,15 @@ export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   if (!isSignedIn && !isPublicPath(pathname)) {
+    // A data endpoint is called by code, which cannot use a sign-in page:
+    // answer with a plain "not signed in" instead of redirecting. The body
+    // matches what the endpoints themselves send (see src/lib/search.ts).
+    if (isApiPath(pathname)) {
+      return NextResponse.json(
+        { error: "signed-out" },
+        { status: 401, headers: { "Cache-Control": "private, no-store" } },
+      );
+    }
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.search = "";

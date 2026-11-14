@@ -66,6 +66,17 @@ describe("parseSearchResponse", () => {
     expect(parseSearchResponse(searchEmpty)).toEqual([]);
   });
 
+  it("drops a result marked as adult", () => {
+    const [first, ...rest] = searchCommando.results;
+    const withAdult = {
+      ...searchCommando,
+      results: [{ ...first, adult: true }, ...rest],
+    };
+    const ids = parseSearchResponse(withAdult).map((f) => f.tmdbId);
+    expect(ids).toHaveLength(19);
+    expect(ids).not.toContain(first.id);
+  });
+
   it("fails loudly on a shape it does not recognise", () => {
     expect(() => parseSearchResponse({ items: [] })).toThrow();
     expect(() => parseSearchResponse(null)).toThrow();

@@ -49,29 +49,40 @@ const rawFilmSchema = z.object({
   // Lenient on purpose: see yearOf above.
   release_date: z.string().nullish(),
   poster_path: z.string().nullish(),
+  // Read only so that adult titles can be dropped from search results; it is
+  // not passed on. Present on every film in the captured responses.
+  adult: z.boolean().optional(),
 });
 
 // .transform runs after the checks pass and renames TMDB's snake_case fields
 // to the camelCase names used in the rest of the app.
-const filmSchema = rawFilmSchema.transform((raw): TmdbFilm => ({
+const toFilm = (raw: z.infer<typeof rawFilmSchema>): TmdbFilm => ({
   tmdbId: raw.id,
   title: raw.title,
   year: yearOf(raw.release_date),
   // An empty path would build a broken image address, so treat it as none.
   posterPath: raw.poster_path || null,
-}));
+});
 
-const searchResponseSchema = z.object({ results: z.array(filmSchema) });
+const searchResponseSchema = z.object({ results: z.array(rawFilmSchema) });
 
 /**
  * Parse the body of `GET /3/search/movie`. Throws if it is not the expected
  * shape (for example an error body); an empty result list is fine.
+ *
+ * Adult titles are left out. The request already asks TMDB to exclude them
+ * (include_adult=false), but that relies on every film being labelled
+ * correctly at their end, so anything that arrives marked adult is dropped
+ * here as well.
  */
 export function parseSearchResponse(body: unknown): TmdbFilm[] {
-  return searchResponseSchema.parse(body).results;
+  return searchResponseSchema
+    .parse(body)
+    .results.filter((raw) => raw.adult !== true)
+    .map(toFilm);
 }
 
 /** Parse the body of `GET /3/movie/{id}`. Throws on any other shape. */
 export function parseMovie(body: unknown): TmdbFilm {
-  return filmSchema.parse(body);
+  return toFilm(rawFilmSchema.parse(body));
 }

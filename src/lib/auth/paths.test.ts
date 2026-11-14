@@ -1,5 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { isPublicPath, safeNextPath } from "@/lib/auth/paths";
+import { isApiPath, isPublicPath, safeNextPath } from "@/lib/auth/paths";
+
+describe("isApiPath", () => {
+  it.each(["/api", "/api/search", "/api/anything/else"])(
+    "treats %s as a data endpoint",
+    (path) => {
+      expect(isApiPath(path)).toBe(true);
+    },
+  );
+
+  // "/apiary" merely starts with the same letters.
+  it.each(["/", "/search", "/apiary", "/film/api"])(
+    "treats %s as a page",
+    (path) => {
+      expect(isApiPath(path)).toBe(false);
+    },
+  );
+
+  it("no data endpoint is public", () => {
+    expect(isPublicPath("/api/search")).toBe(false);
+  });
+});
 
 describe("isPublicPath", () => {
   // R1: only these may be seen without signing in.
