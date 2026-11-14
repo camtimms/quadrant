@@ -17,7 +17,14 @@ process.loadEnvFile(".env.test.local");
  */
 export default defineConfig({
   resolve: {
-    alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
+    alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      // Same stand-in as vitest.config.mts: lets these tests import the
+      // app's server-only modules (the titles store) outside a Next.js build.
+      "server-only": fileURLToPath(
+        new URL("./node_modules/server-only/empty.js", import.meta.url),
+      ),
+    },
   },
   test: {
     include: ["tests/rls/**/*.test.ts"],

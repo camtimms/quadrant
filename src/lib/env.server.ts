@@ -41,3 +41,38 @@ export function getServerEnv(): ServerEnv {
   });
   return cached;
 }
+
+// ---------------------------------------------------------------------------
+// The Supabase secret key
+// ---------------------------------------------------------------------------
+// Checked separately from the TMDB token, and only when first needed, so
+// that film search does not depend on a key it never uses.
+
+const supabaseSecretSchema = z.object({
+  SUPABASE_SECRET_KEY: z
+    .string("is missing")
+    .min(1, "is empty")
+    // The easy mistake: the dashboard lists the public key right above it.
+    .refine((value) => !value.startsWith("sb_publishable_"), {
+      message:
+        'is the PUBLISHABLE key. Use the SECRET key (it starts "sb_secret_") from Project Settings > API Keys',
+    }),
+});
+
+/** Check the Supabase secret key. Separate from process.env for testing. */
+export function parseSupabaseSecretKey(raw: Record<string, unknown>): string {
+  return checkEnv(supabaseSecretSchema, raw).SUPABASE_SECRET_KEY;
+}
+
+let cachedSecretKey: string | undefined;
+
+/**
+ * The key that bypasses every database rule. Used by exactly one module,
+ * src/lib/supabase/admin.ts.
+ */
+export function getSupabaseSecretKey(): string {
+  cachedSecretKey ??= parseSupabaseSecretKey({
+    SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY,
+  });
+  return cachedSecretKey;
+}

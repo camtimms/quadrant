@@ -296,6 +296,15 @@ Confirmed from TMDB's API reference:
   This is the _only_ use of the secret key in the app. It is why members have no
   insert policy on `titles`: without it, any member could use their own session
   to write junk film rows straight into the database.
+- In code: `src/lib/supabase/admin.ts` creates the secret-key client, and
+  `src/lib/titles/store.ts` (two queries: find a film, save a film) is the only
+  file allowed to import it; a unit test fails if anything else does. The
+  decisions live in `src/lib/titles/ensureTitle.ts`, which answers
+  `{ ok: true, title }`, or `{ ok: false, reason }` with `"not-found"` (TMDB
+  has no such film) or `"unavailable"` (TMDB is down and we have no copy).
+- Saving is an upsert on `(media_type, tmdb_id)`, so a refresh, and two
+  members rating the same new film at the same moment, both land on one row
+  without changing the id that ratings point at.
 - **Posters are not stored.** We keep `poster_path` and the browser loads the
   image directly from `https://image.tmdb.org/t/p/<size><poster_path>`
   (confirmed format). Sizes used: `w185` for lists and `w342` for the film

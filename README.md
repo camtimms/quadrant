@@ -108,8 +108,10 @@ In Vercel (Production environment variables): `NEXT_PUBLIC_SUPABASE_URL`,
 `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `NEXT_PUBLIC_SITE_URL`, with
 `quadrant-prod`'s values, plus `TMDB_API_READ_ACCESS_TOKEN` (the long "API Read
 Access Token" from TMDB's API settings page, not the short "API Key"; the same
-token is used locally and in production). Changing a variable needs a redeploy
-to take effect.
+token is used locally and in production) and `SUPABASE_SECRET_KEY`
+(`quadrant-prod`'s secret key; it bypasses every database rule, so it is only
+ever set here and in `.env.local`, where the `quadrant-dev` key goes). Changing
+a variable needs a redeploy to take effect.
 
 ### Inviting and removing people
 

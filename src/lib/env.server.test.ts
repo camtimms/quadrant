@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseServerEnv } from "@/lib/env.server";
+import { parseServerEnv, parseSupabaseSecretKey } from "@/lib/env.server";
 
 // Shaped like the real token (three parts joined by dots) but made up.
 const token = "eyJhbGciOiJIUzI1NiJ9.eyJleGFtcGxlIjp0cnVlfQ.c2lnbmF0dXJl";
@@ -32,6 +32,32 @@ describe("parseServerEnv", () => {
       parseServerEnv({ TMDB_API_READ_ACCESS_TOKEN: wrong });
       expect.unreachable("should have thrown");
     } catch (error) {
+      expect(String(error)).not.toContain(wrong);
+    }
+  });
+});
+
+describe("parseSupabaseSecretKey", () => {
+  it("accepts a secret key", () => {
+    expect(
+      parseSupabaseSecretKey({ SUPABASE_SECRET_KEY: "sb_secret_example" }),
+    ).toBe("sb_secret_example");
+  });
+
+  it("rejects a missing key and names the variable", () => {
+    expect(() => parseSupabaseSecretKey({})).toThrow(
+      /SUPABASE_SECRET_KEY is missing/,
+    );
+  });
+
+  // The two keys sit next to each other in the dashboard.
+  it("rejects the publishable key pasted by mistake, without echoing it", () => {
+    const wrong = "sb_publishable_pasted_by_mistake";
+    try {
+      parseSupabaseSecretKey({ SUPABASE_SECRET_KEY: wrong });
+      expect.unreachable("should have thrown");
+    } catch (error) {
+      expect(String(error)).toMatch(/SECRET key/);
       expect(String(error)).not.toContain(wrong);
     }
   });
