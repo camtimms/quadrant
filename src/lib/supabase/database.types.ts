@@ -75,6 +75,87 @@ export type Database = {
         }
         Relationships: []
       }
+      ratings: {
+        Row: {
+          created_at: string
+          enjoyment: number
+          id: number
+          is_current: boolean
+          quality: number
+          review: string | null
+          title_id: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          enjoyment: number
+          id?: never
+          is_current?: boolean
+          quality: number
+          review?: string | null
+          title_id: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          enjoyment?: number
+          id?: never
+          is_current?: boolean
+          quality?: number
+          review?: string | null
+          title_id?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ratings_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ratings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      titles: {
+        Row: {
+          fetched_at: string
+          id: number
+          media_type: string
+          poster_path: string | null
+          release_year: number | null
+          title: string
+          tmdb_id: number
+        }
+        Insert: {
+          fetched_at: string
+          id?: never
+          media_type?: string
+          poster_path?: string | null
+          release_year?: number | null
+          title: string
+          tmdb_id: number
+        }
+        Update: {
+          fetched_at?: string
+          id?: never
+          media_type?: string
+          poster_path?: string | null
+          release_year?: number | null
+          title?: string
+          tmdb_id?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -82,6 +163,31 @@ export type Database = {
     Functions: {
       hook_check_invite: { Args: { event: Json }; Returns: Json }
       is_current_user_member: { Args: never; Returns: boolean }
+      save_rating: {
+        Args: {
+          p_enjoyment: number
+          p_quality: number
+          p_review: string
+          p_title_id: number
+        }
+        Returns: {
+          created_at: string
+          enjoyment: number
+          id: number
+          is_current: boolean
+          quality: number
+          review: string | null
+          title_id: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "ratings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       [_ in never]: never

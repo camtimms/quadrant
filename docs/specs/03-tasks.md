@@ -93,7 +93,8 @@ Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to tha
 
 ## Milestone E — Rating a film
 
-- [ ] **T19: Films and ratings tables** — R14–R17, R19–R22, NFR1, NFR19, NFR20 · `supabase/migrations/0003_titles_ratings.sql` (tables, checks, partial unique index, `updated_at` trigger, `save_rating`, policies), `src/lib/supabase/database.types.ts` · manual: applies cleanly to dev · M
+- [x] **T19: Films and ratings tables** — R14–R17, R19–R22, NFR1, NFR19, NFR20 · `supabase/migrations/0003_titles_ratings.sql` (tables, checks, partial unique index, `updated_at` trigger, `save_rating`, policies), `src/lib/supabase/database.types.ts` · manual: applies cleanly to dev · M
+  - *Done 2026-11-14.* Migration `20261114110029_titles_ratings.sql` applied to `quadrant-dev` (with the owner's go-ahead, which the CLI now asks for) and the types regenerated. Probed signed out: both tables and `save_rating` are refused. A throwaway check as a real member passed: saving twice leaves one row with the new scores, a blank review is stored as null, a score of 11 is refused, and a member cannot write `titles`. Beyond the design: insert and update permissions on `ratings` are per column, so `created_at` and `is_current` cannot be set through the API (design 3.4 updated). Not applied to prod; that happens when T20's tests are green.
 
 - [ ] **T20: Access-control tests for ratings** — NFR1, R5, R16, R17, R19, R21, R22 · `tests/rls/ratings.test.ts` · tests: signed-out and uninvited users read nothing; member can't insert, edit or delete as another member; members can't write `titles`; a second current rating is refused; scores of −1 and 11 refused; 501-character review refused; `save_rating` twice leaves one row. When green, the migration is applied to prod · M
 

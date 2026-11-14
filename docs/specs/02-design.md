@@ -165,6 +165,12 @@ API does not expose.
 - The `check` constraints are the server-side half of R16 and R17: a bad score
   or an over-long review is rejected even if someone bypasses the form.
 - `smallint` scores mean 0 is a real value and "no score" is impossible (E14).
+- Members' table permissions on `ratings` are limited by column: they may
+  insert `user_id`, `title_id`, the two scores and the review, and update only
+  the two scores and the review. `id`, `is_current`, `created_at` and
+  `updated_at` are set by the database alone, so a rating cannot be back-dated
+  or quietly retired through the API. (The rewatch function in 3.7 will need
+  its own way to change `is_current` when it is built.)
 
 ### 3.5 How "friends only" is enforced in the database
 
@@ -223,7 +229,9 @@ It inserts a current rating for the caller, or, if one already exists, updates
 it (`insert … on conflict … do update`). Doing this inside the database makes
 "create or edit" a single atomic step, so the double-submit case (E5) cannot
 produce two rows or an error. `security invoker` means it runs with the
-caller's own permissions, so every RLS policy above still applies.
+caller's own permissions, so every RLS policy above still applies. It always
+writes under the caller's own id (there is no "whose rating" parameter), and
+it trims the review, storing one that is empty or only spaces as `null`.
 
 ### 3.7 Room to grow (designed now, built later)
 
