@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
+import { NO_INDEX, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -16,6 +16,8 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: SITE_NAME,
   description: SITE_DESCRIPTION,
+  // Becomes <meta name="robots" content="noindex, nofollow"> on every page (NFR6).
+  robots: NO_INDEX,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

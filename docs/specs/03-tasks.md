@@ -24,7 +24,8 @@ Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to tha
 - [x] **T1: Scaffold the project** — NFR16, NFR2 · `package.json`, `tsconfig.json`, `eslint.config.*`, `.prettierrc`, `vitest.config.ts`, `.gitignore`, `.env.example`, `src/app/layout.tsx`, `src/app/page.tsx`, `CLAUDE.md` (fill in the Commands section) · `git init`; `npm run dev` shows a placeholder page; `npm run lint`, `npm run typecheck` and `npm test` (one trivial passing test) all succeed · M
   - *Done 2026-11-14.* Next.js 16.4 scaffold copied in from a temporary folder (the generator refuses a non-empty directory). Surprises: it installs TypeScript 5, not 7 (design updated); `@types/node` had to move to 22 for Vitest; `typecheck` must run `next typegen` first; the Vitest config is `vitest.config.mts`; the scaffold turns on Cache Components, which later data-fetching tasks must account for.
 
-- [ ] **T2: Keep the site out of search engines** — NFR6, NFR7 · `src/app/robots.ts`, `src/app/layout.tsx` (noindex metadata) · unit test `robots disallows everything`; manual: view page source for the `noindex` tag · S
+- [x] **T2: Keep the site out of search engines** — NFR6, NFR7 · `src/app/robots.ts`, `src/app/layout.tsx` (noindex metadata) · unit test `robots disallows everything`; manual: view page source for the `noindex` tag · S
+  - *Done 2026-11-14.* `/robots.txt` disallows every path and every page carries `noindex, nofollow`; both checked in the built site. NFR7 needed no code: the scaffold ships no analytics and none was added. No surprises.
 
 - [ ] 🙋 **T3: First deploy** — R48, NFR4, NFR11 · no code; `README.md` (how to run and deploy) · manual: the Vercel URL shows the placeholder page over HTTPS on a laptop and a phone · S
   - _You:_ create a private GitHub repository and a Vercel account, then import the repository into Vercel. I'll give you the push commands. Check V9 (no payment card asked for).
