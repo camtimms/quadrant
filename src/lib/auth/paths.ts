@@ -14,6 +14,7 @@
 const PUBLIC_PATHS = [
   "/login", // the sign-in page itself
   "/auth/callback", // where Google sends people back to
+  "/auth/not-invited", // signs an uninvited person out again (task T12)
   "/about", // TMDB attribution (task T18)
   "/robots.txt", // must be readable by the crawlers it is addressed to
 ] as const;

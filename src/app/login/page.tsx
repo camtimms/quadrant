@@ -1,12 +1,8 @@
 import { Suspense } from "react";
 import { signInWithGoogle } from "@/app/(app)/actions/auth";
+import { loginErrorMessage } from "@/lib/auth/errors";
 import { safeNextPath } from "@/lib/auth/paths";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
-
-/** Messages for the ?error= values the sign-in flow can send people back with. */
-const ERROR_MESSAGES: Record<string, string> = {
-  "sign-in-failed": "Sign-in didn't complete. Please try again.",
-};
 
 // In this version of Next.js a page's props arrive as promises, and reading
 // the URL's query string makes that part of the page "per request". Anything
@@ -38,7 +34,9 @@ async function SignInSection({
   const next = safeNextPath(
     typeof params.next === "string" ? params.next : null,
   );
-  const message = errorCode ? ERROR_MESSAGES[errorCode] : undefined;
+  // Only codes we define produce a message; text typed into the address bar
+  // is never shown.
+  const message = loginErrorMessage(errorCode);
 
   return (
     <>

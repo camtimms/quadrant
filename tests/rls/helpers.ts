@@ -80,11 +80,19 @@ export type TestUser = {
  * Google sign-in cannot be automated, so the dev project also allows
  * email + password, used only here. Production has it switched off.
  */
-export async function createTestUser(label: string): Promise<TestUser> {
-  // A random part keeps runs from colliding with each other or with
-  // leftovers from a run that crashed.
-  const email = `${TEST_EMAIL_PREFIX}${label}-${randomUUID().slice(0, 8)}@${TEST_EMAIL_DOMAIN}`;
+export async function createTestUser(
+  label: string,
+  { invited = true }: { invited?: boolean } = {},
+): Promise<TestUser> {
+  const email = testEmail(label);
   const password = randomUUID();
+
+  // Every test user is put on the invite list BEFORE being created, because
+  // once the sign-up hook is switched on (migration 2) it may refuse to
+  // create anyone who is not. A user meant to be uninvited is taken off the
+  // list again at the end, which leaves exactly the situation we want to
+  // test: a real account, with a valid session, that is not a member.
+  await invite(email);
 
   const created = await admin.auth.admin.createUser({
     email,
@@ -98,7 +106,17 @@ export async function createTestUser(label: string): Promise<TestUser> {
   const signedIn = await client.auth.signInWithPassword({ email, password });
   if (signedIn.error) throw signedIn.error;
 
+  if (!invited) await uninvite(email);
+
   return { id: created.data.user.id, email, client };
+}
+
+/**
+ * A fresh throwaway address. The random part keeps runs from colliding with
+ * each other or with leftovers from a run that crashed.
+ */
+export function testEmail(label: string): string {
+  return `${TEST_EMAIL_PREFIX}${label}-${randomUUID().slice(0, 8)}@${TEST_EMAIL_DOMAIN}`;
 }
 
 /** Put an address on the invite list, as the owner would in the dashboard. */

@@ -80,7 +80,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      hook_check_invite: { Args: { event: Json }; Returns: Json }
+      is_current_user_member: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

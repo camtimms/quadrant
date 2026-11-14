@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { loginErrorFromCallback, type LoginError } from "@/lib/auth/errors";
 import { safeNextPath } from "@/lib/auth/paths";
 import { createClient } from "@/lib/supabase/server";
 
@@ -12,20 +13,35 @@ import { createClient } from "@/lib/supabase/server";
  * client then stores in cookies.
  */
 export async function GET(request: NextRequest) {
-  const code = request.nextUrl.searchParams.get("code");
-  const next = safeNextPath(request.nextUrl.searchParams.get("next"));
+  const { searchParams, origin } = request.nextUrl;
+  const backToLogin = (error: LoginError) =>
+    NextResponse.redirect(new URL(`/login?error=${error}`, origin));
 
-  if (code) {
-    const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      return NextResponse.redirect(new URL(next, request.nextUrl.origin));
-    }
+  // 1. Did Supabase send them back with an error instead of a code? This is
+  //    how the sign-up hook's "not invited" refusal arrives (R4).
+  const callbackError = loginErrorFromCallback(searchParams);
+  if (callbackError) return backToLogin(callbackError);
+
+  const code = searchParams.get("code");
+  if (!code) return backToLogin("sign-in-failed");
+
+  // 2. Swap the code for a session.
+  const supabase = await createClient();
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  if (error) return backToLogin("sign-in-failed");
+
+  // 3. Signed in, but are they on the invite list? The hook only runs when an
+  //    account is first created, so this catches someone who had an account
+  //    and was later removed. (If this check were missing they would still
+  //    see no data, because the database refuses them; they would just get an
+  //    empty app instead of an explanation.)
+  const { data: isMember } = await supabase.rpc("is_current_user_member");
+  if (!isMember) {
+    await supabase.auth.signOut({ scope: "local" });
+    return backToLogin("not-invited");
   }
 
-  // No code, or the exchange failed (expired link, cancelled at Google, or a
-  // refusal such as "not invited", which task T12 turns into its own message).
   return NextResponse.redirect(
-    new URL("/login?error=sign-in-failed", request.nextUrl.origin),
+    new URL(safeNextPath(searchParams.get("next")), origin),
   );
 }

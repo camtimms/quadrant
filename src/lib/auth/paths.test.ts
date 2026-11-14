@@ -3,12 +3,15 @@ import { isPublicPath, safeNextPath } from "@/lib/auth/paths";
 
 describe("isPublicPath", () => {
   // R1: only these may be seen without signing in.
-  it.each(["/login", "/auth/callback", "/about", "/robots.txt"])(
-    "lets signed-out visitors see %s",
-    (path) => {
-      expect(isPublicPath(path)).toBe(true);
-    },
-  );
+  it.each([
+    "/login",
+    "/auth/callback",
+    "/auth/not-invited",
+    "/about",
+    "/robots.txt",
+  ])("lets signed-out visitors see %s", (path) => {
+    expect(isPublicPath(path)).toBe(true);
+  });
 
   // Everything else needs a session, including pages that do not exist yet:
   // the list says what is public, so anything new is private by default.

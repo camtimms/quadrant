@@ -30,10 +30,8 @@ beforeAll(async () => {
   [alice, bob, mallory] = await Promise.all([
     createTestUser("alice"),
     createTestUser("bob"),
-    createTestUser("mallory"),
+    createTestUser("mallory", { invited: false }),
   ]);
-  await invite(alice.email);
-  await invite(bob.email);
 
   // Bob already has a profile, so the tests have somebody else's row to aim at.
   const { error } = await bob.client
