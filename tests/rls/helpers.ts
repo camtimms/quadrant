@@ -137,8 +137,40 @@ export async function uninvite(email: string): Promise<void> {
 }
 
 /**
- * Remove everything the tests created: profiles first (they point at the
- * users), then invite-list rows, then the users themselves.
+ * TMDB ids used for throwaway films start here. Real TMDB ids are in the low
+ * millions, so nothing genuine can be in this range, and clean-up can find
+ * test films by it. (The column is a 32-bit integer; its limit is a little
+ * above this.)
+ */
+export const TEST_TMDB_ID_START = 2_000_000_000;
+
+let nextTestTmdbId = TEST_TMDB_ID_START;
+
+export type TestTitle = Database["public"]["Tables"]["titles"]["Row"];
+
+/**
+ * Store a throwaway film, as the server does when a film is first rated.
+ * Members cannot write film rows, so this uses the admin client.
+ */
+export async function createTestTitle(title: string): Promise<TestTitle> {
+  const { data, error } = await admin
+    .from("titles")
+    .insert({
+      tmdb_id: nextTestTmdbId++,
+      title,
+      release_year: 1999,
+      fetched_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Remove everything the tests created, in an order the database allows:
+ * ratings first (they point at films and profiles), then test films, then
+ * profiles (they point at the users), invite-list rows, and the users.
  *
  * It looks for the test prefix rather than a remembered list, so it also
  * sweeps up after an earlier run that crashed before cleaning up.
@@ -151,6 +183,17 @@ export async function removeAllTestData(): Promise<void> {
     user.email?.startsWith(TEST_EMAIL_PREFIX),
   );
   const ids = testUsers.map((user) => user.id);
+
+  if (ids.length > 0) {
+    const ratings = await admin.from("ratings").delete().in("user_id", ids);
+    if (ratings.error) throw ratings.error;
+  }
+
+  const titles = await admin
+    .from("titles")
+    .delete()
+    .gte("tmdb_id", TEST_TMDB_ID_START);
+  if (titles.error) throw titles.error;
 
   if (ids.length > 0) {
     const profiles = await admin.from("profiles").delete().in("id", ids);
@@ -178,4 +221,8 @@ export const PG = {
   permissionDenied: "42501",
   /** A check constraint refused the value. */
   checkViolation: "23514",
+  /** A unique index refused a duplicate. */
+  uniqueViolation: "23505",
+  /** The value is not the right type, e.g. 7.5 where a whole number is needed. */
+  invalidText: "22P02",
 } as const;
