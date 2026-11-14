@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { signOut } from "@/app/(app)/actions/auth";
 import { getCurrentMember } from "@/lib/auth/member";
+import { SiteLogo } from "@/components/SiteLogo";
 import { SITE_NAME } from "@/lib/site";
 
 /**
@@ -19,8 +20,9 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
       <header className="flex items-center justify-between gap-4 border-b border-foreground/15 px-4 py-3">
         <Link
           href="/"
-          className="font-semibold focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="flex items-center gap-2 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2"
         >
+          <SiteLogo size={24} />
           {SITE_NAME}
         </Link>
         <div className="flex items-center gap-3 text-sm">

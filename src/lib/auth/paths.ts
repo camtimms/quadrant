@@ -17,6 +17,9 @@ const PUBLIC_PATHS = [
   "/auth/not-invited", // signs an uninvited person out again (task T12)
   "/about", // TMDB attribution (task T18)
   "/robots.txt", // must be readable by the crawlers it is addressed to
+  // The site's name and icons for phones (task T27a). Browsers fetch it
+  // without the member's cookies, so behind sign-in it would never load.
+  "/manifest.webmanifest",
 ] as const;
 
 export function isPublicPath(pathname: string): boolean {

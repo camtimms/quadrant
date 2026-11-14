@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { signInWithGoogle } from "@/app/(app)/actions/auth";
 import { loginErrorMessage } from "@/lib/auth/errors";
 import { safeNextPath } from "@/lib/auth/paths";
+import { SiteLogo } from "@/components/SiteLogo";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 
 // In this version of Next.js a page's props arrive as promises, and reading
@@ -14,7 +15,10 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 p-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-semibold">{SITE_NAME}</h1>
+        <h1 className="flex items-center gap-3 text-3xl font-semibold">
+          <SiteLogo size={40} />
+          {SITE_NAME}
+        </h1>
         <p>{SITE_DESCRIPTION}</p>
       </div>
       {/* Until the query string has been read, show the plain button. */}

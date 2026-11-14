@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SiteLogo } from "@/components/SiteLogo";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 import { TMDB_LOGO_PATH, TMDB_NOTICE, TMDB_URL } from "@/lib/tmdb/attribution";
 
@@ -19,7 +20,10 @@ export default function AboutPage() {
       <div className="flex flex-col gap-2">
         {/* Our own name is the biggest thing on the page on purpose: TMDB
             asks that their logo be less prominent than the app's own. */}
-        <h1 className="text-3xl font-semibold">{SITE_NAME}</h1>
+        <h1 className="flex items-center gap-3 text-3xl font-semibold">
+          <SiteLogo size={40} />
+          {SITE_NAME}
+        </h1>
         <p>{SITE_DESCRIPTION}</p>
       </div>
 

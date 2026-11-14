@@ -15,3 +15,13 @@ export const SITE_DESCRIPTION =
  * We use both because each covers a gap the other leaves.
  */
 export const NO_INDEX = { index: false, follow: false } as const;
+
+/**
+ * The site's icon as an image file, for showing beside the name on a page.
+ * (The browser-tab icon is separate: Next.js finds src/app/favicon.ico by
+ * its file name.)
+ */
+export const SITE_ICON_PATH = "/icons/icon-192.png";
+
+/** The icon's own background colour, used where a phone frames the site. */
+export const SITE_ICON_BACKGROUND = "#000000";

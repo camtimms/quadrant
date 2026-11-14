@@ -914,6 +914,16 @@ the pages I checked say; confirm at sign-up (section 13).
 
 ## 12. Project layout
 
+**Site icon (NFR25).** Next.js picks icons up from file names, with no tags
+to write: `src/app/favicon.ico` becomes the browser-tab icon and
+`src/app/apple-icon.png` the iPhone home-screen icon. `src/app/manifest.ts`
+produces `/manifest.webmanifest`, which tells Android the site's name and
+points at the two larger icons in `public/icons/`. The manifest is on the
+public-paths list, because browsers fetch it without the member's session and
+it says nothing private. `SiteLogo` shows the 192-pixel icon beside the site's
+name, with empty alt text since the name is written next to it. _(Added in
+T27a.)_
+
 ```
 src/
   app/                    pages and route handlers (section 6)

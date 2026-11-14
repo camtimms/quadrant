@@ -30,6 +30,7 @@ describe("isPublicPath", () => {
     "/auth/not-invited",
     "/about",
     "/robots.txt",
+    "/manifest.webmanifest",
   ])("lets signed-out visitors see %s", (path) => {
     expect(isPublicPath(path)).toBe(true);
   });

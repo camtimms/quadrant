@@ -11,6 +11,8 @@ tap and while pages load (new NFR23), and for a visual design pass before
 release (new NFR24, to be specified with the owner when that task starts).
 Later the same day the owner asked for the film's description on its page and
 a button to that page beside "Update scores" (R14 amended, new R54 and R55).
+On 2026-11-15 the owner supplied a site icon and asked for it to be used as
+the favicon and wherever else the site shows its identity (new NFR25).
 
 v4 changes (owner’s request during implementation, after T4): the famous four
 labels now need *both* scores to be extreme (7.5 or more / 2.5 or less, which
@@ -189,6 +191,7 @@ friends, because displaying that is the point of the app.
 - **NFR9** — Search results appear within 1.5 seconds of submitting, when the external database responds normally.
 - **NFR23** — _Immediate feedback (v5, new)._ Anything a member can tap or click shows that it was pressed straight away, without relying on hover. WHEN a page or a filter takes time to load, THE SYSTEM SHALL show at once that it is loading (a placeholder for a new page, a progress mark on the thing that was tapped) instead of leaving the old screen unchanged. WHEN a chart point is selected, what it opens SHALL be brought into view.
 - **NFR24** — _Visual design (v5, new; details to be agreed)._ Before release to friends the app gets a consistent, modern visual theme, keeping every existing element and behaviour. The specifics (colour, type, spacing) are a product decision to be made with the owner from concrete options when the task starts.
+- **NFR25** — _Site icon (v5, new)._ The owner's icon identifies the site: in the browser tab, when the site is saved to a phone's home screen, and beside the site's name wherever the name is shown as a title (the header of signed-in pages, the sign-in page and the About page). The icon is decoration beside the written name, never a replacement for it.
 - **NFR10** — Searching does not send a request on every keystroke in a way that could exhaust the movie database's rate limit.
 
 **Cost**
