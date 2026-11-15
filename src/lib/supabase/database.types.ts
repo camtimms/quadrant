@@ -59,19 +59,25 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
           display_name: string
           id: string
+          show_picture: boolean
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           display_name: string
           id: string
+          show_picture?: boolean
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           display_name?: string
           id?: string
+          show_picture?: boolean
         }
         Relationships: []
       }
@@ -191,6 +197,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      sync_profile_picture: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

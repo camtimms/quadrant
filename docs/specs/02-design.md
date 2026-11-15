@@ -1165,6 +1165,19 @@ when friends open a page, and from where. So:
   `search_path`), like `save_rating`, because members cannot read the sign-in
   table themselves.
 - The `check` constraint is the same host rule again, as a backstop.
+- _(Added in T29a.)_ The host rule is one function,
+  `private.is_google_picture(text)`, used by both the `check` constraint and
+  `sync_profile_picture()`, so the two cannot disagree. It also refuses an
+  address longer than 500 characters.
+- _(Added in T29a.)_ A trigger on `profiles` empties `avatar_url` whenever a
+  row is saved with `show_picture` off. Switching the picture off therefore
+  removes the address in the same step, in the database, and does not depend
+  on the app calling `sync_profile_picture()` afterwards. Switching it back on
+  only records the choice; the address returns with the next call.
+- _(T29a.)_ `id` is among the columns a member may update, because the app
+  saves a profile with "insert, or update if it exists", which names every
+  column it was given. The row policies still stop a member turning their row
+  into somebody else's.
 
 The host rule matters even inside the function: a signed-in user can edit
 their own sign-in record's extra fields through Supabase's API, so "it came

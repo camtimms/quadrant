@@ -82,7 +82,17 @@ export type TestUser = {
  */
 export async function createTestUser(
   label: string,
-  { invited = true }: { invited?: boolean } = {},
+  {
+    invited = true,
+    avatarUrl,
+  }: {
+    invited?: boolean;
+    /**
+     * Put this in the user's sign-in record as their picture address, where
+     * a real Google sign-in leaves it (design 16.8).
+     */
+    avatarUrl?: string;
+  } = {},
 ): Promise<TestUser> {
   const email = testEmail(label);
   const password = randomUUID();
@@ -99,6 +109,8 @@ export async function createTestUser(
     password,
     // Mark the address as confirmed so the user can sign in straight away.
     email_confirm: true,
+    // What Google would have said about the user at sign-in.
+    user_metadata: avatarUrl ? { avatar_url: avatarUrl } : undefined,
   });
   if (created.error) throw created.error;
 
