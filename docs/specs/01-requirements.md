@@ -177,6 +177,7 @@ friends, because displaying that is the point of the app.
 - **N3** — Rewatch log: a "log a rewatch" action that records new scores for a film the member has already rated. The new scores become the member's current rating; every earlier entry is kept with its date; a times-watched count is shown. See NFR19 `[Q11]`.
 - **N4** — Score distributions on the film page: for each of Quality and Enjoyment, a curve showing how the group's scores are spread (a normal distribution drawn from the group's mean and standard deviation), shown only when enough members have rated the film for a spread to mean something. See NFR21.
 - **N5** — _(v6, new.)_ Upload your own profile picture, cropped to a circle, in place of the Google one. Needs image storage with members-only access, an upload and crop step, and limits on file type and size; see design section 16.9.
+- **N6** — _(Owner's request, 2026-11-15.)_ Likes on reviews: a member can like a friend's written review on that friend's card on a film's page, and each card shows how many likes its review has. To be specified before it is built: whether members see who liked a review or only the count, whether you can like your own, and what happens to likes when the review is edited or deleted.
 
 ---
 

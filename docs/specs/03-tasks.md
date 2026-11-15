@@ -187,6 +187,8 @@ Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to tha
 - [ ] **T38: Rewatch log** — N3, NFR19 · migration (`log_rewatch` function), form action, times-watched display; requirements R19/R20 need a spec update first · M
 - [ ] **T39: Score distribution curves** — N4, NFR21 · pure mean / standard-deviation functions with tests, SVG curve on the film page · M
 - [ ] **T40: Keep-alive for the free database** — NFR11 · scheduled request so the project isn't paused after a quiet week; needs a check of what the free tiers allow · S
+- [ ] **T41: Upload your own profile picture** — N5 · private storage bucket with access rules and tests, upload with a circular crop and a resize in the browser, file limits (design 16.9); about three or four tasks once specified · M
+- [ ] **T42: Likes on reviews** — N6 · migration (a likes table with access rules and tests), a like button and count on the film page's rating cards (after T29c); requirements need a spec update first · M
 
 ---
 
