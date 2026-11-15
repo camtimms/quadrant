@@ -168,6 +168,23 @@ export async function createTestTitle(title: string): Promise<TestTitle> {
 }
 
 /**
+ * Store many throwaway films in one request, for tests that need more rows
+ * than the API returns at once.
+ */
+export async function createTestTitles(count: number): Promise<void> {
+  const fetchedAt = new Date().toISOString();
+  const { error } = await admin.from("titles").insert(
+    Array.from({ length: count }, (_, index) => ({
+      tmdb_id: nextTestTmdbId++,
+      title: `Bulk test film ${index + 1}`,
+      release_year: 1999,
+      fetched_at: fetchedAt,
+    })),
+  );
+  if (error) throw error;
+}
+
+/**
  * Remove everything the tests created, in an order the database allows:
  * ratings first (they point at films and profiles), then test films, then
  * profiles (they point at the users), invite-list rows, and the users.

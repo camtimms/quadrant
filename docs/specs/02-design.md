@@ -520,6 +520,31 @@ outgrows that, the aggregation moves into a SQL view — noted as the first
 scaling step, deliberately not built now, because it would mean writing the
 rounding rule twice (R29).
 
+How it is built _(added in T29)_:
+
+- **Reading in pages (V5).** One API request returns at most 1,000 rows and
+  reports no error when more match. `loadAllRatings` (`src/lib/data/allRatings.ts`)
+  therefore reads through `fetchAllPages` (`src/lib/data/paging.ts`): it asks
+  for rows in a fixed order (`order("id")`) with the total (`count: "exact"`),
+  and keeps requesting from however many rows have arrived until it has the
+  total or gets an empty page. It never stops at a "short" page, so it is
+  still correct if the project's cap is ever set below the page size.
+- **Grouping.** `groupFilms` (`src/lib/data/groupFilms.ts`, pure) folds the
+  rows into one entry per film: the group average (`groupAverage`), the number
+  of members, the film's disagreement (`filmDisagreement`, null with one
+  rating, R45) and the most recent time any member first rated it. The viewer's
+  own ratings are included: the page is the whole group's view.
+- **Order (R44).** `?sort=disagreement` lists the largest disagreement first;
+  films with one rating go last, after a disagreement of 0, and ties are in
+  most-recent order. Anything else is the default, most recent first, which is
+  left out of the address. The filter and the order each keep the other when
+  changed.
+- **Drawing.** The same `QuadrantChart` (cell size 0.5), `FilterChips` and
+  `FilmList` as My films, with no edit prop. `FilmList` shows a "Rated by …"
+  line, with the disagreement when there is one, for films that carry a
+  member count.
+- **Freshness (R47).** Nothing is cached: every visit reads the ratings again.
+
 ---
 
 ## 7. Quadrant logic (precise definition)
@@ -1096,7 +1121,7 @@ before the first few tasks (the quadrant maths needs no accounts at all).
 | V2  | **Settled in T15:** `w92`, `w154`, `w185`, `w342`, `w500`, `w780`, `original`. ~~The exact TMDB poster size names~~                                                                                                                                             | 4.2                   | Call `/configuration`                                                                                                  |
 | V3  | How a _Before User Created_ rejection reaches the browser in the Google redirect flow (which query parameters carry the error)                                                | 5.1, `/login` message | Sign in to the dev project with an uninvited Google account and read the redirect                                      |
 | V4  | Whether the sign-up hook also runs for users created through the admin API in tests                                                                                           | 10                    | Try it on the dev project; test emails are added to the invite list regardless                                         |
-| V5  | The API's default cap on rows returned per request (I believe 1,000)                                                                                                          | 6, `/friends`         | Check the dev project's API settings; fetch in pages if needed                                                         |
+| V5  | The API's default cap on rows returned per request (I believe 1,000)                                                                                                          | 6, `/friends`         | **Settled in T29:** exactly 1,000 on `quadrant-dev`, with no error when more rows match (a request for 1,003 rows returned 1,000). `/friends` reads in pages |
 | V6  | That `supabase db push` can apply migrations to a hosted project without Docker installed                                                                                     | 11                    | Try it in the first database task; fallback is pasting the SQL into the dashboard's SQL editor                         |
 | V7  | That a Google app using only basic scopes can be set to "In production" without verification (the help page implies it, but the relevant section wasn't in what I could read) | 5.5                   | Seen during setup step 4; fallback is leaving it in "Testing", which Google says still allows basic-scope sign-in      |
 | V8  | How long a paused Supabase project stays restorable (docs say both 90 days and 1 year)                                                                                        | 11                    | Read the dashboard notice if it ever happens; the backup script covers the worst case                                  |

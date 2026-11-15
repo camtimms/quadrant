@@ -17,7 +17,9 @@ import { SITE_NAME } from "@/lib/site";
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <>
-      <header className="flex items-center justify-between gap-4 border-b border-foreground/15 px-4 py-3">
+      {/* flex-wrap: on a narrow phone the links drop to a second line
+          instead of pushing the page wider than the screen. */}
+      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-foreground/15 px-4 py-3">
         <Link
           href="/"
           className="flex items-center gap-2 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2"
@@ -26,8 +28,14 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
           {SITE_NAME}
         </Link>
         <div className="flex items-center gap-3 text-sm">
-          {/* A stop-gap so the search page can be reached. The full
-              navigation arrives in task T31. */}
+          {/* A stop-gap so these pages can be reached. The full navigation
+              arrives in task T31. */}
+          <Link
+            href="/friends"
+            className="underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+          >
+            Friends
+          </Link>
           <Link
             href="/search"
             className="underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"

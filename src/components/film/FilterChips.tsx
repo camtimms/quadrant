@@ -14,13 +14,14 @@ type Props = {
   otherParams?: Record<string, string>;
 };
 
-// One look for every chip; the variations are added below.
-const CHIP =
+// One look for every chip; the variations are added below. Exported so the
+// order links on Friends' films look the same (SortLinks).
+export const CHIP =
   "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm";
-const LINK_CHIP = `${CHIP} border-foreground/30 hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2`;
+export const LINK_CHIP = `${CHIP} border-foreground/30 hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2`;
 // The chosen chip is filled in. It is ALSO marked with aria-current, so it
 // is not told apart by colour alone (NFR14).
-const ACTIVE_CHIP = `${CHIP} border-foreground bg-foreground text-background active:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2`;
+export const ACTIVE_CHIP = `${CHIP} border-foreground bg-foreground text-background active:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2`;
 
 /**
  * The filter chips above a film list: "All", then the thirteen placements

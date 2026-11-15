@@ -268,3 +268,62 @@ describe("FilmList (R33)", () => {
     expect(screen.getByText(/no films/i)).toBeTruthy();
   });
 });
+
+// On Friends' films each row is a film as the group sees it (R44, R45).
+describe("FilmList on a group list", () => {
+  const groupLine = () => screen.getByTestId("group-line").textContent;
+
+  it("says how many members rated the film and their biggest disagreement", () => {
+    render(
+      <FilmList
+        films={[film(1, "Shared", 6.3, 7, { ratedBy: 3, disagreement: 5 })]}
+      />,
+    );
+
+    expect(groupLine()).toContain("Rated by 3 members");
+    expect(groupLine()).toContain("Biggest disagreement 5");
+  });
+
+  it("rounds the disagreement to one decimal place", () => {
+    render(
+      <FilmList
+        films={[
+          film(1, "Shared", 6, 6, { ratedBy: 2, disagreement: Math.SQRT2 }),
+        ]}
+      />,
+    );
+
+    expect(groupLine()).toContain("Biggest disagreement 1.4");
+    expect(groupLine()).not.toContain("1.41");
+  });
+
+  // R45: one rating has no disagreement. It is left out, never shown as 0.
+  it("shows no disagreement for a film one member has rated", () => {
+    render(
+      <FilmList
+        films={[film(1, "Solo", 3, 9, { ratedBy: 1, disagreement: null })]}
+      />,
+    );
+
+    expect(groupLine()).toContain("Rated by 1 member");
+    expect(groupLine()).not.toContain("members");
+    expect(groupLine()).not.toMatch(/disagreement/i);
+  });
+
+  // 0 is a real answer: two or more members who agree exactly.
+  it("shows a disagreement of 0 as 0", () => {
+    render(
+      <FilmList
+        films={[film(1, "Agreed", 7, 7, { ratedBy: 2, disagreement: 0 })]}
+      />,
+    );
+
+    expect(groupLine()).toContain("Biggest disagreement 0");
+  });
+
+  it("has no such line on a member's own list", () => {
+    render(<FilmList films={[film(1, "Mine", 7, 7)]} />);
+
+    expect(screen.queryByTestId("group-line")).toBeNull();
+  });
+});
