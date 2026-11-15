@@ -156,4 +156,5 @@ Running log: date, decision, why. Newest at the bottom.
 | 2026-11-15 | T29: a film's "most recently rated" time on Friends' films is the latest time any member first rated it. | Follows R36 (first rated, not last changed), so correcting a score does not move a film up the list. My reading, for the owner to overrule. |
 | 2026-11-15 | T29: the default order is most recent; sorting by disagreement puts single-rating films last, after 0, with ties in most-recent order. | Most recent matches My films. A film with one rating has no disagreement yet, which is less of an answer than "they agree exactly". |
 | 2026-11-15 | T29: a "Friends" link added to the header, which now wraps on a narrow screen. | The page could not be reached otherwise. A stop-gap like the Search link; the real navigation is T31. |
+| 2026-11-15 | T29: owner confirmed the Friends' films page on the live site. | Owner's check. |
 | 2026-11-15 | T27: the ratings query is also run against the dev database in `tests/rls/film-ratings.test.ts`. | Same reason as T26: the unit test feeds the loader made-up rows, and this checks the real database nests the member's name the way those rows assume. |
