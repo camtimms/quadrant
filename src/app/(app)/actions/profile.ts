@@ -8,7 +8,8 @@ import {
 } from "@/lib/validation/profile";
 
 /**
- * Save the member's display name, creating their profile the first time (R7).
+ * Save the member's display name and their picture choice, creating their
+ * profile the first time (R7, R63).
  *
  * The first argument is whatever this action returned last time; React passes
  * it in automatically when the action is used with useActionState. We do not
@@ -23,11 +24,14 @@ export async function saveDisplayName(
 ): Promise<DisplayNameFormState> {
   const typed = formData.get("display_name");
   const value = typeof typed === "string" ? typed : "";
+  // A checkbox is in the form data only when it is ticked. So "is the field
+  // there at all?" is the member's choice (R63).
+  const showPicture = formData.has("show_picture");
 
   // 1. Check it here even though the form also limits the length: a request
   //    can be sent without using our form at all.
   const parsed = parseDisplayName(typed);
-  if (!parsed.ok) return { message: parsed.message, value };
+  if (!parsed.ok) return { message: parsed.message, value, showPicture };
 
   // 2. Who is asking? The id comes from the verified session, never from the
   //    form, so nobody can save a name against someone else's account.
@@ -38,6 +42,7 @@ export async function saveDisplayName(
     return {
       message: "Your session expired. Sign in again to save.",
       value,
+      showPicture,
     };
   }
 
@@ -45,14 +50,33 @@ export async function saveDisplayName(
   //    statement covers both the first visit and later changes. The database
   //    rules still apply: a member can only write their own row, and a
   //    non-member cannot write at all.
-  const { error } = await supabase
-    .from("profiles")
-    .upsert({ id: userId, display_name: parsed.value });
+  //
+  //    Only the CHOICE is sent, never a picture address. Members are not
+  //    allowed to write the address column at all; the database fills it in
+  //    itself in step 4 (design 16.1).
+  const { error } = await supabase.from("profiles").upsert({
+    id: userId,
+    display_name: parsed.value,
+    show_picture: showPicture,
+  });
   if (error) {
     return {
       message: "That couldn't be saved. Please try again.",
       value,
+      showPicture,
     };
+  }
+
+  // 4. Have the database store the member's Google picture address, now
+  //    that it knows their choice (R62). If the choice was "off", the
+  //    database has already removed the address in step 3 and this changes
+  //    nothing.
+  //
+  //    A failure here is logged, not shown: the name and the choice ARE
+  //    saved, and the picture is stored the next time the member signs in.
+  const { error: pictureError } = await supabase.rpc("sync_profile_picture");
+  if (pictureError) {
+    console.error("Could not store the member's picture.", pictureError);
   }
 
   // redirect() works by throwing a special signal, so it must stay outside

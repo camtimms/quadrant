@@ -22,6 +22,8 @@ const MEMBER: CurrentMember = {
   isMember: true,
   displayName: "Cam",
   suggestedName: "Cam",
+  showPicture: true,
+  googlePicture: null,
 };
 
 // Shaped like the real token but made up.

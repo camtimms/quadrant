@@ -60,6 +60,22 @@ export default function AboutPage() {
         <p className="text-sm">{TMDB_NOTICE}</p>
       </section>
 
+      {/* NFR5, NFR7: say plainly what personal data is shown and where it
+          is loaded from (design 16.3). */}
+      <section aria-labelledby="pictures" className="flex flex-col gap-3">
+        <h2 id="pictures" className="text-lg font-semibold">
+          Members&apos; pictures
+        </h2>
+        <p data-testid="pictures-notice">
+          The picture beside a member&apos;s name is their Google account
+          picture. It is loaded from Google&apos;s servers, so Google sees that
+          a picture was requested, but not who is signed in here or which page
+          they are on. Each member can switch their picture off where they set
+          their display name, and friends then see the first letter of their
+          name instead.
+        </p>
+      </section>
+
       <p>
         <Link
           href="/"

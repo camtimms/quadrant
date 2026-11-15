@@ -6,7 +6,8 @@ import { getCurrentMember } from "@/lib/auth/member";
 import { SITE_NAME } from "@/lib/site";
 
 /**
- * Choose or change a display name (R7).
+ * Choose or change a display name (R7), and whether friends see your
+ * Google picture (R63).
  *
  * A member lands here automatically the first time they sign in, because the
  * signed-in layout sends anyone without a profile to this page. They can
@@ -40,17 +41,19 @@ async function WelcomeContent() {
     <>
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold">
-          {isFirstVisit ? `Welcome to ${SITE_NAME}` : "Your display name"}
+          {isFirstVisit ? `Welcome to ${SITE_NAME}` : "Your name and picture"}
         </h1>
         <p>
           {isFirstVisit
             ? "What should your friends see you as?"
-            : "Change the name your friends see beside your ratings."}
+            : "Change the name and picture your friends see beside your ratings."}
         </p>
       </div>
       <DisplayNameForm
         initialName={member.displayName ?? member.suggestedName}
         submitLabel={isFirstVisit ? "Continue" : "Save"}
+        showPicture={member.showPicture}
+        pictureUrl={member.googlePicture}
       />
       {isFirstVisit ? null : (
         <Link href="/" className="text-sm underline">

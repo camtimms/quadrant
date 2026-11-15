@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
+import { googlePictureFrom } from "@/lib/picture";
 import { createClient } from "@/lib/supabase/server";
 import { suggestDisplayName } from "@/lib/validation/profile";
 
@@ -13,6 +14,17 @@ export type CurrentMember = {
   displayName: string | null;
   /** A starting suggestion from their Google profile ("" if none). */
   suggestedName: string;
+  /**
+   * Their choice to show their Google picture to friends (R63). True for a
+   * member with no profile yet: the choice is on by default.
+   */
+  showPicture: boolean;
+  /**
+   * Their OWN Google picture, from their session, or null if their account
+   * has none. For showing a member their own picture on /welcome only; what
+   * friends see comes from the database.
+   */
+  googlePicture: string | null;
 };
 
 /**
@@ -43,12 +55,13 @@ export const getCurrentMember = cache(
     }
 
     let displayName: string | null = null;
+    let showPicture = true;
     if (isMember) {
       // maybeSingle(): one row or none, and "none" is not an error. A member
       // who has just signed in for the first time has no profile yet.
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("display_name")
+        .select("display_name, show_picture")
         .eq("id", claims.sub)
         .maybeSingle();
       if (profileError) {
@@ -57,6 +70,7 @@ export const getCurrentMember = cache(
         });
       }
       displayName = profile?.display_name ?? null;
+      showPicture = profile?.show_picture ?? true;
     }
 
     return {
@@ -64,6 +78,8 @@ export const getCurrentMember = cache(
       isMember: Boolean(isMember),
       displayName,
       suggestedName: suggestDisplayName(claims.user_metadata),
+      showPicture,
+      googlePicture: googlePictureFrom(claims.user_metadata),
     };
   },
 );

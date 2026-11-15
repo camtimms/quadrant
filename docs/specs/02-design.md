@@ -1228,6 +1228,11 @@ load, so it is a client component.
   gets a sentence saying so. _Rejected:_ copying the images into our own
   storage, which is the machinery of N5 (16.9) for no visible gain.
 - The letter fallback differs from a picture by content, not colour (NFR14).
+- _(Added in T29b.)_ `Avatar` loads an address only if it passes
+  `isGooglePicture` (`src/lib/picture.ts`), the app's copy of the database's
+  rule, tested with the same cases. It remembers which address failed, so a
+  new address gets its own chance, and on arrival it asks the image whether it
+  has already failed, since a picture can fail before React is listening.
 
 ### 16.4 Film page: cards replace the table (R60)
 

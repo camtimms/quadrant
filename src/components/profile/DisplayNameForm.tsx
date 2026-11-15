@@ -1,10 +1,12 @@
 "use client";
 
-// "use client" because this component uses a React hook to react to what the
-// server action returns. The saving itself still happens on the server.
+// "use client" because this component uses React hooks: one to react to
+// what the server action returns, one to follow the checkbox. The saving
+// itself still happens on the server.
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { saveDisplayName } from "@/app/(app)/actions/profile";
+import { Avatar } from "@/components/Avatar";
 import {
   DISPLAY_NAME_MAX_LENGTH,
   type DisplayNameFormState,
@@ -14,9 +16,18 @@ type Props = {
   /** What the field starts with: the current name, or a suggestion. */
   initialName: string;
   submitLabel: string;
+  /** The member's stored choice; true for someone signing in for the first time. */
+  showPicture: boolean;
+  /** The member's own Google picture, or null if their account has none. */
+  pictureUrl: string | null;
 };
 
-export function DisplayNameForm({ initialName, submitLabel }: Props) {
+export function DisplayNameForm({
+  initialName,
+  submitLabel,
+  showPicture,
+  pictureUrl,
+}: Props) {
   // useActionState connects a form to a server action:
   //   state      what the action returned last time (starts as {})
   //   formAction what to hand to <form action={...}>
@@ -25,6 +36,11 @@ export function DisplayNameForm({ initialName, submitLabel }: Props) {
     DisplayNameFormState,
     FormData
   >(saveDisplayName, {});
+
+  // The checkbox is followed here so the picture beside it can change the
+  // moment it is ticked or unticked: the member sees what friends will see
+  // before saving anything.
+  const [wantsPicture, setWantsPicture] = useState(showPicture);
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
@@ -53,6 +69,40 @@ export function DisplayNameForm({ initialName, submitLabel }: Props) {
         Shown to your friends beside your ratings. Up to{" "}
         {DISPLAY_NAME_MAX_LENGTH} characters.
       </p>
+
+      {/* The picture choice (R63). The preview shows exactly what friends
+          will see beside the member's name: their Google picture, or their
+          initial when the box is unticked. */}
+      <div className="mt-2 flex items-start gap-3">
+        <Avatar
+          name={initialName}
+          url={wantsPicture ? pictureUrl : null}
+          size="md"
+        />
+        <div className="flex flex-col gap-1">
+          {/* Wrapping the checkbox in its <label> makes the words part of
+              the target: tapping the text ticks the box. */}
+          <label className="flex items-center gap-2 font-medium">
+            <input
+              type="checkbox"
+              // A browser sends a ticked checkbox as show_picture=on and
+              // leaves an unticked one out of the form altogether.
+              name="show_picture"
+              checked={wantsPicture}
+              onChange={(event) => setWantsPicture(event.target.checked)}
+              aria-describedby="show_picture_help"
+              className="h-4 w-4 focus-visible:outline-2 focus-visible:outline-offset-2"
+            />
+            Show my Google picture to friends
+          </label>
+          <p id="show_picture_help" className="text-sm opacity-70">
+            {pictureUrl
+              ? "If this is off, friends see the first letter of your name instead."
+              : "Your Google account has no picture, so friends see the first letter of your name. If you add one, this decides whether it is shown."}
+          </p>
+        </div>
+      </div>
+
       {state.message ? (
         // role="alert" makes screen readers announce the problem (NFR15).
         <p role="alert" className="text-sm text-red-700 dark:text-red-400">

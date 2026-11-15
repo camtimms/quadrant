@@ -41,6 +41,24 @@ export async function GET(request: NextRequest) {
     return backToLogin("not-invited");
   }
 
+  // 4. Keep the member's picture in step with their Google account (R62).
+  //    The database copies the address from what Google said at sign-in, if
+  //    the member has left their picture switched on, and checks it really
+  //    is a Google picture (design 16.1). Someone signing in for the first
+  //    time has no profile yet, so this does nothing for them; their picture
+  //    is stored when they save their display name.
+  //
+  //    A picture is not worth refusing a sign-in over, so any failure here
+  //    is logged and otherwise ignored.
+  try {
+    const { error: pictureError } = await supabase.rpc("sync_profile_picture");
+    if (pictureError) {
+      console.error("Could not store the member's picture.", pictureError);
+    }
+  } catch (pictureError) {
+    console.error("Could not store the member's picture.", pictureError);
+  }
+
   return NextResponse.redirect(
     new URL(safeNextPath(searchParams.get("next")), origin),
   );

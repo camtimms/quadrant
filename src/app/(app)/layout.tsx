@@ -110,7 +110,7 @@ async function SignedInAs() {
       href="/welcome"
       className="underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
       // The visible text is just the name; this says what the link does.
-      aria-label={`${member.displayName}: change your display name`}
+      aria-label={`${member.displayName}: change your name or picture`}
     >
       {member.displayName}
     </Link>

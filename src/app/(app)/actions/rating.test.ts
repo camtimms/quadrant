@@ -77,6 +77,8 @@ const MEMBER: CurrentMember = {
   isMember: true,
   displayName: "Cam",
   suggestedName: "Cam",
+  showPicture: true,
+  googlePicture: null,
 };
 
 const TITLE = {

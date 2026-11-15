@@ -63,6 +63,11 @@ export function suggestDisplayName(metadata: unknown): string {
  *
  * `message` is the problem to show, if any. `value` is what the member typed,
  * returned so the field can be refilled with it: a failed save must never
- * throw away someone's typing.
+ * throw away someone's typing. `showPicture` is the picture choice they made,
+ * handed back for the same reason.
  */
-export type DisplayNameFormState = { message?: string; value?: string };
+export type DisplayNameFormState = {
+  message?: string;
+  value?: string;
+  showPicture?: boolean;
+};
