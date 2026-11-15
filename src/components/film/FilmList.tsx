@@ -4,8 +4,9 @@ import type { ChartFilm } from "@/components/chart/QuadrantChart";
 import { formatScore } from "@/components/chart/scale";
 import { FilmPageButton } from "@/components/film/FilmPageButton";
 import { PosterImage } from "@/components/film/PosterImage";
+import { GroupLine } from "@/components/film/RaterLines";
 import { InlineRatingEditor } from "@/components/rating/InlineRatingEditor";
-import { classify, PLACEMENT_LABELS, roundToOneDecimal } from "@/lib/quadrant";
+import { classify, PLACEMENT_LABELS } from "@/lib/quadrant";
 
 /**
  * A film in a list: everything the chart needs, plus when it was rated,
@@ -14,16 +15,6 @@ import { classify, PLACEMENT_LABELS, roundToOneDecimal } from "@/lib/quadrant";
 export type ListFilm = ChartFilm & {
   /** A timestamp as the database writes it. */
   ratedAt: string;
-  /**
-   * Only on a group list (Friends' films), where `point` is the group
-   * average: how many members rated the film (R44).
-   */
-  ratedBy?: number;
-  /**
-   * Only on a group list: the biggest disagreement between two members, or
-   * null when only one has rated it (R45).
-   */
-  disagreement?: number | null;
 };
 
 type Props = {
@@ -86,17 +77,14 @@ export function FilmList({ films, editReturnTo }: Props) {
               <span className="text-sm font-medium">
                 {PLACEMENT_LABELS[classify(film.point)]}
               </span>
-              {/* Group lists only. "!= null" is false for both null and
-                  undefined, so a film with one rating shows no disagreement
-                  at all, while a real 0 ("they agree exactly") is shown. */}
+              {/* Group lists only. Who the raters were is NOT repeated
+                  here: that is in the panel, where a member has asked about
+                  one film (design 16.5). */}
               {film.ratedBy !== undefined ? (
-                <span data-testid="group-line" className="text-sm opacity-70">
-                  Rated by{" "}
-                  {film.ratedBy === 1 ? "1 member" : `${film.ratedBy} members`}
-                  {film.disagreement != null
-                    ? ` · Biggest disagreement ${formatScore(roundToOneDecimal(film.disagreement))}`
-                    : null}
-                </span>
+                <GroupLine
+                  ratedBy={film.ratedBy}
+                  disagreement={film.disagreement}
+                />
               ) : null}
             </span>
             {/* Spins while this film's page is loading. "ml-auto" pushes it

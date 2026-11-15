@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   groupFilms,
+  PANEL_RATERS,
   parseSort,
+  REVIEW_START,
   sortGroupFilms,
   sortHref,
   type GroupFilm,
@@ -14,6 +16,7 @@ function row(
   quality: number,
   enjoyment: number,
   ratedAt = "2026-11-01T10:00:00+00:00",
+  member: Partial<RatingRow> = {},
 ): RatingRow {
   return {
     tmdbId,
@@ -22,7 +25,28 @@ function row(
     posterPath: null,
     point: { quality, enjoyment },
     ratedAt,
+    userId: "id-someone",
+    displayName: "Someone",
+    avatarUrl: null,
+    review: null,
+    ...member,
   };
+}
+
+/** A rating of film 1 by a named member, made on the given day of November. */
+function by(
+  name: string,
+  day: number,
+  member: Partial<RatingRow> = {},
+  quality = 5,
+  enjoyment = 5,
+): RatingRow {
+  const ratedAt = `2026-11-${String(day).padStart(2, "0")}T10:00:00+00:00`;
+  return row(1, quality, enjoyment, ratedAt, {
+    userId: `id-${name}`,
+    displayName: name,
+    ...member,
+  });
 }
 
 describe("groupFilms (R43, R44, R45)", () => {
@@ -157,6 +181,8 @@ describe("sortGroupFilms (R44)", () => {
       ...row(tmdbId, 5, 5, ratedAt),
       ratedBy: disagreement === null ? 1 : 2,
       disagreement,
+      // The order does not depend on who rated it.
+      raters: [],
     };
   }
   const ids = (films: GroupFilm[]) => films.map((f) => f.tmdbId);
@@ -220,5 +246,128 @@ describe("sortHref", () => {
     expect(sortHref("disagreement", "masterpieces")).toBe(
       "/friends?sort=disagreement&filter=masterpieces",
     );
+  });
+});
+
+describe("groupFilms: who rated each film (R57, R58, R59)", () => {
+  it("lists each rater with their id, name, picture and scores", () => {
+    const picture = "https://lh3.googleusercontent.com/a/abc123=s96-c";
+    const [film] = groupFilms([by("Bob", 3, { avatarUrl: picture }, 3, 9)]);
+
+    expect(film.raters).toEqual([
+      {
+        userId: "id-Bob",
+        displayName: "Bob",
+        avatarUrl: picture,
+        point: { quality: 3, enjoyment: 9 },
+        reviewStart: null,
+      },
+    ]);
+  });
+
+  it("puts the most recently rated first, whatever order the rows came in", () => {
+    const [film] = groupFilms([by("Al", 2), by("Zoe", 9), by("Bob", 5)]);
+
+    expect(film.raters.map((rater) => rater.displayName)).toEqual([
+      "Zoe",
+      "Bob",
+      "Al",
+    ]);
+  });
+
+  // 23:30 in a +02:00 zone is EARLIER than 22:00 in UTC, though it sorts
+  // later as text.
+  it("compares the times as moments, not as text", () => {
+    const [film] = groupFilms([
+      row(1, 5, 5, "2026-11-01T23:30:00+02:00", { displayName: "Early" }),
+      row(1, 5, 5, "2026-11-01T22:00:00+00:00", { displayName: "Late" }),
+    ]);
+
+    expect(film.raters.map((rater) => rater.displayName)).toEqual([
+      "Late",
+      "Early",
+    ]);
+  });
+
+  it("keeps only the three most recent", () => {
+    expect(PANEL_RATERS).toBe(3);
+    const [film] = groupFilms([
+      by("Al", 1),
+      by("Bob", 2),
+      by("Cy", 3),
+      by("Di", 4),
+      by("Ed", 5),
+    ]);
+
+    expect(film.raters.map((rater) => rater.displayName)).toEqual([
+      "Ed",
+      "Di",
+      "Cy",
+    ]);
+  });
+
+  // R58: the panel says "and N more" from these two numbers.
+  it("still counts every rater, so the rest can be worked out", () => {
+    const [film] = groupFilms([
+      by("Al", 1),
+      by("Bob", 2),
+      by("Cy", 3),
+      by("Di", 4),
+      by("Ed", 5),
+    ]);
+
+    expect(film.ratedBy - film.raters.length).toBe(2);
+  });
+
+  it("does not mix up the raters of different films", () => {
+    const films = groupFilms([
+      by("Al", 1),
+      { ...by("Bob", 2), tmdbId: 2 },
+      by("Cy", 3),
+    ]);
+
+    expect(films[0].raters.map((rater) => rater.displayName)).toEqual([
+      "Cy",
+      "Al",
+    ]);
+    expect(films[1].raters.map((rater) => rater.displayName)).toEqual(["Bob"]);
+  });
+
+  describe("the start of a review (R59, E31)", () => {
+    const startOf = (review: string | null) =>
+      groupFilms([by("Bob", 1, { review })])[0].raters[0].reviewStart;
+
+    it("leaves a short review alone", () => {
+      expect(startOf("So bad it's good.")).toBe("So bad it's good.");
+    });
+
+    it("leaves a review of exactly 200 characters alone", () => {
+      expect(REVIEW_START).toBe(200);
+      const exact = "a".repeat(200);
+
+      expect(startOf(exact)).toBe(exact);
+    });
+
+    it("cuts a longer review at 200 characters and adds an ellipsis", () => {
+      expect(startOf("a".repeat(201))).toBe(`${"a".repeat(200)}…`);
+      expect(startOf("a".repeat(500))).toBe(`${"a".repeat(200)}…`);
+    });
+
+    // An emoji is two "units" to JavaScript. Cutting by units could slice
+    // one in half and show a broken character.
+    it("counts whole characters, so an emoji is never cut in half", () => {
+      expect(startOf("🎬".repeat(201))).toBe(`${"🎬".repeat(200)}…`);
+    });
+
+    it("does not leave a space before the ellipsis", () => {
+      const review = `${"a".repeat(199)} ${"b".repeat(50)}`;
+
+      expect(startOf(review)).toBe(`${"a".repeat(199)}…`);
+    });
+
+    it("is null when there is no review, or an empty one", () => {
+      expect(startOf(null)).toBeNull();
+      expect(startOf("")).toBeNull();
+    });
   });
 });

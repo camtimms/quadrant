@@ -62,9 +62,12 @@ vi.mock("@/lib/supabase/server", () => ({
 
 function row(overrides: Record<string, unknown> = {}) {
   return {
+    user_id: "00000000-0000-4000-8000-000000000002",
     quality: 3,
     enjoyment: 9,
+    review: "So bad it's good.",
     created_at: "2026-11-01T10:00:00+00:00",
+    profiles: { display_name: "Bob", avatar_url: null },
     titles: {
       tmdb_id: 10999,
       title: "Commando",
@@ -93,6 +96,10 @@ describe("loadAllRatings", () => {
         posterPath: "/x.jpg",
         point: { quality: 3, enjoyment: 9 },
         ratedAt: "2026-11-01T10:00:00+00:00",
+        userId: "00000000-0000-4000-8000-000000000002",
+        displayName: "Bob",
+        avatarUrl: null,
+        review: "So bad it's good.",
       },
     ]);
   });
@@ -113,12 +120,28 @@ describe("loadAllRatings", () => {
     expect(mocks.options).toEqual({ count: "exact" });
   });
 
-  // The page shows neither, so neither is fetched.
-  it("does not fetch reviews or member names", async () => {
+  // R57, R59: the panel names who rated a film and starts their review.
+  it("fetches who made each rating, their picture and their review", async () => {
     await loadAllRatings();
 
-    expect(mocks.select).not.toContain("review");
-    expect(mocks.select).not.toContain("profiles");
+    expect(mocks.select).toContain("user_id");
+    expect(mocks.select).toContain("review");
+    expect(mocks.select).toContain("profiles (display_name, avatar_url)");
+  });
+
+  it("passes on a member's picture address", async () => {
+    const picture = "https://lh3.googleusercontent.com/a/abc123=s96-c";
+    mocks.rows = [
+      row({ profiles: { display_name: "Bob", avatar_url: picture } }),
+    ];
+
+    expect((await loadAllRatings())[0].avatarUrl).toBe(picture);
+  });
+
+  it("reads 'no review' as null, whether stored as null or as empty text", async () => {
+    mocks.rows = [row({ review: null }), row({ review: "" })];
+
+    expect((await loadAllRatings()).map((r) => r.review)).toEqual([null, null]);
   });
 
   // V5: one request returns at most 1,000 rows.

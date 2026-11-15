@@ -1,4 +1,5 @@
 import type { ListFilm } from "@/components/film/FilmList";
+import type { FilmRater } from "@/components/film/RaterLines";
 import { filterHref, newestFirst } from "@/lib/filters";
 import {
   filmDisagreement,
@@ -28,7 +29,38 @@ export type RatingRow = {
   point: Point;
   /** When that member first rated the film, as the database writes it. */
   ratedAt: string;
+  /** Who made the rating (R57). */
+  userId: string;
+  displayName: string;
+  /** The address of their Google picture, or null (R61). */
+  avatarUrl: string | null;
+  /** Their written review in full, or null when they wrote none. */
+  review: string | null;
 };
+
+/** How many raters the Friends' films panel lists for one film (R58). */
+export const PANEL_RATERS = 3;
+
+/** How many characters of a review the panel is given (R59). */
+export const REVIEW_START = 200;
+
+/**
+ * The first REVIEW_START characters of a review, with "…" when it was cut.
+ *
+ * Why cut here, on the server: the chart runs in the browser, so everything
+ * handed to it is sent with the page. Uncut, every review of every film
+ * would be downloaded just to draw Friends' films (design 16.5).
+ */
+function reviewStart(review: string | null): string | null {
+  if (!review) return null;
+  // Spreading a string into a list splits it into whole characters. Slicing
+  // the string itself counts in smaller units and could cut an emoji in
+  // half (the same reason characterCount exists in validation/text.ts).
+  const characters = [...review];
+  if (characters.length <= REVIEW_START) return review;
+  // trimEnd: no stray space between the last word and the ellipsis.
+  return `${characters.slice(0, REVIEW_START).join("").trimEnd()}…`;
+}
 
 /** A film as the group sees it. */
 export type GroupFilm = ListFilm & {
@@ -40,6 +72,11 @@ export type GroupFilm = ListFilm & {
    * exactly", and one rating is nobody agreeing or disagreeing (R45).
    */
   disagreement: number | null;
+  /**
+   * Who rated it: at most PANEL_RATERS members, the most recently rated
+   * first. `ratedBy` minus this list's length is how many are left out.
+   */
+  raters: FilmRater[];
 };
 
 /**
@@ -47,7 +84,8 @@ export type GroupFilm = ListFilm & {
  *  - `point`: the group average of its ratings, rounded to one decimal;
  *  - `ratedBy`: the number of ratings;
  *  - `disagreement`: its biggest clash (see GroupFilm);
- *  - `ratedAt`: the most recent time any member first rated it.
+ *  - `ratedAt`: the most recent time any member first rated it;
+ *  - `raters`: the few most recent raters, for the panel (see GroupFilm).
  *
  * Films come out in the order each first appears in the rows.
  */
@@ -65,11 +103,11 @@ export function groupFilms(rows: readonly RatingRow[]): GroupFilm[] {
     const [first] = filmRows;
     const points = filmRows.map((row) => row.point);
 
-    // Compared as moments in time, not as text (see newestFirst).
-    let latest = first.ratedAt;
-    for (const row of filmRows) {
-      if (Date.parse(row.ratedAt) > Date.parse(latest)) latest = row.ratedAt;
-    }
+    // Newest first, compared as moments in time, not as text (see
+    // newestFirst). toSorted returns a new list and leaves filmRows alone.
+    const recent = filmRows.toSorted(
+      (a, b) => Date.parse(b.ratedAt) - Date.parse(a.ratedAt),
+    );
 
     return {
       tmdbId: first.tmdbId,
@@ -79,9 +117,16 @@ export function groupFilms(rows: readonly RatingRow[]): GroupFilm[] {
       // Never null here: every film in the map has at least one rating. The
       // "!" tells TypeScript so.
       point: groupAverage(points)!,
-      ratedAt: latest,
+      ratedAt: recent[0].ratedAt,
       ratedBy: filmRows.length,
       disagreement: filmDisagreement(points),
+      raters: recent.slice(0, PANEL_RATERS).map((row) => ({
+        userId: row.userId,
+        displayName: row.displayName,
+        avatarUrl: row.avatarUrl,
+        point: row.point,
+        reviewStart: reviewStart(row.review),
+      })),
     };
   });
 }

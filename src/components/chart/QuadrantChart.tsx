@@ -4,6 +4,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { PointPanel } from "@/components/chart/PointPanel";
+import type { FilmRater } from "@/components/film/RaterLines";
 import {
   CHART_SIZE,
   chartX,
@@ -40,6 +41,18 @@ export type ChartFilm = {
    * know it should close (R51).
    */
   changedAt?: string;
+  /**
+   * The next three are only on a group chart (Friends' films), where
+   * `point` is the group average. How many members rated the film (R44).
+   */
+  ratedBy?: number;
+  /**
+   * The biggest disagreement between two members, or null when only one
+   * has rated it (R45).
+   */
+  disagreement?: number | null;
+  /** The few most recent raters, shown in the panel (R57). */
+  raters?: FilmRater[];
 };
 
 // ---------------------------------------------------------------------------

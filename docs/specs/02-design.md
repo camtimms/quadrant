@@ -1273,6 +1273,12 @@ disagreement table uses it too.
   review limited to three lines. No table, no rules between lines. If the
   film has more raters than are shown: "and 4 more on the film's page", a
   link (R58, E29).
+- _(Added in T29d.)_ The "Rated by …" line is one small component,
+  `GroupLine`, used by the list and the panel, so the two always word it the
+  same way. In the panel every rater's name is a link, the viewer's own
+  included: it leads to their member page, which sends them to My films
+  (T30). The three-line review preview does not keep line breaks; the
+  film page's cards do (16.4).
 - The list rows under the chart keep their one "Rated by …" line. Repeating
   three raters under every row would make the list several times longer; the
   panel is where a member has asked about one film.

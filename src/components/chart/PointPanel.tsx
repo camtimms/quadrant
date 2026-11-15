@@ -4,6 +4,7 @@ import type { ChartFilm } from "@/components/chart/QuadrantChart";
 import { formatScore } from "@/components/chart/scale";
 import { FilmPageButton } from "@/components/film/FilmPageButton";
 import { PosterImage } from "@/components/film/PosterImage";
+import { GroupLine, RaterLines } from "@/components/film/RaterLines";
 import { InlineRatingEditor } from "@/components/rating/InlineRatingEditor";
 import { classify, PLACEMENT_LABELS } from "@/lib/quadrant";
 
@@ -25,6 +26,11 @@ type Props = {
  *
  * For a cluster this is the answer to "which films are under that dot?".
  * Every one is listed, so no film is ever hidden behind another (R31).
+ *
+ * On Friends' films a point is a film at the group's average, so each film
+ * also says how many members rated it and who (R57–R59). Those lines appear
+ * only for a film that carries the group fields; My films and a member's
+ * page never do.
  */
 export function PointPanel({ films, onClose, editReturnTo }: Props) {
   return (
@@ -73,11 +79,28 @@ export function PointPanel({ films, onClose, editReturnTo }: Props) {
                 <span className="text-sm font-medium">
                   {PLACEMENT_LABELS[classify(film.point)]}
                 </span>
+                {film.ratedBy !== undefined ? (
+                  <GroupLine
+                    ratedBy={film.ratedBy}
+                    disagreement={film.disagreement}
+                  />
+                ) : null}
               </span>
               {/* Spins while this film's page is loading. "ml-auto" pushes it
                   to the right-hand end of the row. */}
               <PendingMark className="ml-auto" />
             </Link>
+
+            {/* Who rated it. Outside the link above, because each name is a
+                link of its own and a link cannot sit inside another. */}
+            {film.ratedBy !== undefined && film.raters ? (
+              <RaterLines
+                raters={film.raters}
+                ratedBy={film.ratedBy}
+                tmdbId={film.tmdbId}
+                title={film.title}
+              />
+            ) : null}
 
             {/* The row's buttons, beside the link, not inside it (see
                 FilmList). */}

@@ -24,7 +24,10 @@ import {
  * request cookies, which a test has none of.
  */
 const SELECT =
-  "quality, enjoyment, created_at, titles (tmdb_id, title, release_year, poster_path)";
+  "user_id, quality, enjoyment, review, created_at, titles (tmdb_id, title, release_year, poster_path), profiles (display_name, avatar_url)";
+
+// The shape of a real Google account picture address (design 16.8).
+const GOOGLE_PICTURE = "https://lh3.googleusercontent.com/a/test-alice=s96-c";
 
 let alice: TestUser;
 let bob: TestUser;
@@ -36,7 +39,7 @@ beforeAll(async () => {
   await removeAllTestData();
 
   [alice, bob, mallory] = await Promise.all([
-    createTestUser("alice"),
+    createTestUser("alice", { avatarUrl: GOOGLE_PICTURE }),
     createTestUser("bob"),
     // Signed in, but not on the invite list.
     createTestUser("mallory", { invited: false }),
@@ -50,20 +53,24 @@ beforeAll(async () => {
       .insert({ id: user.id, display_name: name });
     if (error) throw error;
   }
+  // What signing in does (R62): Alice's picture address is copied into her
+  // profile. Bob has no picture.
+  const synced = await alice.client.rpc("sync_profile_picture");
+  if (synced.error) throw synced.error;
 
   heat = await createTestTitle("Heat");
   alien = await createTestTitle("Alien");
 
-  for (const [user, title, quality, enjoyment] of [
-    [alice, heat, 9, 8],
-    [alice, alien, 0, 10],
-    [bob, heat, 2, 2],
+  for (const [user, title, quality, enjoyment, review] of [
+    [alice, heat, 9, 8, "Pacino and De Niro."],
+    [alice, alien, 0, 10, ""],
+    [bob, heat, 2, 2, ""],
   ] as const) {
     const { error } = await user.client.rpc("save_rating", {
       p_title_id: title.id,
       p_quality: quality,
       p_enjoyment: enjoyment,
-      p_review: "",
+      p_review: review,
     });
     if (error) throw error;
   }
@@ -99,16 +106,32 @@ describe("the Friends' films query", () => {
     expect(heatRows.map((r) => r.quality).sort()).toEqual([2, 9]);
     // The film is ONE nested object, not a list.
     expect(Array.isArray(heatRows[0].titles)).toBe(false);
-    expect(heatRows[0]).toEqual({
-      quality: expect.any(Number),
-      enjoyment: expect.any(Number),
+    const film = {
+      tmdb_id: heat.tmdb_id,
+      title: "Heat",
+      release_year: 1999,
+      poster_path: null,
+    };
+    // R57, R59: who made the rating, their picture and their review come in
+    // the same row. The member is ONE nested object too.
+    expect(heatRows.find((r) => r.user_id === alice.id)).toEqual({
+      user_id: alice.id,
+      quality: 9,
+      enjoyment: 8,
+      review: "Pacino and De Niro.",
       created_at: expect.any(String),
-      titles: {
-        tmdb_id: heat.tmdb_id,
-        title: "Heat",
-        release_year: 1999,
-        poster_path: null,
-      },
+      titles: film,
+      profiles: { display_name: "Alice", avatar_url: GOOGLE_PICTURE },
+    });
+    // Bob wrote no review and has no picture: both arrive as null.
+    expect(heatRows.find((r) => r.user_id === bob.id)).toEqual({
+      user_id: bob.id,
+      quality: 2,
+      enjoyment: 2,
+      review: null,
+      created_at: expect.any(String),
+      titles: film,
+      profiles: { display_name: "Bob", avatar_url: null },
     });
     expect(Number.isNaN(Date.parse(heatRows[0].created_at))).toBe(false);
   });

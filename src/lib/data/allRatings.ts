@@ -6,16 +6,20 @@ import { fetchAllPages } from "@/lib/data/paging";
 import { createClient } from "@/lib/supabase/server";
 
 /**
- * The columns the Friends' films page needs from each rating: the two
- * scores, when it was first made, and the film nested inside (see
- * ratings.ts for how "titles (...)" works). No reviews and no member names:
- * the page shows neither, so they are not fetched.
+ * The columns the Friends' films page needs from each rating: whose it is,
+ * the two scores, the review, when it was first made, and nested inside it
+ * the film and the member's name and picture address (see ratings.ts for
+ * how "titles (...)" works; "profiles (...)" is the same idea).
+ *
+ * The member and review are for the panel that opens from a point (R57,
+ * R59). Whole reviews are read here, on the server; groupFilms cuts them
+ * short before anything is sent to the browser.
  *
  * The same text is repeated in tests/rls/all-ratings.test.ts, which runs it
  * against the real database, and must stay in step with it.
  */
 const ALL_RATINGS_SELECT =
-  "quality, enjoyment, created_at, titles (tmdb_id, title, release_year, poster_path)";
+  "user_id, quality, enjoyment, review, created_at, titles (tmdb_id, title, release_year, poster_path), profiles (display_name, avatar_url)";
 
 /**
  * Every member's current rating of every film: the data behind Friends'
@@ -57,5 +61,10 @@ export async function loadAllRatings(): Promise<RatingRow[]> {
     point: { quality: row.quality, enjoyment: row.enjoyment },
     // When the member FIRST rated the film, as on My films (R36).
     ratedAt: row.created_at,
+    userId: row.user_id,
+    displayName: row.profiles.display_name,
+    avatarUrl: row.profiles.avatar_url,
+    // "No review" is stored as null; treat empty text the same way.
+    review: row.review || null,
   }));
 }

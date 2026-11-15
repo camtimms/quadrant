@@ -177,3 +177,6 @@ Running log: date, decision, why. Newest at the bottom.
 | 2026-11-16 | T29c: on a rating card the placement is the headline (largest, boldest), with the name above it at normal size and the scores below it smaller. | R60 asks for the placement to be prominent. Visual choice within the approved design; the look is revisited in T32a. |
 | 2026-11-16 | T29c: `MemberName` takes only the user id, name and "is this the viewer", not a whole rating. | T29d's rater lines can then reuse it without building a full rating. |
 | 2026-11-16 | T29c: owner confirmed the rating cards on the live film page. | Owner's check. |
+| 2026-11-16 | T29d: in the Friends' films panel every rater's name is a link, the viewer's own included. | The panel lists raters, not "you and your friends"; the viewer's link lands on My films via the member page's redirect (T30). Differs from the film page's cards, where the viewer's name is plain text marked "(you)". |
+| 2026-11-16 | T29d: the panel's review preview folds line breaks into spaces. | Three lines is little room; a blank line would use one of them. The film page shows the review whole, with its breaks. |
+| 2026-11-16 | T29d: the "Rated by … · Biggest disagreement …" line became one shared component, `GroupLine`. | The list and the panel both show it; one copy cannot drift from the other. |
