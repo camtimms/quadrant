@@ -126,9 +126,8 @@ dashboard's Table Editor, in the project you mean (production for real friends).
 ## Privacy
 
 The site asks search engines not to index it (`/robots.txt` and a `noindex` tag
-on every page) and uses no analytics. That is politeness, not security. Access
-is controlled by Google sign-in against the invite list, enforced by
-row-level-security rules in the database (see `supabase/migrations/`).
+on every page) and uses no analytics. That is politeness, not security: the site
+is private, and only invited members can sign in or see anything.
 
 ## Credits
 
