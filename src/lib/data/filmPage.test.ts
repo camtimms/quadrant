@@ -62,12 +62,14 @@ function ratingRow(
   enjoyment: number,
   review: string | null = null,
   avatarUrl: string | null = null,
+  updatedAt = "2026-11-16T10:00:00+00:00",
 ) {
   return {
     user_id: userId,
     quality,
     enjoyment,
     review,
+    updated_at: updatedAt,
     profiles: { display_name: name, avatar_url: avatarUrl },
   };
 }
@@ -184,6 +186,22 @@ describe("loadFilmPage", () => {
           ["is_current", true],
         ]),
       );
+    });
+
+    // R23 (v7): the folded section uses this to close after every save.
+    it("returns when this member's rating was last saved", async () => {
+      mocks.tables.titles = { data: storedTitle(3), error: null };
+      mocks.tables.ratings = {
+        data: [
+          ratingRow(BOB_ID, "Bob", 7, 7, null, null, "2026-11-01T09:00:00Z"),
+          ratingRow(USER_ID, "Cam", 2, 9, null, null, "2026-11-16T12:34:56Z"),
+        ],
+        error: null,
+      };
+
+      expect(await loadFilmPage(10999, USER_ID)).toMatchObject({
+        myRating: { changedAt: "2026-11-16T12:34:56Z" },
+      });
     });
 
     // E14: a 0 must survive the trip, and "no review" becomes "".

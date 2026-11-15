@@ -57,8 +57,8 @@ function sent(): Record<string, FormDataEntryValue> {
 }
 
 beforeEach(() => {
-  // The real action redirects to My films after a successful save and so
-  // never answers. Answering "idle" is the nearest a stand-in can get.
+  // The real action redirects back to the film's page after a successful
+  // save and so never answers. Answering "idle" is the nearest a stand-in can get.
   actions.saveRating.mockResolvedValue({ status: "idle" });
   actions.deleteRating.mockResolvedValue({ status: "deleted" });
 });
@@ -119,7 +119,15 @@ describe("RatingForm", () => {
         quality: "5",
         enjoyment: "5",
         review: "",
+        return_to: "/film/10999",
       });
+    });
+
+    // R23 (v7): after saving, the member comes back to this film's page.
+    it("asks to come back to this film's page after saving", async () => {
+      render(<RatingForm tmdbId={603} initialRating={null} />);
+      await save();
+      expect(sent().return_to).toBe("/film/603");
     });
   });
 
@@ -210,6 +218,7 @@ describe("RatingForm", () => {
         quality: "4",
         enjoyment: "9",
         review: "On reflection, no.",
+        return_to: "/film/10999",
       });
     });
   });

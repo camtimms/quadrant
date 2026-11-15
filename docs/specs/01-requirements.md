@@ -2,7 +2,7 @@
 
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
-**v7 change requested by the owner on 2026-11-16, awaiting approval**
+**v7 change approved by the owner on 2026-11-16**
 (after using the film page): saving a rating from a film's page keeps the
 member on that page, where the "Your rating" section folds to its one line
 with the new scores and placement and says "Saved". This amends R23 and

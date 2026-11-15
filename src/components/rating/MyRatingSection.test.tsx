@@ -107,6 +107,96 @@ describe("MyRatingSection (R56)", () => {
     });
   });
 
+  describe("after a save (R23, v7)", () => {
+    const SAVED_AT = "2026-11-16T10:00:00+00:00";
+
+    it("says 'Saved' on the closed line, as an announced status", () => {
+      render(
+        <MyRatingSection
+          rating={{ quality: 8, enjoyment: 5 }}
+          changedAt={SAVED_AT}
+          justSaved
+        >
+          <p>the form</p>
+        </MyRatingSection>,
+      );
+
+      expect(details().open).toBe(false);
+      // role="status" is what makes a screen reader read it out.
+      const status = screen.getByRole("status");
+      expect(status.textContent).toBe("Saved");
+      expect(summary().contains(status)).toBe(true);
+      // The saved scores and where they landed, on the same line.
+      expect(summary().textContent).toContain("Quality 8");
+      expect(summary().textContent).toContain(PLACEMENT_LABELS.good);
+    });
+
+    it("says nothing about saving when the page was simply opened", () => {
+      render(
+        <MyRatingSection
+          rating={{ quality: 8, enjoyment: 5 }}
+          changedAt={SAVED_AT}
+        >
+          <p>the form</p>
+        </MyRatingSection>,
+      );
+
+      expect(screen.queryByRole("status")).toBeNull();
+      expect(summary().textContent).not.toContain("Saved");
+    });
+
+    // Coming back to the same page keeps React's elements, an open
+    // <details> included, unless the key changes. Every save stamps a new
+    // time, even one that changes nothing, so every save closes it.
+    it("closes again after a save, even when the scores did not change", () => {
+      const { rerender } = render(
+        <MyRatingSection
+          rating={{ quality: 8, enjoyment: 5 }}
+          changedAt={SAVED_AT}
+        >
+          <p>the form</p>
+        </MyRatingSection>,
+      );
+      fireEvent.click(summary());
+      expect(details().open).toBe(true);
+
+      rerender(
+        <MyRatingSection
+          rating={{ quality: 8, enjoyment: 5 }}
+          changedAt="2026-11-16T10:05:00+00:00"
+          justSaved
+        >
+          <p>the form</p>
+        </MyRatingSection>,
+      );
+      expect(details().open).toBe(false);
+    });
+
+    // Not every re-render is a save: one with the same stamp leaves the
+    // section as the member left it.
+    it("stays open when redrawn without a new save", () => {
+      const { rerender } = render(
+        <MyRatingSection
+          rating={{ quality: 8, enjoyment: 5 }}
+          changedAt={SAVED_AT}
+        >
+          <p>the form</p>
+        </MyRatingSection>,
+      );
+      fireEvent.click(summary());
+
+      rerender(
+        <MyRatingSection
+          rating={{ quality: 8, enjoyment: 5 }}
+          changedAt={SAVED_AT}
+        >
+          <p>the form</p>
+        </MyRatingSection>,
+      );
+      expect(details().open).toBe(true);
+    });
+  });
+
   // After a delete the page re-renders the same section with no rating.
   it("opens by itself when the rating is removed", () => {
     const { rerender } = render(

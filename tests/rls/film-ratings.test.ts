@@ -24,7 +24,7 @@ import {
  * request cookies, which a test has none of.
  */
 const SELECT =
-  "user_id, quality, enjoyment, review, profiles (display_name, avatar_url)";
+  "user_id, quality, enjoyment, review, updated_at, profiles (display_name, avatar_url)";
 
 // The shape of a real Google account picture address (design 16.8).
 const GOOGLE_PICTURE = "https://lh3.googleusercontent.com/a/test-alice=s96-c";
@@ -98,8 +98,11 @@ describe("the film page's ratings query", () => {
       quality: 9,
       enjoyment: 8,
       review: "Pacino and De Niro.",
+      // When the rating was last saved (R23, v7): a real moment in time.
+      updated_at: expect.any(String),
       profiles: { display_name: "Alice", avatar_url: GOOGLE_PICTURE },
     });
+    expect(Number.isNaN(Date.parse(mine.updated_at))).toBe(false);
   });
 
   it("returns a friend's rating, with a 0 as the number 0 and no review as null", async () => {
@@ -114,6 +117,7 @@ describe("the film page's ratings query", () => {
       quality: 0,
       enjoyment: 2,
       review: null,
+      updated_at: expect.any(String),
       // Bob has no picture: null, which the card shows as his initial.
       profiles: { display_name: "Bob", avatar_url: null },
     });

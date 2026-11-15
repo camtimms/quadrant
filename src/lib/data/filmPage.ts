@@ -39,8 +39,11 @@ export type FilmPageData =
       };
       /** OUR id for the film, or null if nobody has rated it yet. */
       titleId: number | null;
-      /** This member's current rating, or null if they have not rated it. */
-      myRating: RatingInput | null;
+      /**
+       * This member's current rating, or null if they have not rated it,
+       * with when it was last saved (R23: every save folds the section).
+       */
+      myRating: (RatingInput & { changedAt: string }) | null;
       /**
        * Every member's current rating of the film, the viewer's included:
        * the viewer's first, then the others by name. Empty if nobody has
@@ -109,7 +112,7 @@ export async function loadFilmPage(
   const { data: rows, error: ratingsError } = await supabase
     .from("ratings")
     .select(
-      "user_id, quality, enjoyment, review, profiles (display_name, avatar_url)",
+      "user_id, quality, enjoyment, review, updated_at, profiles (display_name, avatar_url)",
     )
     .eq("title_id", title.id)
     .eq("is_current", true);
@@ -141,6 +144,9 @@ export async function loadFilmPage(
     );
 
   const mine = ratings.find((rating) => rating.isViewer);
+  // The save time is only needed for the viewer's own rating, so it is
+  // taken from the raw row rather than added to every member's card.
+  const myRow = rows.find((row) => row.user_id === userId);
 
   return {
     status: "ok",
@@ -152,16 +158,18 @@ export async function loadFilmPage(
       overview: title.overview,
     },
     titleId: title.id,
-    myRating: mine
-      ? {
-          // The database guarantees these are whole numbers from 0 to 10
-          // (a CHECK constraint), which is what the Score type means.
-          quality: mine.point.quality as RatingInput["quality"],
-          enjoyment: mine.point.enjoyment as RatingInput["enjoyment"],
-          // The form works with "" for "no review"; the database stores null.
-          review: mine.review ?? "",
-        }
-      : null,
+    myRating:
+      mine && myRow
+        ? {
+            changedAt: myRow.updated_at,
+            // The database guarantees these are whole numbers from 0 to 10
+            // (a CHECK constraint), which is what the Score type means.
+            quality: mine.point.quality as RatingInput["quality"],
+            enjoyment: mine.point.enjoyment as RatingInput["enjoyment"],
+            // The form works with "" for "no review"; the database stores null.
+            review: mine.review ?? "",
+          }
+        : null,
     ratings,
   };
 }

@@ -26,9 +26,15 @@ export const metadata: Metadata = { title: "Film" };
  */
 export default async function FilmPage({
   params,
+  searchParams,
 }: PageProps<"/film/[tmdbId]">) {
   const { tmdbId: rawId } = await params;
   const tmdbId = parseTmdbId(rawId);
+  // "?rated=10999" is added by the save action when it sends the member
+  // back here (R23). Only a value naming THIS film counts; anything else
+  // in the address is ignored, as everywhere.
+  const { rated } = await searchParams;
+  const justSaved = typeof rated === "string" && rated === String(tmdbId);
   // notFound() shows the "not found" page and stops here.
   if (tmdbId === null) notFound();
 
@@ -107,7 +113,11 @@ export default async function FilmPage({
 
       {/* Folds down to one line once the film is rated, so the form does
           not push everything else off a phone screen (R56). */}
-      <MyRatingSection rating={myRating}>
+      <MyRatingSection
+        rating={myRating}
+        changedAt={myRating?.changedAt}
+        justSaved={justSaved}
+      >
         <RatingForm
           tmdbId={film.tmdbId}
           initialRating={myRating}

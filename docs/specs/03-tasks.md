@@ -2,7 +2,7 @@
 
 Status: **APPROVED** (amended version, 2026-11-14) — T4a added and T7, T24–T26 reworded for the thirteen-placement rule (requirements v4).
 T29a–T29d (requirements v6, design section 16) approved by the owner, 2026-11-15.
-T23a (requirements v7, design section 6) **proposed** 2026-11-16, awaiting the owner's approval.
+T23a (requirements v7, design section 6) approved by the owner, 2026-11-16.
 Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to that document.
 
 **How to read a task**
@@ -112,6 +112,7 @@ Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to tha
   - *Done 2026-11-14.* Built and tested: 26 component tests and 10 tests of the page's data loading; the production build passes and a signed-out visit to `/film/10999` redirects to sign-in (the recheck noted in T14, on the local server). Not in the original file list: `src/lib/data/filmPage.ts` + test (what the page loads; viewing a film stores nothing), and `isStale` exported from `ensureTitle.ts`. Not automated: moving a slider with the arrow keys, because the test browser does not act out key presses on a native slider. Owner confirmed 2026-11-14: rating, editing and deleting a real film works. The "can't load this film" state is covered by tests only; it needs TMDB to be unreachable to see for real. Milestone E complete.
 
 - [ ] **T23a: Stay on the film page after saving** — R23 (v7), R56, E19 · `src/components/rating/RatingForm.tsx` + test (sends `return_to`), `src/components/rating/MyRatingSection.tsx` + test (`justSaved`, key), `src/app/(app)/film/[tmdbId]/page.tsx` (reads `rated`), `src/lib/data/filmPage.ts` + test (`updated_at` of the viewer's rating), `tests/rls/film-ratings.test.ts` (the query returns `updated_at`) · tests written first: the form sends `return_to=/film/<tmdbId>`; the folded line says "Saved", announced as a status, only when told the film was just saved; a rated film's section starts closed and its key follows `updated_at`; the loader returns the viewer's `updated_at`; an error still keeps the form open with the typed values (unchanged). Manual: on a phone, rate a film and stay on its page with the section folded, the new scores and placement, and "Saved"; change the scores and see the same; "Update scores" on My films still returns to My films · S
+  - *Built 2026-11-16, waiting for the owner's check.* Saving from a film's page now comes back to that page: the form sends `return_to=/film/<id>`, and `saveRating` itself is unchanged. The page shows "Saved" on the folded "Your rating" line only when `?rated=` names this film, as a status a screen reader announces. The section is keyed to the rating's `updated_at`, so every save folds it, even one that changes nothing; `loadFilmPage` reads `updated_at` in the same query (checked against `quadrant-dev`). 6 new tests, written first and seen failing; two existing form tests now expect `return_to`. Looked at on a temporary preview page at phone width (since removed): "Saved" sits beside "Change", with the scores and placement under it. **Not checked:** saving on the signed-in film page itself, which needs your sign-in.
 
 ## Milestone F — My films
 

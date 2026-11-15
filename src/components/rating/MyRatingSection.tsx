@@ -5,6 +5,13 @@ import { classify, PLACEMENT_LABELS, type Point } from "@/lib/quadrant";
 type Props = {
   /** The member's current scores for this film, or null if unrated. */
   rating: Point | null;
+  /**
+   * When that rating was last saved. Any new value closes the section
+   * (see the key below).
+   */
+  changedAt?: string;
+  /** True when the member has just saved this rating: says "Saved" (R23). */
+  justSaved?: boolean;
   /** The rating form and, for a rated film, the delete button. */
   children: ReactNode;
 };
@@ -24,14 +31,22 @@ type Props = {
  * readers whether they are open, all without any JavaScript of ours. That
  * also means this stays a server component.
  */
-export function MyRatingSection({ rating, children }: Props) {
+export function MyRatingSection({
+  rating,
+  changedAt,
+  justSaved = false,
+  children,
+}: Props) {
   return (
     <details
       // The key makes React build a new element when a rating appears or
-      // disappears (after a delete, say), so the section takes its starting
-      // state again: open for an unrated film, closed for a rated one.
-      // Without it, React would keep whatever the member last left it as.
-      key={rating ? "rated" : "unrated"}
+      // disappears (after a delete, say), or is saved again, so the section
+      // takes its starting state again: open for an unrated film, closed
+      // for a rated one. Without it, React would keep whatever the member
+      // last left it as, and after saving, the form would still be open.
+      // changedAt is stamped by the database on every save, even one that
+      // changes nothing, so every save closes the section.
+      key={rating ? `rated-${changedAt ?? ""}` : "unrated"}
       open={rating === null}
       // "group" lets the arrow inside react to this element being open
       // (the group-open: classes below).
@@ -50,6 +65,17 @@ export function MyRatingSection({ rating, children }: Props) {
         <h2 className="min-w-0 flex-1 text-lg font-semibold">
           {rating ? "Your rating" : "Rate this film"}
         </h2>
+        {/* R23: confirms the save the member has just made. role="status"
+            asks a screen reader to read it out without moving focus. It is
+            shown only when the page was reached by saving. */}
+        {rating && justSaved ? (
+          <span
+            role="status"
+            className="rounded border border-foreground/40 px-1.5 text-sm font-medium"
+          >
+            Saved
+          </span>
+        ) : null}
         {/* Says what a press will do. Two spans, one shown at a time, so the
             words change with the state using CSS alone. */}
         <span className="text-sm underline underline-offset-4">

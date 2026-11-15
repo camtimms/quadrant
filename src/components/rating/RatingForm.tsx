@@ -35,8 +35,9 @@ const DEFAULT_SCORE = 5;
  * failed save cannot lose what was typed, because the values are held here
  * and not only in the form that was submitted (E19).
  *
- * A successful save does not come back here: the action sends the member
- * to My films, where the film they just rated is pointed out (R23).
+ * A successful save does not come back as an answer here: the action sends
+ * the member back to this film's page, which draws itself afresh with the
+ * new rating folded away and "Saved" beside it (R23).
  *
  * Nothing is saved until Save is pressed. A slider is easy to brush by
  * accident on a phone, so moving one never saves by itself.
@@ -67,6 +68,10 @@ export function RatingForm({ tmdbId, initialRating }: Props) {
       {/* Which film this is. Hidden because the member does not type it,
           but the server still treats it as untrusted, like everything else. */}
       <input type="hidden" name="tmdb_id" value={tmdbId} />
+      {/* Where to land after saving: this same film's page (R23, v7). The
+          action adds "?rated=" to it, which is how the page knows to say
+          "Saved". The server only accepts a path on this site. */}
+      <input type="hidden" name="return_to" value={`/film/${tmdbId}`} />
 
       <ScoreSlider
         name="quality"
