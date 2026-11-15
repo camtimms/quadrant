@@ -1,6 +1,7 @@
 # 03 — Tasks
 
 Status: **APPROVED** (amended version, 2026-11-14) — T4a added and T7, T24–T26 reworded for the thirteen-placement rule (requirements v4).
+**T29a–T29d (requirements v6, design section 16) are PROPOSED and not yet approved.**
 Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to that document.
 
 **How to read a task**
@@ -149,6 +150,15 @@ Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to tha
 - [x] **T29: Friends' films page** — R43, R44, R45, R47 · `src/app/(app)/friends/page.tsx`, `src/lib/data/allRatings.ts`, `src/lib/data/groupFilms.ts` + test · tests: rows grouped per film into average, count and disagreement; sort by disagreement puts single-rating films last; sort by recent. Checks V5 (row cap; fetch in pages if needed). Manual with two accounts · M
   - *Done 2026-11-15.* `/friends` shows every film anyone has rated at its group average: chart, filter chips, an order choice (most recent or biggest disagreement) and the list, which says how many members rated each film and their biggest disagreement. `groupFilms` (24 tests, written first) does the grouping and sorting. V5 settled with a real call: one request returns exactly 1,000 rows and no error, so the ratings are read a page at a time. Not in the original file list: `src/lib/data/paging.ts` + test (9 tests), `allRatings.test.ts` (8 tests), `src/components/film/SortLinks.tsx` + test (4 tests), a "Rated by …" line in `FilmList.tsx` (5 tests), a heading prop on `EmptyState.tsx`, a "Friends" link in the header, `createTestTitles` in `tests/rls/helpers.ts`, and `tests/rls/all-ratings.test.ts` (6 tests against `quadrant-dev`: the real query's shape, a non-member gets nothing, and 1,003 rows read in full through paging). Decided here, for the owner to overrule: the viewer's own ratings are included; "most recent" is the latest time anyone first rated the film; most recent is the default order. Looked at on a temporary preview page at phone width (since removed). Known limit, not new: two films in neighbouring half-point cells can still overlap on the chart; the smaller dot stays visible on top and the list has both. Owner confirmed 2026-11-15 on the live site: the Friends' films page works. The owner then asked for two additions (who rated a film when its point is selected, and written reviews shown as cards), which become a new lettered task once specified.
 
+- [ ] 🙋 **T29a: Picture columns and the function that fills them** — R61, R62, R63, NFR1, NFR5 · `supabase/migrations/…_profile_picture.sql` (`show_picture`, `avatar_url` with its check, column-level grants on `profiles`, `sync_profile_picture()`), `src/lib/supabase/database.types.ts`, `tests/rls/helpers.ts` (a test user with a picture in their sign-in record), `tests/rls/profile-picture.test.ts` · tests against dev: a member cannot set `avatar_url` by insert or update but can set `show_picture`; the function stores a Google picture address, stores null for any other host, stores null when switched off, and does nothing for a non-member; members read each other's `avatar_url`, non-members read nothing; the existing display-name save still works under the narrower grants. Migration applied to dev, then to prod once `test:rls` passes · M
+  - _You:_ say yes to applying the migration to `quadrant-dev`, and then to `quadrant-prod`.
+
+- [ ] **T29b: Take the picture at sign-in, the choice on `/welcome`, and `Avatar`** — R61, R62, R63, NFR5, NFR7, E27, E30 · `src/components/Avatar.tsx` + test, `src/app/auth/callback/route.ts` + test, `src/app/(app)/actions/profile.ts` + test, `src/lib/validation/profile.ts` + test, `src/lib/auth/member.ts`, `src/app/welcome/page.tsx`, `src/components/profile/DisplayNameForm.tsx` + test, `src/app/about/page.tsx` (one sentence: pictures load from Google) · tests: `Avatar` shows the picture, the initial when there is no address, and the initial after a failed load; the checkbox is ticked by default and shows the stored choice; saving sends the choice and then calls the function; the callback calls the function and a failure there does not stop the sign-in. Manual: `/welcome` shows the checkbox with your own Google picture beside it; unticking and saving is remembered · M
+
+- [ ] **T29c: Rating cards on the film page** — R60, R61, R37, NFR13, NFR14 · `src/components/film/RatingCards.tsx` + test (replaces `RatingsTable.tsx` + test), `src/components/film/MemberName.tsx`, `DisagreementTable.tsx`, `src/components/chart/SpokeMap.tsx` (imports only), `src/lib/data/filmPage.ts` + test, `src/app/(app)/film/[tmdbId]/page.tsx`, `tests/rls/film-ratings.test.ts` · tests: one card per member in the order given; picture or initial, name, prominent placement label, both scores labelled, the review in full with line breaks and as plain text; a friend's name links to their films and the viewer's own does not; no card text for a missing review; "nobody has rated this" when empty; the real query returns `avatar_url` nested with the name. Manual: a film two members rated shows two cards with pictures; switching your picture off shows your initial · M
+
+- [ ] **T29d: Who rated a film, in the Friends' films panel** — R57, R58, R59, R61, E29, E31 · `src/lib/data/groupFilms.ts` + test, `src/lib/data/allRatings.ts` + test, `src/components/chart/QuadrantChart.tsx` (`ChartFilm`), `src/components/film/FilmList.tsx` (`ListFilm`), `src/components/chart/PointPanel.tsx` + test, `src/components/film/RaterLines.tsx` + test, `src/app/(app)/friends/page.tsx`, `tests/rls/all-ratings.test.ts` · tests written first: `groupFilms` keeps the three most recently rated members per film, cuts a review at 200 whole characters with an ellipsis, leaves a short review alone, and counts the rest; the panel shows the "Rated by …" line, one line per rater with name link and labelled scores, the start of a review, and "and N more" linking to the film's page only when there are more; none of it appears on My films or a member's page; the real query returns the member and review. Manual: select a film two members rated on Friends' films and see both, with scores; a film with a written review shows its start · M
+
 - [x] **T30: Member pages** — R46 · `src/app/(app)/members/[id]/page.tsx`, links from member names · manual: another member's chart and list show, with no edit controls; unknown id gives "not found" · S
   - *Done 2026-11-15.* `/members/<id>` shows another member's chart, filter chips and list, built from the same components as My films with the edit prop left out, so there is no "Update scores" anywhere on it. Names in the film page's ratings table and reviews now link there; the viewer's own name stays plain text. Not in the original file list: `src/lib/validation/memberId.ts` + test (16 tests: anything in the address that is not a member id is "not found" before the database is asked), `src/lib/data/member.ts` + test (3 tests), `RatingsTable.tsx` + test (2 new tests). Decided here: opening your own member page sends you to My films; a member with no ratings gets a one-line "hasn't rated anything yet". The production build lists the new route. Owner confirmed 2026-11-15: a friend's page shows their chart and list with no edit controls. Done out of order, ahead of T28 and T29, at the owner's request for a small task.
 
@@ -200,6 +210,9 @@ Every requirement appears in at least one task.
 | R38–R41          | T6, T28                   |
 | R43, R44         | T6, T29                   |
 | R46              | T30                       |
+| R57–R59          | T29d                      |
+| R60              | T29c                      |
+| R61–R63          | T29a, T29b, T29c, T29d    |
 | R47              | T29                       |
 | R48              | T3, T14, T31              |
 | NFR1             | T9, T10, T20              |
@@ -227,6 +240,7 @@ Every requirement appears in at least one task.
 | T14  | Production Supabase + Vercel settings                        |
 | T15  | TMDB account and token                                       |
 | T21  | Secret keys into `.env.local` and Vercel                     |
+| T29a | Say yes to applying the picture migration to dev, then prod  |
 | T32a | Choose a visual design from the options                      |
 | T35  | Invite your friends                                          |
 

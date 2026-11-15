@@ -5,8 +5,8 @@ Status: **APPROVED** (amended version, 2026-11-14) — §7 and
 inner bands fill the rest of each quarter), following requirements v4.
 Implements: `01-requirements.md` (approved v2)
 
-**Section 16 (the design for requirements v6) is PROPOSED and not yet
-approved.** Nothing in it is built until the owner approves it.
+**Section 16 (the design for requirements v6) was approved by the owner on
+2026-11-15.**
 
 Every section lists the requirement IDs it satisfies. Section 14 is the reverse
 lookup (requirement → section). Section 15 lists facts I could **not** confirm
@@ -1132,10 +1132,10 @@ before the first few tasks (the quadrant maths needs no accounts at all).
 
 ---
 
-## 16. v6 design — PROPOSED: who rated a film, rating cards, pictures
+## 16. v6 design: who rated a film, rating cards, pictures
 
 _Satisfies: R57–R63, NFR5 (amended), NFR1, NFR13, NFR14, E27–E31. Changes the
-form of R37. Awaiting the owner's approval._
+form of R37. Approved by the owner, 2026-11-15._
 
 ### 16.1 Data model: two new columns on `profiles`
 
