@@ -159,6 +159,7 @@ Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to tha
 
 - [ ] 🙋 **T32a: Visual design pass** — NFR24 · to be listed when specified · the look of the whole app: a consistent modern theme, keeping every element and behaviour. Starts with two or three concrete options for the owner to choose from; NFR24 and this task are filled in from that choice before any code is written · M
   - _You:_ choose between the options.
+  - _To cover (owner, 2026-11-15, from T28):_ names on the spoke map sit on top of each other as the number of friends grows. Keep what works now: every name can be read at a glance, without selecting each point.
 
 - [ ] **T33: End-to-end tests** — R1, R15, R20, R21, R30, R41 · `playwright.config.ts`, `tests/e2e/auth.setup.ts`, `tests/e2e/*.spec.ts`, `package.json` (`test:e2e`) · tests: signed-out visit redirects to `/login`; search → rate → appears on My films in the right quadrant; edit then delete; a film two members rated shows the disagreement table · M
 
