@@ -2,7 +2,7 @@
 // secret-key store, so server only.
 import "server-only";
 
-import type { MemberRating } from "@/components/film/RatingsTable";
+import type { MemberRating } from "@/components/film/RatingCards";
 import { createClient } from "@/lib/supabase/server";
 import { getMovie, TmdbUnavailableError } from "@/lib/tmdb/client";
 import type { TmdbFilm } from "@/lib/tmdb/schema";
@@ -103,11 +103,14 @@ export async function loadFilmPage(
   // members, and a member may see every member's ratings. The viewer's own
   // rating is picked out of the same rows below, which saves a second query.
   //
-  // "profiles (display_name)" follows the link from ratings.user_id to the
-  // profiles table and nests the member's name inside each row.
+  // "profiles (display_name, avatar_url)" follows the link from
+  // ratings.user_id to the profiles table and nests the member's name and
+  // picture address inside each row, so the cards need no second query (R61).
   const { data: rows, error: ratingsError } = await supabase
     .from("ratings")
-    .select("user_id, quality, enjoyment, review, profiles (display_name)")
+    .select(
+      "user_id, quality, enjoyment, review, profiles (display_name, avatar_url)",
+    )
     .eq("title_id", title.id)
     .eq("is_current", true);
   if (ratingsError) {
@@ -118,6 +121,8 @@ export async function loadFilmPage(
     .map((row) => ({
       userId: row.user_id,
       displayName: row.profiles.display_name,
+      // null when the member has no picture or has switched it off (R63).
+      avatarUrl: row.profiles.avatar_url,
       point: { quality: row.quality, enjoyment: row.enjoyment },
       // "No review" is stored as null; treat empty text the same way.
       review: row.review || null,

@@ -5,7 +5,7 @@ import { SpokeMap } from "@/components/chart/SpokeMap";
 import { DisagreementTable } from "@/components/film/DisagreementTable";
 import { GroupAverage } from "@/components/film/GroupAverage";
 import { PosterImage } from "@/components/film/PosterImage";
-import { RatingsTable } from "@/components/film/RatingsTable";
+import { RatingCards } from "@/components/film/RatingCards";
 import { DeleteRatingButton } from "@/components/rating/DeleteRatingButton";
 import { MyRatingSection } from "@/components/rating/MyRatingSection";
 import { RatingForm } from "@/components/rating/RatingForm";
@@ -18,7 +18,7 @@ export const metadata: Metadata = { title: "Film" };
 /**
  * /film/10999 — one film: its poster, title and year, the member's own
  * rating form (R13, R15–R21), and what everyone made of it: the group
- * average, the spoke map and each member's rating (R37–R42).
+ * average, the spoke map and a card for each member's rating (R37–R42, R60).
  *
  * "[tmdbId]" in the folder name is a dynamic segment: whatever is in that
  * position of the address arrives here as params.tmdbId. It is text typed
@@ -129,7 +129,7 @@ export default async function FilmPage({
 
       {/* Shown whether or not the viewer has rated the film (E12). The
           group's numbers come first in words, then the spoke map, then
-          the same information as tables, so the chart is never the only
+          the same information as a table and cards, so the chart is never the only
           way to read it (NFR13). */}
       <section aria-labelledby="everyone" className="flex flex-col gap-4">
         <h2 id="everyone" className="text-lg font-semibold">
@@ -142,7 +142,9 @@ export default async function FilmPage({
             nothing to show. */}
         <SpokeMap ratings={ratings} />
         <DisagreementTable ratings={ratings} />
-        <RatingsTable ratings={ratings} />
+        {/* One card per member: who they are, where they put the film, and
+            what they wrote about it (R60). */}
+        <RatingCards ratings={ratings} />
       </section>
     </main>
   );

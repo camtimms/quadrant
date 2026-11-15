@@ -3,7 +3,7 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { DisagreementTable } from "@/components/film/DisagreementTable";
-import type { MemberRating } from "@/components/film/RatingsTable";
+import type { MemberRating } from "@/components/film/RatingCards";
 
 afterEach(cleanup);
 
@@ -16,6 +16,7 @@ function rating(
   return {
     userId: `id-${displayName}`,
     displayName,
+    avatarUrl: null,
     point: { quality, enjoyment },
     review: null,
     isViewer: false,

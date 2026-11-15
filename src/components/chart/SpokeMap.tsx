@@ -6,7 +6,7 @@ import {
   chartY,
   toPercent,
 } from "@/components/chart/scale";
-import type { MemberRating } from "@/components/film/RatingsTable";
+import type { MemberRating } from "@/components/film/RatingCards";
 import { clusterPoints, groupAverage, spokesFrom } from "@/lib/quadrant";
 
 type Props = {

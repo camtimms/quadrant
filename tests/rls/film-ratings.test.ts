@@ -16,11 +16,18 @@ import {
  * it made-up rows; this test checks that the real database answers in the
  * shape those rows assume.
  *
+ * The member's picture address is nested beside the name (R61): the rating
+ * cards show it.
+ *
  * The SELECT text here is the same as in filmPage.ts and must stay in step
  * with it. It is repeated because that file builds its own client from
  * request cookies, which a test has none of.
  */
-const SELECT = "user_id, quality, enjoyment, review, profiles (display_name)";
+const SELECT =
+  "user_id, quality, enjoyment, review, profiles (display_name, avatar_url)";
+
+// The shape of a real Google account picture address (design 16.8).
+const GOOGLE_PICTURE = "https://lh3.googleusercontent.com/a/test-alice=s96-c";
 
 let alice: TestUser;
 let bob: TestUser;
@@ -32,7 +39,7 @@ beforeAll(async () => {
   await removeAllTestData();
 
   [alice, bob, mallory] = await Promise.all([
-    createTestUser("alice"),
+    createTestUser("alice", { avatarUrl: GOOGLE_PICTURE }),
     createTestUser("bob"),
     // Signed in, but not on the invite list.
     createTestUser("mallory", { invited: false }),
@@ -46,6 +53,10 @@ beforeAll(async () => {
       .insert({ id: user.id, display_name: name });
     if (error) throw error;
   }
+  // What signing in does (R62): the database copies Alice's picture address
+  // from her sign-in record into her profile. Bob has no picture.
+  const synced = await alice.client.rpc("sync_profile_picture");
+  if (synced.error) throw synced.error;
 
   heat = await createTestTitle("Heat");
   alien = await createTestTitle("Alien");
@@ -68,7 +79,7 @@ beforeAll(async () => {
 afterAll(removeAllTestData);
 
 describe("the film page's ratings query", () => {
-  it("returns every member's rating of the film with their name nested inside", async () => {
+  it("returns every member's rating of the film with their name and picture nested inside", async () => {
     const { data, error } = await alice.client
       .from("ratings")
       .select(SELECT)
@@ -87,7 +98,7 @@ describe("the film page's ratings query", () => {
       quality: 9,
       enjoyment: 8,
       review: "Pacino and De Niro.",
-      profiles: { display_name: "Alice" },
+      profiles: { display_name: "Alice", avatar_url: GOOGLE_PICTURE },
     });
   });
 
@@ -103,7 +114,8 @@ describe("the film page's ratings query", () => {
       quality: 0,
       enjoyment: 2,
       review: null,
-      profiles: { display_name: "Bob" },
+      // Bob has no picture: null, which the card shows as his initial.
+      profiles: { display_name: "Bob", avatar_url: null },
     });
   });
 

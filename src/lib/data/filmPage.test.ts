@@ -61,13 +61,14 @@ function ratingRow(
   quality: number,
   enjoyment: number,
   review: string | null = null,
+  avatarUrl: string | null = null,
 ) {
   return {
     user_id: userId,
     quality,
     enjoyment,
     review,
-    profiles: { display_name: name },
+    profiles: { display_name: name, avatar_url: avatarUrl },
   };
 }
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -300,12 +301,31 @@ describe("loadFilmPage", () => {
           {
             userId: BOB_ID,
             displayName: "Bob",
+            avatarUrl: null,
             point: { quality: 7, enjoyment: 3 },
             review: "Well made, no fun.",
             isViewer: false,
           },
         ],
       });
+    });
+
+    // R61: the picture's address travels with the name, in the same query.
+    it("passes on each member's picture address, or null when they have none", async () => {
+      const picture = "https://lh3.googleusercontent.com/a/abc123=s96-c";
+      mocks.tables.ratings = {
+        data: [
+          ratingRow(BOB_ID, "Bob", 7, 3, null, picture),
+          ratingRow(ZOE_ID, "Zoe", 1, 9),
+        ],
+        error: null,
+      };
+
+      const result = await loadFilmPage(10999, USER_ID);
+
+      expect(
+        result.status === "ok" && result.ratings.map((r) => r.avatarUrl),
+      ).toEqual([picture, null]);
     });
 
     // The query must not be narrowed to the viewer, or friends would vanish.

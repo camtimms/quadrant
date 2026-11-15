@@ -502,11 +502,11 @@ row (R37). The viewer's own rating, which fills the form, is picked out of
 those rows by user id, so there is no second query. The rows are ordered
 viewer first, then by display name ignoring capitals. `GroupAverage` states
 the average of each score, the number of members, the average's placement and
-the film's disagreement (R42; "—" with one rating, R45). `RatingsTable` shows
-name, both scores and placement as a table, with the reviews as a list
-underneath: a review can be 500 characters, too long for a table column on a
-phone. A film nobody has rated shows "Nobody has rated this film yet" and no
-average. _(Added in T27.)_
+the film's disagreement (R42; "—" with one rating, R45). `RatingCards` shows
+one card per member: picture, name, placement, both scores and the review
+(16.4; until T29c this was `RatingsTable`, a table with the reviews listed
+underneath). A film nobody has rated shows "Nobody has rated this film yet"
+and no average. _(Added in T27, changed in T29c.)_
 
 A member page (`/members/[id]`) is My films for someone else: the same
 loader (`loadMemberFilms`) with their id, and the same chart, chips and list

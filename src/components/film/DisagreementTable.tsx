@@ -1,5 +1,6 @@
 import { formatScore } from "@/components/chart/scale";
-import { MemberName, type MemberRating } from "@/components/film/RatingsTable";
+import { MemberName } from "@/components/film/MemberName";
+import type { MemberRating } from "@/components/film/RatingCards";
 import { roundToOneDecimal, spokesFrom } from "@/lib/quadrant";
 
 type Props = {

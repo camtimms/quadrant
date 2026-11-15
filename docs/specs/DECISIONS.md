@@ -174,3 +174,5 @@ Running log: date, decision, why. Newest at the bottom.
 | 2026-11-15 | T29b: an unticked box (the field missing from the form) means "off". | That is how browsers send checkboxes. A request that leaves the field out therefore hides the picture, which is the safe direction. |
 | 2026-11-16 | T29b: owner confirmed the picture choice on the live welcome page. | Owner's check. |
 | 2026-11-15 | T27: the ratings query is also run against the dev database in `tests/rls/film-ratings.test.ts`. | Same reason as T26: the unit test feeds the loader made-up rows, and this checks the real database nests the member's name the way those rows assume. |
+| 2026-11-16 | T29c: on a rating card the placement is the headline (largest, boldest), with the name above it at normal size and the scores below it smaller. | R60 asks for the placement to be prominent. Visual choice within the approved design; the look is revisited in T32a. |
+| 2026-11-16 | T29c: `MemberName` takes only the user id, name and "is this the viewer", not a whole rating. | T29d's rater lines can then reuse it without building a full rating. |
