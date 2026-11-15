@@ -113,8 +113,10 @@ export function RatingsTable({ ratings }: Props) {
  * viewer's own name is plain text marked "(you)": their films are a tap
  * away in the header already, and a link among links to other people would
  * suggest it goes somewhere different.
+ *
+ * Exported so the disagreement table names friends the same way.
  */
-function MemberName({ rating }: { rating: MemberRating }) {
+export function MemberName({ rating }: { rating: MemberRating }) {
   if (rating.isViewer) {
     return (
       <>

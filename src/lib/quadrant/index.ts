@@ -10,5 +10,6 @@ export * from "@/lib/quadrant/classify";
 export * from "@/lib/quadrant/labels";
 export * from "@/lib/quadrant/average";
 export * from "@/lib/quadrant/disagreement";
+export * from "@/lib/quadrant/spokes";
 export * from "@/lib/quadrant/counts";
 export * from "@/lib/quadrant/cluster";

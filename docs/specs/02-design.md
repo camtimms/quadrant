@@ -781,6 +781,23 @@ max="10" step="1">` starting at 5, with the current number shown beside it and
   disagreement" (R41). An identical rating reads "you agree exactly" (E13).
 - **No spokes when the viewer hasn't rated** (R40, Q12): points and average
   only, with a "rate this film" prompt.
+- **Spoke map details** _(added in T28)_. `SpokeMap` draws `ChartFrame`, a
+  second SVG on the same grid for the spokes, and HTML markers on top. It has
+  no state and nothing on it can be selected, so unlike `QuadrantChart` it is
+  a server component: each point's name is written beside it, the chart is
+  one `role="img"` with a description, and the two tables under it hold every
+  number.
+  - Shapes: the viewer is a solid dot with a ring, a friend an outlined dot,
+    the group average an outlined diamond. A key under the chart names them.
+  - Members with identical scores share one marker with a count and all their
+    names (R31). A friend identical to the viewer shares the hub, so there is
+    no line to draw for them (E13).
+  - With a single rating there is no average marker: it would sit exactly on
+    the one point (E11). The average is still stated in words above.
+  - The longest spoke is drawn heavier. The lengths, and which is longest,
+    come from a pure function, `spokesFrom` in `src/lib/quadrant/spokes.ts`
+    (NFR17), shared by the map and by `DisagreementTable`. Friends tied for
+    furthest are all marked; a length of 0 is never marked.
 
 ---
 

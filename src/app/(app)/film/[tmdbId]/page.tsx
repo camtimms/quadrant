@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { SpokeMap } from "@/components/chart/SpokeMap";
+import { DisagreementTable } from "@/components/film/DisagreementTable";
 import { GroupAverage } from "@/components/film/GroupAverage";
 import { PosterImage } from "@/components/film/PosterImage";
 import { RatingsTable } from "@/components/film/RatingsTable";
@@ -16,8 +18,7 @@ export const metadata: Metadata = { title: "Film" };
 /**
  * /film/10999 — one film: its poster, title and year, the member's own
  * rating form (R13, R15–R21), and what everyone made of it: the group
- * average and each member's rating (R37, R42). The spoke map joins them in
- * task T28.
+ * average, the spoke map and each member's rating (R37–R42).
  *
  * "[tmdbId]" in the folder name is a dynamic segment: whatever is in that
  * position of the address arrives here as params.tmdbId. It is text typed
@@ -127,13 +128,20 @@ export default async function FilmPage({
       </MyRatingSection>
 
       {/* Shown whether or not the viewer has rated the film (E12). The
-          group's numbers are stated in words here; the chart that joins
-          them in T28 is never the only way to read them (NFR13). */}
+          group's numbers come first in words, then the spoke map, then
+          the same information as tables, so the chart is never the only
+          way to read it (NFR13). */}
       <section aria-labelledby="everyone" className="flex flex-col gap-4">
         <h2 id="everyone" className="text-lg font-semibold">
           Everyone&apos;s ratings
         </h2>
         <GroupAverage points={ratings.map((rating) => rating.point)} />
+        {/* Where each member put this film, with a line from the viewer's
+            rating to each friend's (R38–R40), and under it the length of
+            each line as a number (R41). Both show nothing when they have
+            nothing to show. */}
+        <SpokeMap ratings={ratings} />
+        <DisagreementTable ratings={ratings} />
         <RatingsTable ratings={ratings} />
       </section>
     </main>
