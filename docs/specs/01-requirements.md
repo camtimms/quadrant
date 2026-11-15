@@ -2,6 +2,12 @@
 
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
+**v7 change requested by the owner on 2026-11-16, awaiting approval**
+(after using the film page): saving a rating from a film's page keeps the
+member on that page, where the "Your rating" section folds to its one line
+with the new scores and placement and says "Saved". This amends R23 and
+reverses its v5 form. Updating scores in place from a list (R51) is unchanged.
+
 **v6 changes approved by the owner on 2026-11-15** (requested after trying
 Friends' films in T29): who rated a film, and what they wrote, shown where a
 film is selected on Friends' films; ratings on the film page as cards;
@@ -121,7 +127,7 @@ Tags like `[Q10]` point to the question (sections 6–7) that settled that requi
 - **R54** — WHEN a member opens a film's page, THE SYSTEM SHALL show the film's description from the movie database, when it has one, together with the member's own review. _(v5, new.)_
 - **R55** — WHEN a film is shown in a list or in the panel opened from a chart point, THE SYSTEM SHALL offer a visible button to that film's page, placed beside "Update scores" where that is shown. (Selecting the film itself goes to the same page; the button is there so the two actions sit side by side.) _(v5, new.)_
 - **R56** — _(v5, new.)_ WHEN a member opens the page of a film they have already rated, THE SYSTEM SHALL show their rating as one line (both scores and the placement) with the rating form folded away beneath it, and SHALL open the form when the member asks. WHEN the member has not rated the film, the form SHALL start open.
-- **R23** — WHEN a rating is saved from a film's page, THE SYSTEM SHALL take the member to "My films", where the film appears on the chart, and SHALL tell them the placement it landed in. _(v5: was "show the member the placement it landed in", on the film page itself.)_
+- **R23** — WHEN a rating is saved from a film's page, THE SYSTEM SHALL keep the member on that film's page, SHALL fold the "Your rating" section (R56) to its one line showing the saved scores and the placement they landed in, and SHALL say "Saved" beside it. _(v7, 2026-11-16. v5 had taken the member to "My films" and pointed the film out there; before v5 it said "show the member the placement it landed in", on the film page itself.)_
 
 ### D. Quadrant maths (the core mechanic)
 

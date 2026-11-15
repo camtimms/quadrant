@@ -880,10 +880,32 @@ Rules behind the table:
   the field at fault, if any, and the values that were typed, so the form can
   refill itself (E19). After a successful delete the action calls `refresh()`
   so the page the member is on redraws with the new data. After a successful
-  save, `saveRating` instead redirects to `/?rated=<tmdbId>` (R23, v5): My
-  films then shows a line saying where the film landed and opens its point on
-  the chart. The placement in that line comes from `classify`, like every
-  other placement on the page.
+  save, `saveRating` instead redirects to the form's `return_to` address
+  (default `/`) with `?rated=<tmdbId>` added. From a list's "Update scores"
+  (R51) that is the same list: My films then shows a line saying where the
+  film landed and opens its point on the chart. The placement in that line
+  comes from `classify`, like every other placement on the page.
+- _(v7, T23a; replaces the v5 redirect to My films.)_ The film page's rating
+  form also sends `return_to`: the film's own page, `/film/<tmdbId>`. So the
+  member lands back on the same page with `?rated=<tmdbId>` (R23).
+  `saveRating` itself does not change. The page reads `rated`, and only when
+  it names this very film does it pass `justSaved` to `MyRatingSection`,
+  which then shows "Saved" on its folded line, in a `role="status"` element
+  so a screen reader announces it. The placement on that line already comes
+  from `classify` (R56).
+  - **Folding after a save.** The section is a `<details>` element, and
+    returning to the same page is an in-app navigation, so React would keep
+    the element (and the member's "open") unless its `key` changes. The key
+    becomes the viewer's rating's `updated_at`, which the database stamps
+    on every save, even a save that changes nothing. `loadFilmPage` adds
+    `updated_at` to its ratings query for this; no extra query.
+  - **Reloading** the page keeps `?rated=` in the address and so shows
+    "Saved" again. This is accepted: it is still true, and My films behaves
+    the same way. _Rejected:_ a small browser script to strip it from the
+    address (more code for a cosmetic gain), and returning a "saved" state
+    from the action instead of redirecting (the "Saved" line lives in the
+    server-drawn summary, outside the form, so it would need client state
+    shared across both).
 - `saveRating` also catches unexpected failures and returns them as an error,
   instead of letting them reach the error page, because that page would
   discard a typed review.
@@ -1065,7 +1087,7 @@ before the first few tasks (the quadrant maths needs no accounts at all).
 | R20 edit                                             | 3.4, 3.6, 6               |
 | R21 delete                                           | 3.5, 6, 9                 |
 | R22 can't touch others' ratings                      | 3.5                       |
-| R23 show quadrant after saving                       | 6, 7                      |
+| R23 stay on the film page, folded, "Saved" (v7)      | 6, 7                      |
 | R24 High / Low / Neutral                             | 7                         |
 | R25 four outer corners                               | 7                         |
 | R52 four inner bands                                 | 7                         |

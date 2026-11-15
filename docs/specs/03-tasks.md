@@ -2,6 +2,7 @@
 
 Status: **APPROVED** (amended version, 2026-11-14) — T4a added and T7, T24–T26 reworded for the thirteen-placement rule (requirements v4).
 T29a–T29d (requirements v6, design section 16) approved by the owner, 2026-11-15.
+T23a (requirements v7, design section 6) **proposed** 2026-11-16, awaiting the owner's approval.
 Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to that document.
 
 **How to read a task**
@@ -110,6 +111,8 @@ Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to tha
 - [x] **T23: Film page with rating form** — R13, R15–R21, R23, R49, NFR12, NFR15, E12, E19, E22 · `src/app/(app)/film/[tmdbId]/page.tsx`, `src/components/rating/RatingForm.tsx`, `ScoreSlider.tsx`, `PlacementPreview.tsx`, `DeleteRatingButton.tsx` · component tests: both sliders start at 5 for an unrated film; a slider moves with arrow keys and can reach 0 and 10; end labels come from `labels.ts`; the placement preview follows the sliders (5/5 → On the fence, 8/5 → Good); saving untouched sliders sends 5/5; existing rating pre-fills the form; error keeps the typed review; delete asks for confirmation. Manual: rate, edit and delete a real film; "can't load this film" state when TMDB is unreachable · M
   - *Done 2026-11-14.* Built and tested: 26 component tests and 10 tests of the page's data loading; the production build passes and a signed-out visit to `/film/10999` redirects to sign-in (the recheck noted in T14, on the local server). Not in the original file list: `src/lib/data/filmPage.ts` + test (what the page loads; viewing a film stores nothing), and `isStale` exported from `ensureTitle.ts`. Not automated: moving a slider with the arrow keys, because the test browser does not act out key presses on a native slider. Owner confirmed 2026-11-14: rating, editing and deleting a real film works. The "can't load this film" state is covered by tests only; it needs TMDB to be unreachable to see for real. Milestone E complete.
 
+- [ ] **T23a: Stay on the film page after saving** — R23 (v7), R56, E19 · `src/components/rating/RatingForm.tsx` + test (sends `return_to`), `src/components/rating/MyRatingSection.tsx` + test (`justSaved`, key), `src/app/(app)/film/[tmdbId]/page.tsx` (reads `rated`), `src/lib/data/filmPage.ts` + test (`updated_at` of the viewer's rating), `tests/rls/film-ratings.test.ts` (the query returns `updated_at`) · tests written first: the form sends `return_to=/film/<tmdbId>`; the folded line says "Saved", announced as a status, only when told the film was just saved; a rated film's section starts closed and its key follows `updated_at`; the loader returns the viewer's `updated_at`; an error still keeps the form open with the typed values (unchanged). Manual: on a phone, rate a film and stay on its page with the section folded, the new scores and placement, and "Saved"; change the scores and see the same; "Update scores" on My films still returns to My films · S
+
 ## Milestone F — My films
 
 - [x] **T24: Quadrant chart component** — R28, R30, R31, R32, NFR12, NFR14 · `src/components/chart/QuadrantChart.tsx`, `scale.ts` + test, `PointPanel.tsx`, `QuadrantChart.test.tsx` · tests: score-to-pixel scale; lines at 5; the four outer corners are shaded from 7.5 up and 2.5 down; corner, inner-band and half-line axis names all come from `PLACEMENT_LABELS`; inner-band names are hidden at phone width; clustered points show a count; each point is focusable with a text label; selecting opens the panel listing every film in the cluster · M
@@ -208,7 +211,7 @@ Every requirement appears in at least one task.
 | R9–R13           | T15, T16, T17, T23        |
 | R14, R54, R55    | T19, T21, T26d            |
 | R56              | T27b                      |
-| R15–R23, R49     | T19, T20, T22, T23        |
+| R15–R23, R49     | T19, T20, T22, T23, T23a  |
 | R24–R29, R50, R52 | T4, T4a, T5, T24 |
 | R30–R36, R53     | T7, T24, T25, T26, T26b   |
 | R51              | T26a                      |
