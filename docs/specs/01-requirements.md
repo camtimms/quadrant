@@ -2,12 +2,11 @@
 
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
-**v6 changes are proposed and NOT yet approved** (owner's request on
-2026-11-15, after trying Friends' films in T29): who rated a film, and what
-they wrote, shown where a film is selected on Friends' films; ratings on the
-film page as cards; members' Google pictures. They are in section 8 at the
-end of this file, with three open questions. Nothing in section 8 is built
-until the owner approves it.
+**v6 changes approved by the owner on 2026-11-15** (requested after trying
+Friends' films in T29): who rated a film, and what they wrote, shown where a
+film is selected on Friends' films; ratings on the film page as cards;
+members' Google pictures, which each member can switch off. They are in
+section 8 at the end of this file. NFR5 (personal data) changes with them.
 
 v5 changes (owner's request after trying My films in T26): choosing a filter
 now narrows the chart as well as the list, and the chart zooms in on the part
@@ -177,6 +176,7 @@ friends, because displaying that is the point of the app.
 - **N2** — Compare two members' quadrant charts side by side.
 - **N3** — Rewatch log: a "log a rewatch" action that records new scores for a film the member has already rated. The new scores become the member's current rating; every earlier entry is kept with its date; a times-watched count is shown. See NFR19 `[Q11]`.
 - **N4** — Score distributions on the film page: for each of Quality and Enjoyment, a curve showing how the group's scores are spread (a normal distribution drawn from the group's mean and standard deviation), shown only when enough members have rated the film for a spread to mean something. See NFR21.
+- **N5** — _(v6, new.)_ Upload your own profile picture, cropped to a circle, in place of the Google one. Needs image storage with members-only access, an upload and crop step, and limits on file type and size; see design section 16.9.
 
 ---
 
@@ -191,7 +191,7 @@ friends, because displaying that is the point of the app.
 
 **Privacy**
 
-- **NFR5** — The only personal data stored is what sign-in needs (email address) plus a display name. Members see each other's display names, never each other's email addresses.
+- **NFR5** — The only personal data stored is what sign-in needs (email address), a display name and, unless the member has switched it off, the address of their Google account picture _(v6: picture added)_. Members see each other's display names and pictures, never each other's email addresses.
 - **NFR6** — Nothing is publicly readable or indexable: no public profiles, no share links, and search engines are told not to index the site.
 - **NFR7** — No analytics or advertising trackers.
 
@@ -321,7 +321,7 @@ You said 5 should be neutral, so I've read that as: it sits on the line and is i
 
 ---
 
-## 8. v6 changes — PROPOSED, awaiting the owner's approval
+## 8. v6 changes — APPROVED by the owner, 2026-11-15
 
 Requested by the owner on 2026-11-15 after trying Friends' films (T29). The
 owner's answers so far: reviews should be readable on the film page **and**
@@ -340,15 +340,16 @@ person.) So selecting a point on Friends' films opens that one film, and
 ### Requirements
 
 - **R57** — WHEN a film is shown in the panel opened from a point on "Friends' films", THE SYSTEM SHALL show how many members rated it and its disagreement (as the list already does), and SHALL list who rated it: one line per member with their picture, their display name (linking to that member's films), and their two scores labelled Quality and Enjoyment, most recently rated first, without table lines.
-- **R58** — WHEN more members have rated a film than the panel shows (three, `[Q15]`), THE SYSTEM SHALL say how many more there are and link to the film's page, where all of them are shown.
+- **R58** — WHEN more members have rated a film than the panel shows (three), THE SYSTEM SHALL say how many more there are and link to the film's page, where all of them are shown.
 - **R59** — WHEN a rating listed in that panel has a written review, THE SYSTEM SHALL show the start of the review under its line, cut off after a few lines, with the whole review on the film's page.
-- **R60** — WHEN a member opens a film's page, THE SYSTEM SHALL show every member's rating as a card: picture, display name (linking to that member's films, except the viewer's own), both scores labelled, the placement, and the written review when there is one. The viewer's own card comes first. This replaces the ratings table and the separate list of reviews from R37 `[Q14]`; R37's content is unchanged, only its form.
-- **R61** — WHEN a member's rating is shown on a card (R60) or in the Friends' films panel (R57), THE SYSTEM SHALL show that member's Google account picture beside their name. WHEN a member has no picture, or it cannot be loaded, THE SYSTEM SHALL show the first letter of their display name in a circle instead.
-- **R62** — WHEN a member signs in, THE SYSTEM SHALL store the address of their Google account picture with their profile, replacing any older one, so that the picture others see follows the member's Google account `[Q16]`.
+- **R60** — WHEN a member opens a film's page, THE SYSTEM SHALL show every member's rating as a card: picture, display name (linking to that member's films, except the viewer's own), both scores labelled, the placement, and the written review when there is one. The viewer's own card comes first. The placement label is shown prominently on each card. The cards are one list, not pages. This replaces the ratings table and the separate list of reviews from R37; R37's content is unchanged, only its form.
+- **R61** — WHEN a member's rating is shown on a card (R60) or in the Friends' films panel (R57), THE SYSTEM SHALL show that member's Google account picture beside their name. WHEN a member has no picture, has switched it off (R63), or it cannot be loaded, THE SYSTEM SHALL show the first letter of their display name in a circle instead.
+- **R62** — WHEN a member who has not switched their picture off signs in, THE SYSTEM SHALL store the address of their Google account picture with their profile, replacing any older one, so that the picture others see follows the member's Google account. Only an address on Google's own picture servers is ever stored.
+- **R63** — WHEN a member chooses their display name on first sign-in, THE SYSTEM SHALL offer a choice, on by default, to show their Google picture to the group. WHEN the member switches it off, then or later from the same form, THE SYSTEM SHALL remove the stored address and show their initial instead, and SHALL NOT store it again until they switch it back on.
 
 ### Changed requirements
 
-- **NFR5** (personal data) would become: "The only personal data stored is what sign-in needs (email address), a display name, and the address of the member's Google account picture. Members see each other's display names and pictures, never each other's email addresses." The picture is new personal data, and friends see it without the member having chosen it for this site.
+- **NFR5** (personal data) now includes the address of the member's Google account picture, unless they have switched it off (R63). The text in section 3 is updated.
 - **NFR1** applies unchanged: a picture address is readable by members only, like a display name.
 - **R37** changes form, not content (see R60).
 
@@ -362,21 +363,10 @@ person.) So selecting a point on Friends' films opens that one film, and
 | E30 | A member changes their Google picture                             | Others see the new one after that member next signs in (R62); until then the old address may fail and E27 applies |
 | E31 | A very long review in the Friends' films panel                    | Cut off after a few lines; whole on the film's page (R59)                                          |
 
-### Open questions, with the answer I would assume
+### Questions, resolved by the owner on 2026-11-15
 
-**Q14 — Do the cards replace the ratings table on the film page, or sit under it?** _(affects R60)_
+**Q14 — Do the cards replace the ratings table on the film page?** Yes. The cards replace the table and the reviews list. The "How far each friend is from you" table stays.
 
-- **Default: the cards replace the table and the reviews list.** A card already carries the name, both scores and the placement, so keeping the table would show every rating twice. The "How far each friend is from you" table stays, since it holds something the cards do not.
-- Alternative: keep the table and put cards under it only for members who wrote a review. Shorter page when few people write reviews, but two places to look.
+**Q15 — Pages you swipe through, or one list?** One list of cards, each with its placement label clearly shown and the review present. No pages, swipe or floating arrow. (The owner's words were "replace with cards with the label clearly shown and their review present"; I have read that as agreeing to one list.) If the list feels long once friends join, the next step is "show the first five" with a "Show all" button.
 
-**Q15 — Pages you swipe through, or one list?** _(affects R58, R60; the owner asked "would that be better than an ever growing list?")_
-
-- **Default: one list on the film page, no pages.** The group is 2 to 15 people (the brief), so a film has at most about 15 cards, and most have far fewer. That list is not ever-growing. Paging would hide reviews behind a control; a sideways swipe competes with the phone browser's own swipe-to-go-back and needs a keyboard and screen-reader equivalent (NFR12); a floating arrow button sits on top of the content it is paging. On Friends' films the panel shows the three most recent ratings and links to the rest (R58), which is where "cut off at what fits" matters.
-- Alternative A: show the first five cards and a "Show all 12" button. One tap, nothing hidden for long, works with a keyboard. This is what I would build if the list feels long once friends join.
-- Alternative B: pages of five with previous/next arrows and page numbers, plus swipe. The most work, and the accessibility cost above.
-
-**Q16 — When is the Google picture taken, and can a member opt out?** _(affects R61, R62, NFR5)_
-
-- **Default: taken automatically at every sign-in, with no opt-out in this version.** A member who does not want their photo shown can remove it from their Google account, or ask the owner. The app stores only the picture's address, not a copy of the image.
-- Alternative: a "Show my Google photo" choice beside the display name on `/welcome`, off or on by default. One more thing to build, but each member decides.
-- For the design, either way: whether each viewer's browser fetches the picture from Google directly (simplest; Google then sees that request) or through the site's own image handling (as posters may be). I will decide that in the design and record why.
+**Q16 — When is the Google picture taken, and can a member opt out?** It is taken at sign-in, and a member can opt out when they sign up (R63), or later from the same form. Uploading your own picture is a nice-to-have (N5), not part of v6.

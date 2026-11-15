@@ -5,6 +5,9 @@ Status: **APPROVED** (amended version, 2026-11-14) — §7 and
 inner bands fill the rest of each quarter), following requirements v4.
 Implements: `01-requirements.md` (approved v2)
 
+**Section 16 (the design for requirements v6) is PROPOSED and not yet
+approved.** Nothing in it is built until the owner approves it.
+
 Every section lists the requirement IDs it satisfies. Section 14 is the reverse
 lookup (requirement → section). Section 15 lists facts I could **not** confirm
 from documentation and that must be checked with a real call before the code
@@ -1126,3 +1129,193 @@ before the first few tasks (the quadrant maths needs no accounts at all).
 | V7  | That a Google app using only basic scopes can be set to "In production" without verification (the help page implies it, but the relevant section wasn't in what I could read) | 5.5                   | Seen during setup step 4; fallback is leaving it in "Testing", which Google says still allows basic-scope sign-in      |
 | V8  | How long a paused Supabase project stays restorable (docs say both 90 days and 1 year)                                                                                        | 11                    | Read the dashboard notice if it ever happens; the backup script covers the worst case                                  |
 | V9  | That each service's free tier needs no payment card                                                                                                                           | 11                    | Seen at sign-up                                                                                                        |
+
+---
+
+## 16. v6 design — PROPOSED: who rated a film, rating cards, pictures
+
+_Satisfies: R57–R63, NFR5 (amended), NFR1, NFR13, NFR14, E27–E31. Changes the
+form of R37. Awaiting the owner's approval._
+
+### 16.1 Data model: two new columns on `profiles`
+
+| Column         | Type      | Constraints                                                                  |
+| -------------- | --------- | ---------------------------------------------------------------------------- |
+| `show_picture` | `boolean` | not null, default `true` — the member's choice (R63)                         |
+| `avatar_url`   | `text`    | nullable; `check (avatar_url ~ '^https://lh[0-9]\.googleusercontent\.com/')` |
+
+`avatar_url` is the address of the member's Google account picture, or null
+when they have none or have switched it off. Only the address is stored, never
+a copy of the image (NFR5).
+
+**Who may write what.** Today a member may insert and update any column of
+their own profile row. That would let a member put _any_ address in
+`avatar_url`, and every friend's browser would then fetch it: a way to learn
+when friends open a page, and from where. So:
+
+- Members keep the right to write `id`, `display_name` and `show_picture`
+  only (column-level grants replace the table-wide ones; the row policies are
+  unchanged).
+- `avatar_url` is written only by one database function,
+  `public.sync_profile_picture()`, which takes no arguments. For the caller
+  (`auth.uid()`), if they are a member, it sets `avatar_url` to the
+  `avatar_url` Google left in their sign-in record when `show_picture` is on
+  and the address is on Google's picture servers, and to null otherwise. It
+  runs with the function owner's rights (`security definer`, empty
+  `search_path`), like `save_rating`, because members cannot read the sign-in
+  table themselves.
+- The `check` constraint is the same host rule again, as a backstop.
+
+The host rule matters even inside the function: a signed-in user can edit
+their own sign-in record's extra fields through Supabase's API, so "it came
+from the sign-in record" does not prove "it came from Google".
+
+_Rejected:_ letting the server action pass the address in (the same hole, one
+step removed); a trigger that overwrites `avatar_url` on every write (works,
+but hides the rule where a reader would not look for it).
+
+Existing members get `show_picture = true` from the default without having
+seen the choice. Today that is the owner's own accounts; friends are invited
+in T35, after this is live, and will be asked.
+
+### 16.2 Taking the picture: sign-in and `/welcome`
+
+- **At sign-in (R62).** `/auth/callback`, after the membership check, calls
+  `sync_profile_picture()`. A failure is logged and ignored: a missing picture
+  is not worth refusing a sign-in over. A first-time member has no profile row
+  yet, so the call changes nothing; their picture is stored when they save
+  their name.
+- **The choice (R63).** `/welcome` gains a checkbox under the display name,
+  "Show my Google picture to friends", ticked by default on first sign-in and
+  showing the stored choice afterwards, with the picture itself beside it (read
+  from the member's own session, so they see what friends would see).
+  `saveDisplayName` saves `show_picture` with the name, then calls
+  `sync_profile_picture()`, which stores or removes the address to match.
+- **Staying current (E30).** The address is refreshed only at sign-in. Sessions
+  last a long time, so a changed Google picture can lag; if the old address
+  stops working the initial is shown (16.3).
+
+### 16.3 Showing a picture: `Avatar`
+
+One small component, `src/components/Avatar.tsx`: the picture in a circle, or
+the first letter of the display name in a circle when there is no address or
+the image fails to load (R61, E27). It needs a little state to notice a failed
+load, so it is a client component.
+
+- A plain `<img>` straight from Google, as posters come straight from TMDB.
+  Google already serves a 96-pixel square (V10), so there is nothing for
+  Next.js's image optimiser to do, and that optimiser has a monthly quota on
+  the free plan.
+- `referrerPolicy="no-referrer"` so Google is not told which page asked;
+  `loading="lazy"`; `alt=""` because the member's name is always written
+  beside it, and a screen reader should not say it twice.
+- **What this means for privacy:** each viewer's browser asks Google for the
+  pictures, so Google can see that request (not who is signed in here, and
+  not the page). It is not analytics or advertising (NFR7), but the About page
+  gets a sentence saying so. _Rejected:_ copying the images into our own
+  storage, which is the machinery of N5 (16.9) for no visible gain.
+- The letter fallback differs from a picture by content, not colour (NFR14).
+
+### 16.4 Film page: cards replace the table (R60)
+
+`RatingCards` (`src/components/film/RatingCards.tsx`) replaces `RatingsTable`.
+One card per member, in the order the loader already gives (the viewer first,
+then by name), as a single list:
+
+- picture and display name (a link to the member's films; the viewer's own is
+  plain text marked "(you)", as now);
+- the placement label, prominent;
+- "Quality 9 · Enjoyment 8", both labelled;
+- the written review in full when there is one, with the member's line breaks.
+
+`loadFilmPage` adds `avatar_url` to the name it already nests in each row; no
+extra query. `GroupAverage`, the spoke map and "How far each friend is from
+you" are unchanged, and between them and the cards every number on the chart
+is still available as text (NFR13). `MemberRating` gains `avatarUrl` and moves
+to `RatingCards.tsx`; `MemberName` moves to its own file, since the
+disagreement table uses it too.
+
+### 16.5 Friends' films: who rated a film, in the panel (R57–R59)
+
+- **Data.** `loadAllRatings` also reads `user_id`, `review` and
+  `profiles (display_name, avatar_url)` for each rating. `groupFilms` adds to
+  each film `raters`: the **three** most recently rated (by `created_at`,
+  R36's meaning), each with user id, name, picture address, both scores and
+  the **first 200 characters** of the review.
+- **Why the review is cut on the server.** The chart is a client component, so
+  everything handed to it is sent to the browser. Without the cut, every
+  review of every film would travel with the page. With it, a film costs at
+  most three short entries, and the full text stays on the film's page.
+  `PANEL_RATERS = 3` and `REVIEW_START = 200` are named constants.
+- **Drawing.** `ChartFilm` gains the optional group fields (`ratedBy`,
+  `disagreement`, `raters`; the first two move up from `ListFilm`). For a film
+  that has them, `PointPanel` shows the "Rated by 3 members · Biggest
+  disagreement 7" line and then `RaterLines`: one line per rater with picture,
+  name (linked), "Quality 9 · Enjoyment 8", and under it the start of the
+  review limited to three lines. No table, no rules between lines. If the
+  film has more raters than are shown: "and 4 more on the film's page", a
+  link (R58, E29).
+- The list rows under the chart keep their one "Rated by …" line. Repeating
+  three raters under every row would make the list several times longer; the
+  panel is where a member has asked about one film.
+
+### 16.6 Tests
+
+| What                                         | Where                               |
+| -------------------------------------------- | ----------------------------------- |
+| A member cannot set `avatar_url` by insert or update; can set `show_picture` | `tests/rls/profile-picture.test.ts` |
+| `sync_profile_picture` stores a Google address, refuses any other host, stores null when switched off, and does nothing for a non-member | same |
+| Members read each other's `avatar_url`; non-members read nothing | same |
+| `groupFilms`: the three most recent raters, review cut at 200 characters, count of the rest | `groupFilms.test.ts` (written first) |
+| `Avatar`: picture, initial when there is none, initial after a failed load | component test |
+| `RatingCards`, `RaterLines` in `PointPanel`, the `/welcome` checkbox | component tests |
+| `saveDisplayName` saves the choice and calls the function; the callback calls it and survives its failure | action and route tests |
+
+### 16.7 Rollout
+
+The new code reads `avatar_url`, so the migration must be on a database
+before code that needs it is deployed there: dev, then `test:rls`, then prod,
+then push (the same order as T26d).
+
+### 16.8 Facts checked (V10, settled)
+
+Asked of `quadrant-dev` on 2026-11-15, printing field names only: a Google
+sign-in leaves `avatar_url` and `picture` (identical) in the user's sign-in
+record, an `https://lh3.googleusercontent.com/…` address ending `=s96-c` (a
+96-pixel square crop).
+
+### 16.9 Uploading your own picture (N5): not built, sized here
+
+Possible on Supabase Storage. What its documentation says (read 2026-11-15):
+
+- A **public** bucket serves a file to anyone who has its address, which
+  NFR6 rules out. A **private** bucket puts every operation, downloads
+  included, behind row-level-security policies on `storage.objects`; files
+  are then fetched with the member's session or through a signed address
+  that works for a limited time.
+- The Free plan includes 1 GB of file storage and caps a file at 50 MB; a
+  bucket can set a lower size limit and restrict file types.
+- Image resizing is "enabled for Pro Plan and above", so on the Free plan the
+  picture must be cropped and shrunk in the browser before upload.
+
+So N5 is: a private bucket with policies and access tests; an upload step
+with a circular crop and a client-side resize to a small square; type and
+size limits; replacing and deleting; and signed addresses wherever a picture
+is shown (they expire, so they cannot simply be stored). Roughly three or
+four tasks, against one for the Google picture. `Avatar` (16.3) is written so
+that only where its address comes from would change.
+
+### 16.10 Traceability
+
+| Requirement                               | Section    |
+| ----------------------------------------- | ---------- |
+| R57 who rated it, in the panel            | 16.5       |
+| R58 "and N more"                          | 16.5       |
+| R59 start of the review in the panel      | 16.5       |
+| R60 cards on the film page                | 16.4       |
+| R61 picture or initial                    | 16.3       |
+| R62 picture stored at sign-in             | 16.1, 16.2 |
+| R63 the member's choice                   | 16.1, 16.2 |
+| NFR5 personal data                        | 16.1, 16.3 |
+| NFR1 enforced in the database             | 16.1, 16.6 |
+
