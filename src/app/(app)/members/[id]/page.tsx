@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { QuadrantChart } from "@/components/chart/QuadrantChart";
 import { FilmList } from "@/components/film/FilmList";
 import { FilterChips } from "@/components/film/FilterChips";
+import { buttonSecondary } from "@/components/ui/styles";
 import { getCurrentMember } from "@/lib/auth/member";
 import { loadMemberName } from "@/lib/data/member";
 import { loadMemberFilms } from "@/lib/data/ratings";
@@ -57,6 +59,7 @@ export default async function MemberPage({
         <h1 className="text-2xl font-semibold break-words">
           {name}&apos;s films
         </h1>
+        <CompareLink memberId={memberId} />
         <p className="break-words text-ink-muted">
           {name} hasn&apos;t rated anything yet.
         </p>
@@ -72,6 +75,7 @@ export default async function MemberPage({
       <h1 className="text-2xl font-semibold break-words">
         {name}&apos;s films
       </h1>
+      <CompareLink memberId={memberId} />
 
       {/* No editReturnTo here or on the list below: that is what keeps
           this page read-only. */}
@@ -93,5 +97,17 @@ export default async function MemberPage({
         <FilmList films={shown} />
       </section>
     </main>
+  );
+}
+
+/** R75: from a member's page to "you and them" side by side. */
+function CompareLink({ memberId }: { memberId: string }) {
+  return (
+    <Link
+      href={`/members/${memberId}/compare`}
+      className={`${buttonSecondary} self-start text-sm`}
+    >
+      Compare with me
+    </Link>
   );
 }

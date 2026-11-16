@@ -15,3 +15,5 @@ export * from "@/lib/quadrant/counts";
 export * from "@/lib/quadrant/cluster";
 export * from "@/lib/quadrant/memberColours";
 export * from "@/lib/quadrant/spread";
+export * from "@/lib/quadrant/inCommon";
+export * from "@/lib/quadrant/format";
