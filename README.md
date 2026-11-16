@@ -164,8 +164,10 @@ at least 16 characters (a password manager's generator is fine). Then
 redeploy (or push any commit): a deployment only picks up the secret when it
 is built. Without it every run is refused.
 
-**Checking it works:** Vercel → the project → **Schedules** → **Cron Jobs**
-lists the three jobs. **Run** on one, then **View Logs**: a `200` means the
+**Checking it works:** Vercel → the project → **Observability** (left
+sidebar) → **Cron Jobs** lists the three jobs. (Vercel's docs say
+**Schedules**; older dashboards had it under **Settings**. It was under
+**Observability** for this project on 2026-11-16.) **Run** on one, then **View Logs**: a `200` means the
 database answered. A `401` means the secret is missing or the deployment
 predates it (redeploy); a `503` means the database did not answer, for
 example because it is already paused (resume it in Supabase; the job cannot).
