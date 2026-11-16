@@ -6,6 +6,7 @@
 
 import { useEffect } from "react";
 import { ProblemPage } from "@/components/ProblemPage";
+import { buttonMain } from "@/components/ui/styles";
 
 export type ErrorPageProps = {
   /**
@@ -36,11 +37,7 @@ export function ErrorMessage({ error, retry }: ErrorPageProps) {
     <ProblemPage
       heading="Something went wrong"
       actions={
-        <button
-          type="button"
-          onClick={() => retry()}
-          className="rounded bg-foreground px-4 py-2 font-medium text-background hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 active:opacity-70"
-        >
+        <button type="button" onClick={() => retry()} className={buttonMain}>
           Try again
         </button>
       }

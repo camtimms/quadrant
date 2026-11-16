@@ -60,7 +60,7 @@ export function Avatar({ name, url, size = "sm" }: Props) {
       // shrink-0 and a fixed size: the circle takes the same space with a
       // picture, a letter, or while loading, so the text beside it never
       // jumps. overflow-hidden clips the square picture to the circle.
-      className={`inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-foreground/30 bg-foreground/10 leading-none font-semibold select-none ${SIZES[size]}`}
+      className={`inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-well text-ink ring-1 ring-edge leading-none font-semibold select-none ${SIZES[size]}`}
     >
       {showPicture ? (
         // A plain <img>, not Next.js's <Image>: Google already serves a

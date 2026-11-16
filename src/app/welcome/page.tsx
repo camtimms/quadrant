@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { DisplayNameForm } from "@/components/profile/DisplayNameForm";
+import { card, mutedText, textLink } from "@/components/ui/styles";
 import { getCurrentMember } from "@/lib/auth/member";
 import { SITE_NAME } from "@/lib/site";
 
@@ -19,10 +20,12 @@ import { SITE_NAME } from "@/lib/site";
  */
 export default function WelcomePage() {
   return (
-    <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 p-6">
-      <Suspense fallback={<p className="text-sm opacity-70">Loading…</p>}>
-        <WelcomeContent />
-      </Suspense>
+    <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center p-4 sm:p-6">
+      <div className={`${card} flex flex-col gap-6 p-6`}>
+        <Suspense fallback={<p className={`text-sm ${mutedText}`}>Loading…</p>}>
+          <WelcomeContent />
+        </Suspense>
+      </div>
     </main>
   );
 }
@@ -56,10 +59,7 @@ async function WelcomeContent() {
         pictureUrl={member.googlePicture}
       />
       {isFirstVisit ? null : (
-        <Link
-          href="/"
-          className="text-sm underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2"
-        >
+        <Link href="/" className={`${textLink} self-start text-sm`}>
           Cancel
         </Link>
       )}

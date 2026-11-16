@@ -1,6 +1,8 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import * as rowLayout from "@/components/film/rowLayout";
+import * as sharedStyles from "@/components/ui/styles";
 import { FIELD_BORDER_OPACITY, MIN_TEXT_OPACITY } from "@/lib/contrast";
 
 /**
@@ -9,12 +11,19 @@ import { FIELD_BORDER_OPACITY, MIN_TEXT_OPACITY } from "@/lib/contrast";
  * rule the rest of the site keeps. What a rule is for is in contrast.ts.
  */
 
-/** Every .tsx file under src, tests excluded, with its text. */
+/**
+ * Every .tsx file under src, plus the .ts files among the components
+ * (shared class strings such as rowLayout.ts and ui/styles.ts), tests
+ * excluded, with their text.
+ */
 function components(dir = "src"): { path: string; text: string }[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const path = join(dir, entry.name).replaceAll("\\", "/");
     if (entry.isDirectory()) return components(path);
-    return /\.tsx$/.test(path) && !/\.test\.tsx$/.test(path)
+    const isComponent =
+      path.endsWith(".tsx") ||
+      (path.startsWith("src/components/") && path.endsWith(".ts"));
+    return isComponent && !/\.test\.tsx?$/.test(path)
       ? [{ path, text: readFileSync(path, "utf8") }]
       : [];
   });
@@ -74,23 +83,15 @@ describe("source accessibility rules", () => {
   // breaks the rule fails too, as a reminder to take it off.
   describe("colours come from the theme", () => {
     const UNTOKENED =
-      /(?:foreground|background)\/\d+|(?<![\w:-])opacity-[1-9]\d*\b|\b(?:text|bg|border|fill|stroke)-(?:red|green|blue|gray|yellow|zinc|neutral|slate|white|black)(?:-\d+)?\b|#[0-9a-fA-F]{3,8}\b/;
+      /(?:foreground|background)\/\d+|(?<![\w:-])opacity-(?!100\b)[1-9]\d*\b|\b(?:text|bg|border|fill|stroke)-(?:red|green|blue|gray|yellow|zinc|neutral|slate|white|black)(?:-\d+)?\b|#[0-9a-fA-F]{3,8}\b/;
 
     const NOT_YET_MOVED = [
       "src/app/(app)/film/[tmdbId]/loading.tsx",
       "src/app/(app)/film/[tmdbId]/page.tsx",
       "src/app/(app)/friends/page.tsx",
-      "src/app/(app)/layout.tsx",
       "src/app/(app)/loading.tsx",
       "src/app/(app)/members/[id]/page.tsx",
       "src/app/(app)/page.tsx",
-      "src/app/login/page.tsx",
-      "src/app/welcome/page.tsx",
-      "src/components/Avatar.tsx",
-      "src/components/EmptyState.tsx",
-      "src/components/Footer.tsx",
-      "src/components/Nav.tsx",
-      "src/components/PendingMark.tsx",
       "src/components/chart/PointPanel.tsx",
       "src/components/chart/QuadrantChart.tsx",
       "src/components/chart/SpokeMap.tsx",
@@ -104,9 +105,8 @@ describe("source accessibility rules", () => {
       "src/components/film/PosterImage.tsx",
       "src/components/film/RaterLines.tsx",
       "src/components/film/RatingCards.tsx",
-      "src/components/film/SearchBox.tsx",
+      "src/components/film/rowLayout.ts",
       "src/components/film/SortLinks.tsx",
-      "src/components/profile/DisplayNameForm.tsx",
       "src/components/rating/DeleteRatingButton.tsx",
       "src/components/rating/InlineRatingEditor.tsx",
       "src/components/rating/MyRatingSection.tsx",
@@ -154,15 +154,25 @@ describe("source accessibility rules", () => {
   });
 
   // Keyboard users must see where they are (NFR12). Every link and button
-  // with its own classes draws a focus ring.
+  // with its own classes draws a focus ring: written out, or through a
+  // shared class string that includes one (ui/styles.ts, film/rowLayout.ts),
+  // used as className={buttonMain} or inside a template as ${buttonMain}.
   it("draws a focus ring on every styled link and button", () => {
+    const stylesWithRing = Object.entries({ ...sharedStyles, ...rowLayout })
+      .filter(([, classes]) => classes.includes("focus-visible:"))
+      .map(([name]) => name);
+    const hasRing = (classes: string) =>
+      classes.includes("focus-visible:") ||
+      stylesWithRing.some(
+        (name) => classes === `{${name}}` || classes.includes(`\${${name}}`),
+      );
     const missing = FILES.flatMap(({ path, text }) =>
       [
         ...text.matchAll(
-          /<(Link|button|a|summary)\b[^>]*?className=("[^"]*"|\{`[^`]*`\})/g,
+          /<(Link|button|a|summary)\b[^>]*?className=("[^"]*"|\{`[^`]*`\}|\{\w+\})/g,
         ),
       ]
-        .filter(([, , classes]) => !classes.includes("focus-visible:"))
+        .filter(([, , classes]) => !hasRing(classes))
         .map(([tag]) => `${path}: ${tag.replace(/\s+/g, " ").slice(0, 80)}`),
     );
     expect(missing).toEqual([]);

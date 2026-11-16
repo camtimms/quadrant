@@ -8,6 +8,13 @@ import { useActionState, useState } from "react";
 import { saveDisplayName } from "@/app/(app)/actions/profile";
 import { Avatar } from "@/components/Avatar";
 import {
+  buttonMain,
+  errorText,
+  focusRing,
+  mutedText,
+  textField,
+} from "@/components/ui/styles";
+import {
   DISPLAY_NAME_MAX_LENGTH,
   type DisplayNameFormState,
 } from "@/lib/validation/profile";
@@ -63,9 +70,9 @@ export function DisplayNameForm({
         // These two link the error text to the field for screen readers.
         aria-invalid={state.message ? true : undefined}
         aria-describedby="display_name_help"
-        className="rounded border border-foreground/50 bg-transparent px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2"
+        className={textField}
       />
-      <p id="display_name_help" className="text-sm opacity-70">
+      <p id="display_name_help" className={`text-sm ${mutedText}`}>
         Shown to your friends beside your ratings. Up to{" "}
         {DISPLAY_NAME_MAX_LENGTH} characters.
       </p>
@@ -91,11 +98,14 @@ export function DisplayNameForm({
               checked={wantsPicture}
               onChange={(event) => setWantsPicture(event.target.checked)}
               aria-describedby="show_picture_help"
-              className="h-4 w-4 focus-visible:outline-2 focus-visible:outline-offset-2"
+              // accent-ink: the browser draws its own tick box in the text
+              // colour, which reads on both modes (the yellow would not on
+              // cream).
+              className={`h-4 w-4 accent-ink ${focusRing}`}
             />
             Show my Google picture to friends
           </label>
-          <p id="show_picture_help" className="text-sm opacity-70">
+          <p id="show_picture_help" className={`text-sm ${mutedText}`}>
             {pictureUrl
               ? "If this is off, friends see the first letter of your name instead."
               : "Your Google account has no picture, so friends see the first letter of your name. If you add one, this decides whether it is shown."}
@@ -105,15 +115,11 @@ export function DisplayNameForm({
 
       {state.message ? (
         // role="alert" makes screen readers announce the problem (NFR15).
-        <p role="alert" className="text-sm text-red-700 dark:text-red-400">
+        <p role="alert" className={errorText}>
           {state.message}
         </p>
       ) : null}
-      <button
-        type="submit"
-        disabled={isPending}
-        className="rounded bg-foreground px-4 py-2 font-medium text-background hover:opacity-90 active:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
-      >
+      <button type="submit" disabled={isPending} className={buttonMain}>
         {isPending ? "Saving…" : submitLabel}
       </button>
     </form>

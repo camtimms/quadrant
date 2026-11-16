@@ -15,6 +15,13 @@ import {
 import { ArrowKeyList } from "@/components/ArrowKeyList";
 import { FilmCard } from "@/components/film/FilmCard";
 import {
+  buttonMain,
+  errorText,
+  mutedText,
+  textField,
+  textLink,
+} from "@/components/ui/styles";
+import {
   SEARCH_QUERY_MAX_LENGTH,
   SEARCH_QUERY_MIN_LENGTH,
   parseSearchQuery,
@@ -188,16 +195,13 @@ export function SearchBox({ initialQuery = "" }: Props) {
             maxLength={SEARCH_QUERY_MAX_LENGTH}
             autoComplete="off"
             aria-describedby="film_search_help"
-            className="min-w-0 flex-1 rounded border border-foreground/50 bg-transparent px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2"
+            className={`${textField} min-w-0 flex-1`}
           />
-          <button
-            type="submit"
-            className="rounded bg-foreground px-4 py-2 font-medium text-background hover:opacity-90 active:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2"
-          >
+          <button type="submit" className={buttonMain}>
             Search
           </button>
         </div>
-        <p id="film_search_help" className="text-sm opacity-70">
+        <p id="film_search_help" className={`text-sm ${mutedText}`}>
           Type at least {SEARCH_QUERY_MIN_LENGTH} characters of a film title.
         </p>
       </form>
@@ -205,23 +209,20 @@ export function SearchBox({ initialQuery = "" }: Props) {
       {/* role="status": a screen reader reads out changes here ("Searching…",
           "20 films found") without the member having to go looking. The
           element is always present so the change itself is what's announced. */}
-      <p role="status" className="text-sm opacity-80">
+      <p role="status" className={`text-sm ${mutedText}`}>
         {statusMessage(state)}
       </p>
 
       {/* role="alert" is the more urgent version, for problems (NFR15). */}
       {state.status === "unavailable" ? (
-        <p role="alert" className="text-sm text-red-700 dark:text-red-400">
+        <p role="alert" className={errorText}>
           Search is unavailable right now. Try again in a moment.
         </p>
       ) : null}
       {state.status === "signed-out" ? (
-        <p role="alert" className="text-sm text-red-700 dark:text-red-400">
+        <p role="alert" className={errorText}>
           You have been signed out.{" "}
-          <Link
-            href="/login?next=/search"
-            className="underline focus-visible:outline-2 focus-visible:outline-offset-2"
-          >
+          <Link href="/login?next=/search" className={textLink}>
             Sign in again
           </Link>{" "}
           to search.

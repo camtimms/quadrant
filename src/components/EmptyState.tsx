@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { buttonMain, card, mutedText } from "@/components/ui/styles";
 import { SCALE_END_LABELS } from "@/lib/quadrant";
 
 /**
@@ -17,35 +18,32 @@ export function EmptyState({
   heading?: string;
 }) {
   return (
-    <div className="flex flex-col gap-4 rounded border border-foreground/20 p-5">
+    <div className={`${card} flex flex-col gap-4`}>
       <h2 className="text-lg font-semibold">{heading}</h2>
       <p>Every film here gets two scores from 0 to 10, not one:</p>
       {/* A description list: each term (<dt>) with its meaning (<dd>). */}
       <dl className="flex flex-col gap-3">
         <div>
           <dt className="font-medium">Quality</dt>
-          <dd className="text-sm opacity-80">
+          <dd className={`text-sm ${mutedText}`}>
             How good is it as a film? From {SCALE_END_LABELS.quality.low} to{" "}
             {SCALE_END_LABELS.quality.high}.
           </dd>
         </div>
         <div>
           <dt className="font-medium">Enjoyment</dt>
-          <dd className="text-sm opacity-80">
+          <dd className={`text-sm ${mutedText}`}>
             How much did you enjoy watching it? From{" "}
             {SCALE_END_LABELS.enjoyment.low} to{" "}
             {SCALE_END_LABELS.enjoyment.high}.
           </dd>
         </div>
       </dl>
-      <p className="text-sm opacity-80">
+      <p className={`text-sm ${mutedText}`}>
         The two often disagree, and that is the point. Films are then laid out
         on a chart by both scores.
       </p>
-      <Link
-        href="/search"
-        className="self-start rounded bg-foreground px-4 py-2 font-medium text-background hover:opacity-90 active:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2"
-      >
+      <Link href="/search" className={`${buttonMain} self-start`}>
         Find a film to rate
       </Link>
     </div>

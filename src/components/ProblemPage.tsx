@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { buttonSecondary, card } from "@/components/ui/styles";
 
 type Props = {
   heading: string;
@@ -17,17 +18,16 @@ type Props = {
  */
 export function ProblemPage({ heading, children, actions }: Props) {
   return (
-    <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 p-6">
-      <h1 className="text-2xl font-semibold">{heading}</h1>
-      <div className="flex flex-col gap-2">{children}</div>
-      <div className="flex flex-wrap items-center gap-4">
-        {actions}
-        <Link
-          href="/"
-          className="underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 active:opacity-60"
-        >
-          Go to My films
-        </Link>
+    <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 p-4 sm:p-6">
+      <div className={`${card} flex flex-col gap-4`}>
+        <h1 className="text-2xl font-semibold">{heading}</h1>
+        <div className="flex flex-col gap-2">{children}</div>
+        <div className="flex flex-wrap items-center gap-3">
+          {actions}
+          <Link href="/" className={buttonSecondary}>
+            Go to My films
+          </Link>
+        </div>
       </div>
     </main>
   );

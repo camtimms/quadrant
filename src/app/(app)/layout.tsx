@@ -5,6 +5,7 @@ import { signOut } from "@/app/(app)/actions/auth";
 import { getCurrentMember } from "@/lib/auth/member";
 import { Nav } from "@/components/Nav";
 import { SiteLogo } from "@/components/SiteLogo";
+import { focusRing, mutedText, pill } from "@/components/ui/styles";
 import { SITE_NAME } from "@/lib/site";
 
 /**
@@ -23,13 +24,13 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
           own controls on top, the main navigation below (T31). On a phone
           a single row could not hold three links, a name and a button
           without squeezing them; two rows keep each one tappable. */}
-      <header className="flex flex-col gap-1 border-b border-foreground/15 px-4 pt-3 pb-1">
+      <header className="flex flex-col gap-3 px-4 pt-3 pb-1">
         {/* flex-wrap: a very long display name drops below the site name
             instead of pushing the page wider than the screen. */}
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <Link
             href="/"
-            className="flex items-center gap-2 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2"
+            className={`flex items-center gap-2 rounded-lg text-lg font-semibold ${focusRing}`}
           >
             <SiteLogo size={24} />
             {SITE_NAME}
@@ -42,10 +43,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
               <SignedInAs />
             </Suspense>
             <form action={signOut}>
-              <button
-                type="submit"
-                className="rounded border border-foreground/30 px-3 py-1 whitespace-nowrap hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2"
-              >
+              <button type="submit" className={`${pill} whitespace-nowrap`}>
                 Sign out
               </button>
             </form>
@@ -54,7 +52,9 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
         <Nav />
       </header>
       {/* Nothing inside the app is shown until membership is confirmed. */}
-      <Suspense fallback={<p className="p-6 text-sm opacity-70">Loading…</p>}>
+      <Suspense
+        fallback={<p className={`p-6 text-sm ${mutedText}`}>Loading…</p>}
+      >
         <MembersOnly>{children}</MembersOnly>
       </Suspense>
     </>
@@ -106,7 +106,7 @@ async function SignedInAs() {
       href="/welcome"
       // min-w-0 and break-words: a 40-character name with no spaces wraps
       // inside the header instead of widening the page (E15).
-      className="min-w-0 break-words underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+      className={`min-w-0 break-words rounded underline-offset-4 hover:underline ${focusRing}`}
       // The visible text is just the name; this says what the link does.
       aria-label={`${member.displayName}: change your name or picture`}
     >

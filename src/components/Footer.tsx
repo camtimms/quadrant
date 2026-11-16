@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { focusRing, mutedText } from "@/components/ui/styles";
 
 /**
  * The strip at the bottom of every page, signed in or not.
@@ -9,10 +10,10 @@ import Link from "next/link";
  */
 export function Footer() {
   return (
-    <footer className="border-t border-foreground/15 px-4 py-3 text-center text-sm">
+    <footer className="px-4 py-4 text-center text-sm">
       <Link
         href="/about"
-        className="underline-offset-4 opacity-80 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+        className={`rounded underline-offset-4 hover:underline ${mutedText} ${focusRing}`}
       >
         About · film data from TMDB
       </Link>

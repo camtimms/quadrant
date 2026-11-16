@@ -7,17 +7,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
+import { pill, pillCurrent } from "@/components/ui/styles";
 import { isCurrentPage, NAV_LINKS } from "@/lib/nav";
 
 /**
  * The links between the three main pages, with the current one marked
  * (T31, R48).
  *
- * The current page is marked two ways: aria-current="page", which a screen
- * reader announces as "current page", and a bold underline, which does not
- * depend on colour (NFR14).
+ * The current page is marked for everyone: aria-current="page", which a
+ * screen reader announces as "current page", and a filled yellow pill with
+ * bold text, outlined in light mode so it does not rely on colour (NFR14).
  *
- * Each link has generous padding so it is an easy target for a thumb.
+ * Each pill has generous padding so it is an easy target for a thumb.
  *
  * Why the Suspense: reading the address (usePathname) makes this part of
  * the page depend on the request. With Cache Components switched on,
@@ -38,13 +39,17 @@ function CurrentNavLinks() {
   return <NavLinks pathname={usePathname()} />;
 }
 
-/** The links themselves. `pathname` null means "mark nothing". */
+/**
+ * The links themselves, as pills in a rounded track (NFR24). The current
+ * page's pill is yellow; the others sit flat in the track, so only one
+ * thing stands out. `pathname` null means "mark nothing".
+ */
 function NavLinks({ pathname }: { pathname: string | null }) {
   return (
     <nav aria-label="Main">
-      {/* -mx-2 lines the text up with the edge of the header while the
-          links keep their padding as touch area. */}
-      <ul className="-mx-2 flex flex-wrap items-center text-sm">
+      {/* inline-flex: the track is only as wide as its three pills. A very
+          narrow screen wraps them rather than widening the page. */}
+      <ul className="inline-flex flex-wrap items-center gap-1 rounded-full bg-well p-1 text-sm">
         {NAV_LINKS.map(({ label, href }) => {
           const current = pathname !== null && isCurrentPage(pathname, href);
           return (
@@ -52,9 +57,9 @@ function NavLinks({ pathname }: { pathname: string | null }) {
               <Link
                 href={href}
                 aria-current={current ? "page" : undefined}
-                className={`inline-block rounded px-2 py-2 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 active:bg-foreground/25 ${
-                  current ? "font-semibold underline decoration-2" : ""
-                }`}
+                // The resting pill takes the track's own colour, so it
+                // reads as part of the track until pressed.
+                className={current ? pillCurrent : pill}
               >
                 {label}
               </Link>
