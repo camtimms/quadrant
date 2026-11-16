@@ -52,13 +52,10 @@ export function toPercent(units: number): string {
   return `${(units / CHART_SIZE) * 100}%`;
 }
 
-/**
- * A score as text: "7" for a member's whole-number score, "6.3" for a group
- * average.
- */
-export function formatScore(score: number): string {
-  return Number.isInteger(score) ? String(score) : score.toFixed(1);
-}
+// A score as text ("7", or "6.3" for an average). It lives in the quadrant
+// library, which uses it too; passed on here so the chart code and the
+// components that import it from this file are unchanged.
+export { formatScore } from "@/lib/quadrant/format";
 
 // ---------------------------------------------------------------------------
 // Zooming in on one placement (R53)

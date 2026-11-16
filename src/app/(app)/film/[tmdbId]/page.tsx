@@ -6,6 +6,7 @@ import { DisagreementTable } from "@/components/film/DisagreementTable";
 import { GroupAverage } from "@/components/film/GroupAverage";
 import { PosterImage } from "@/components/film/PosterImage";
 import { RatingCards } from "@/components/film/RatingCards";
+import { SpreadCurves } from "@/components/film/SpreadCurves";
 import { DeleteRatingButton } from "@/components/rating/DeleteRatingButton";
 import { MyRatingSection } from "@/components/rating/MyRatingSection";
 import { RatingForm } from "@/components/rating/RatingForm";
@@ -146,6 +147,8 @@ export default async function FilmPage({
           Everyone&apos;s ratings
         </h2>
         <GroupAverage points={ratings.map((rating) => rating.point)} />
+        {/* How spread out the scores are, from five ratings (R73, R74). */}
+        <SpreadCurves points={ratings.map((rating) => rating.point)} />
         {/* Where each member put this film, with a line from the viewer's
             rating to each friend's (R38–R40), and under it the length of
             each line as a number (R41). Both show nothing when they have
