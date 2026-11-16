@@ -2088,8 +2088,9 @@ member to a folder named with their id via `(storage.foldername(name))[1]`.
 - **Move and zoom** (`PictureCropper`, client component): the chosen file
   is opened by the browser (E65 if it cannot be), drawn into a 256 px
   circle; dragging (mouse or finger, pointer events) moves it, a slider
-  (and pinch, where the browser sends it as zoom) enlarges it from "whole
-  photo fits" up to 4×; it can never be moved to leave empty space in the
+  (and pinch, where the browser sends it as zoom) enlarges it from "photo
+  just fills the circle" up to 4× _(corrected in T41c: "whole photo fits"
+  would leave gaps, which the next sentence rules out)_; it can never be moved to leave empty space in the
   circle. "Save picture" draws the visible square to a 256 × 256 canvas and
   turns it into a JPEG (quality 0.85). JPEG, not WebP, because Safari
   cannot make WebP from a canvas.
