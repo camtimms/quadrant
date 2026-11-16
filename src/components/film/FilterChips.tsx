@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PendingMark } from "@/components/PendingMark";
+import { pill, pillCurrent } from "@/components/ui/styles";
 import { FILTER_ROWS, filterHref } from "@/lib/filters";
 import { PLACEMENT_LABELS, PLACEMENTS, type Placement } from "@/lib/quadrant";
 
@@ -14,14 +15,17 @@ type Props = {
   otherParams?: Record<string, string>;
 };
 
-// One look for every chip; the variations are added below. Exported so the
-// order links on Friends' films look the same (SortLinks).
-export const CHIP =
-  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm";
-export const LINK_CHIP = `${CHIP} border-foreground/30 hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2`;
-// The chosen chip is filled in. It is ALSO marked with aria-current, so it
-// is not told apart by colour alone (NFR14).
-export const ACTIVE_CHIP = `${CHIP} border-foreground bg-foreground text-background active:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2`;
+// The chips are the theme's pills (design 17.4), a little smaller than the
+// navigation's. Exported so the order links on Friends' films look the
+// same (SortLinks).
+export const LINK_CHIP = `${pill} text-sm`;
+// The chosen chip is yellow, bold and (in light mode) outlined. It is ALSO
+// marked with aria-current, so it is not told apart by colour alone (NFR14).
+export const ACTIVE_CHIP = `${pillCurrent} text-sm`;
+// A placement with no films: drawn, but not a link. An outline instead of a
+// fill, and the muted text colour, which still reads at 4.5 : 1.
+const EMPTY_CHIP =
+  "inline-flex items-center gap-1 rounded-full border border-well px-3 py-1.5 text-sm text-ink-muted";
 
 /**
  * The filter chips above a film list: "All", then the thirteen placements
@@ -52,7 +56,7 @@ export function FilterChips({
           aria-current={active === null ? "true" : undefined}
           className={active === null ? ACTIVE_CHIP : LINK_CHIP}
         >
-          All <span className="tabular-nums opacity-80">{total}</span>
+          All <span className="tabular-nums">{total}</span>
           <PendingMark />
         </Link>
       </div>
@@ -69,7 +73,7 @@ export function FilterChips({
             const label = (
               <>
                 {PLACEMENT_LABELS[placement]}{" "}
-                <span className="tabular-nums opacity-80">{count}</span>
+                <span className="tabular-nums">{count}</span>
               </>
             );
             return (
@@ -81,7 +85,7 @@ export function FilterChips({
                   <span
                     data-filter={placement}
                     aria-disabled="true"
-                    className={`${CHIP} border-foreground/15 opacity-60`}
+                    className={EMPTY_CHIP}
                   >
                     {label}
                   </span>

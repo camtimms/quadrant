@@ -41,7 +41,7 @@ type Props = {
 export function RatingCards({ ratings }: Props) {
   if (ratings.length === 0) {
     return (
-      <p className="text-sm opacity-70">
+      <p className="text-sm text-ink-muted">
         Nobody has rated this film yet. Be the first.
       </p>
     );
@@ -55,7 +55,7 @@ export function RatingCards({ ratings }: Props) {
         <li
           key={rating.userId}
           data-testid="rating-card"
-          className="flex flex-col gap-2 rounded-lg border border-foreground/20 p-4"
+          className="flex flex-col gap-2 rounded-2xl bg-card p-4"
         >
           <div className="flex items-center gap-3">
             <Avatar
@@ -86,7 +86,7 @@ export function RatingCards({ ratings }: Props) {
 
           {/* Each number carries its label, so "3 · 9" can never be read
               the wrong way round. */}
-          <p data-testid="card-scores" className="text-sm opacity-80">
+          <p data-testid="card-scores" className="text-sm text-ink-muted">
             Quality {formatScore(rating.point.quality)} · Enjoyment{" "}
             {formatScore(rating.point.enjoyment)}
           </p>

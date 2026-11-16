@@ -50,14 +50,14 @@ export function MyRatingSection({
       open={rating === null}
       // "group" lets the arrow inside react to this element being open
       // (the group-open: classes below).
-      className="group rounded border border-foreground/20"
+      className="group rounded-2xl bg-card"
     >
       <summary
         // list-none and the ::-webkit-details-marker rule hide the browser's
         // own triangle, which cannot be positioned; ours is drawn below.
         // flex-wrap: the heading, the word and the arrow share the first
         // line, and the scores (basis-full, further down) take a second.
-        className="flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-0.5 rounded p-3 hover:bg-foreground/10 focus-visible:outline-2 focus-visible:outline-offset-2 active:bg-foreground/25 [&::-webkit-details-marker]:hidden"
+        className="flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-0.5 rounded-2xl p-4 hover:bg-well active:brightness-95 dark:active:brightness-125 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus [&::-webkit-details-marker]:hidden"
       >
         {/* A heading is allowed directly inside <summary>, and keeps this
             section in the page's outline for screen-reader users who move
@@ -71,7 +71,7 @@ export function MyRatingSection({
         {rating && justSaved ? (
           <span
             role="status"
-            className="rounded border border-foreground/40 px-1.5 text-sm font-medium"
+            className="rounded-full bg-accent px-2 text-sm font-semibold text-on-accent ring-1 ring-accent-outline"
           >
             Saved
           </span>
@@ -104,7 +104,7 @@ export function MyRatingSection({
         ) : null}
       </summary>
 
-      <div className="flex flex-col gap-4 border-t border-foreground/15 p-3">
+      <div className="flex flex-col gap-4 border-t border-well p-4">
         {children}
       </div>
     </details>

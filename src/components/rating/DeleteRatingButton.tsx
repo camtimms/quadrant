@@ -5,6 +5,11 @@
 
 import { useActionState, useState } from "react";
 import { deleteRating } from "@/app/(app)/actions/rating";
+import {
+  buttonDanger,
+  buttonSecondary,
+  errorText,
+} from "@/components/ui/styles";
 import type { DeleteRatingState } from "@/lib/validation/rating";
 
 type Props = {
@@ -34,7 +39,7 @@ export function DeleteRatingButton({ titleId, filmTitle }: Props) {
       <button
         type="button"
         onClick={() => setConfirming(true)}
-        className="self-start rounded border border-foreground/30 px-3 py-1 text-sm hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2"
+        className={`${buttonSecondary} self-start text-sm`}
       >
         Delete rating
       </button>
@@ -44,7 +49,7 @@ export function DeleteRatingButton({ titleId, filmTitle }: Props) {
   return (
     <form
       action={formAction}
-      className="flex flex-col gap-3 rounded border border-red-600/60 p-3"
+      className="flex flex-col gap-3 rounded-xl border border-danger p-3"
     >
       <input type="hidden" name="title_id" value={titleId} />
       <p className="text-sm">
@@ -55,7 +60,7 @@ export function DeleteRatingButton({ titleId, filmTitle }: Props) {
         <button
           type="submit"
           disabled={isPending}
-          className="rounded bg-red-700 px-3 py-1 text-sm font-medium text-white hover:opacity-90 active:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
+          className={`${buttonDanger} text-sm`}
         >
           {isPending ? "Deleting…" : "Yes, delete"}
         </button>
@@ -66,13 +71,13 @@ export function DeleteRatingButton({ titleId, filmTitle }: Props) {
           // The safe choice gets the focus, so a stray press of Enter
           // cancels instead of deleting.
           autoFocus
-          className="rounded border border-foreground/30 px-3 py-1 text-sm hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2"
+          className={`${buttonSecondary} text-sm`}
         >
           Cancel
         </button>
       </div>
       {state.status === "error" ? (
-        <p role="alert" className="text-sm text-red-700 dark:text-red-400">
+        <p role="alert" className={errorText}>
           {state.message}
         </p>
       ) : null}

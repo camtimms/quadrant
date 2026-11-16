@@ -40,25 +40,25 @@ export function GroupAverage({ points }: Props) {
     // <dd> after it gives the value. Screen readers announce them as pairs.
     <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3">
       <div>
-        <dt className="opacity-70">Quality</dt>
+        <dt className="text-ink-muted">Quality</dt>
         <dd className="text-lg font-semibold">
           {formatScore(average.quality)}
         </dd>
       </div>
       <div>
-        <dt className="opacity-70">Enjoyment</dt>
+        <dt className="text-ink-muted">Enjoyment</dt>
         <dd className="text-lg font-semibold">
           {formatScore(average.enjoyment)}
         </dd>
       </div>
       <div>
-        <dt className="opacity-70">Rated by</dt>
+        <dt className="text-ink-muted">Rated by</dt>
         <dd className="text-lg font-semibold">
           {points.length === 1 ? "1 member" : `${points.length} members`}
         </dd>
       </div>
       <div>
-        <dt className="opacity-70">Placement</dt>
+        <dt className="text-ink-muted">Placement</dt>
         {/* Classified from the rounded average, the same number shown
             above, so the label always matches what is on screen (R27). */}
         <dd className="text-lg font-semibold">
@@ -66,12 +66,12 @@ export function GroupAverage({ points }: Props) {
         </dd>
       </div>
       <div className="col-span-2">
-        <dt className="opacity-70">Biggest disagreement</dt>
+        <dt className="text-ink-muted">Biggest disagreement</dt>
         <dd>
           {disagreement === null ? (
             <>
               <span className="text-lg font-semibold">—</span>{" "}
-              <span className="opacity-70">(needs two ratings)</span>
+              <span className="text-ink-muted">(needs two ratings)</span>
             </>
           ) : (
             // Rounded only here, at the moment it is shown.

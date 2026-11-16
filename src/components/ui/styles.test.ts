@@ -10,6 +10,7 @@ const all = Object.entries(styles) as [string, string][];
 const INTERACTIVE = [
   "pill",
   "pillCurrent",
+  "pillSmall",
   "buttonMain",
   "buttonSecondary",
   "buttonDanger",
@@ -52,6 +53,13 @@ describe("shared styles", () => {
   // something marked only by yellow also gets the dark outline.
   it("outlines the current page's pill", () => {
     expect(styles.pillCurrent).toContain("ring-accent-outline");
+  });
+
+  // T32c measured the row buttons at 375 px: both fit on one line only
+  // with 10 px side padding (R65).
+  it("keeps the row buttons narrow enough to sit side by side", () => {
+    expect(styles.pillSmall).toContain("px-2.5");
+    expect(styles.pillSmall).toContain("text-sm");
   });
 
   it("gives text boxes an edge that can be seen", () => {

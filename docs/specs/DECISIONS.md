@@ -217,3 +217,5 @@ Running log: date, decision, why. Newest at the bottom.
 | 2026-11-16 | Requirements v10 and design section 17 approved by the owner. | Owner's approval ("Approve, start T32a1"). Q17 and Q18 taken as assumed. |
 | 2026-11-16 | T32a2: the current page's yellow pill (and later the chosen filter chip) gets the dark outline in light mode too, not only chart markers. | Yellow on the cream nav track is about 1.1 : 1, so without the outline the current page would be marked by colour alone (NFR14). |
 | 2026-11-16 | T32a2: hover and press feedback uses a brightness filter (darker in light mode, brighter in dark) rather than a second colour per surface. | One rule works on every surface and needs no extra tokens to measure. |
+| 2026-11-16 | T32a3: the film-list card has no inner padding; the rows keep their own. | T32c's row buttons fit side by side at 375 px with 6 px to spare (R65); card padding would have wrapped them. |
+| 2026-11-16 | T32a3: the in-row score editor and the placement preview are inset panels (`page` and `well` colours) rather than outlined boxes. | On a white or dark grey card an inset colour separates them without another edge to measure. |

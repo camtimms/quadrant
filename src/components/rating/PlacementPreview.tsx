@@ -22,9 +22,9 @@ export function PlacementPreview({
       // aria-live="polite": a screen reader reads the new placement out when
       // it changes, once the member pauses, without interrupting them.
       aria-live="polite"
-      className="rounded border border-foreground/20 px-3 py-2 text-sm"
+      className="rounded-xl bg-well px-3 py-2 text-sm"
     >
-      <span className="opacity-70">
+      <span className="text-ink-muted">
         {quality} / {enjoyment} is{" "}
       </span>
       <strong className="font-semibold">{PLACEMENT_LABELS[placement]}</strong>

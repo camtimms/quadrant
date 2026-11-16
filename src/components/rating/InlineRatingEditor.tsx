@@ -7,6 +7,12 @@ import { saveRating } from "@/app/(app)/actions/rating";
 import { Spinner } from "@/components/Spinner";
 import { PlacementPreview } from "@/components/rating/PlacementPreview";
 import { ScoreSlider } from "@/components/rating/ScoreSlider";
+import {
+  buttonMain,
+  buttonSecondary,
+  errorText,
+  pillSmall,
+} from "@/components/ui/styles";
 import type { Point } from "@/lib/quadrant";
 import { SCALE_END_LABELS } from "@/lib/quadrant";
 import type { RatingFormState } from "@/lib/validation/rating";
@@ -47,7 +53,7 @@ export function InlineRatingEditor({ film, returnTo }: Props) {
         // Several of these sit in one list. The visible text is short; the
         // label a screen reader hears says which film it is for.
         aria-label={`Update scores for ${film.title}`}
-        className="rounded border border-foreground/30 px-2.5 py-1 text-sm whitespace-nowrap hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2"
+        className={pillSmall}
       >
         Update scores
       </button>
@@ -87,7 +93,9 @@ function OpenEditor({
       // A mark the row's layout looks for, to give the open editor the
       // full width under the film (see rowLayout.ts, R65).
       data-editor-open=""
-      className="flex w-full flex-col gap-4 rounded border border-foreground/30 p-3"
+      // An inset panel in the page colour, so the open editor stands apart
+      // from the white (or dark grey) list card around it.
+      className="flex w-full flex-col gap-4 rounded-xl bg-page p-3"
     >
       <input type="hidden" name="tmdb_id" value={film.tmdbId} />
       <input type="hidden" name="return_to" value={returnTo} />
@@ -117,7 +125,7 @@ function OpenEditor({
       <PlacementPreview quality={quality} enjoyment={enjoyment} />
 
       {state.status === "error" ? (
-        <p role="alert" className="text-sm text-red-700 dark:text-red-400">
+        <p role="alert" className={errorText}>
           {state.message}
         </p>
       ) : null}
@@ -126,7 +134,7 @@ function OpenEditor({
         <button
           type="submit"
           disabled={isPending}
-          className="rounded bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90 active:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
+          className={`${buttonMain} text-sm`}
         >
           {isPending ? "Saving…" : "Save"}
         </button>
@@ -134,7 +142,7 @@ function OpenEditor({
           type="button"
           disabled={isPending}
           onClick={onCancel}
-          className="rounded border border-foreground/30 px-4 py-2 text-sm hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2"
+          className={`${buttonSecondary} text-sm`}
         >
           Cancel
         </button>

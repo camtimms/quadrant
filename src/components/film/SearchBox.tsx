@@ -237,7 +237,7 @@ export function SearchBox({ initialQuery = "" }: Props) {
           ref={resultsRef}
           // Up on the first result goes back to the box (R64).
           onUpFromFirst={() => inputRef.current?.focus()}
-          className="flex flex-col gap-1"
+          className="flex flex-col divide-y divide-well rounded-2xl bg-card"
         >
           {state.films.map((film) => (
             // key tells React which row is which when the list changes.

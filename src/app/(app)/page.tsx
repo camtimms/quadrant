@@ -80,7 +80,7 @@ export default async function MyFilmsPage({ searchParams }: PageProps<"/">) {
         // role="status" makes screen readers announce it.
         <p
           role="status"
-          className="rounded border border-foreground/30 px-3 py-2 text-sm break-words"
+          className="rounded-xl bg-card px-3 py-2 text-sm break-words"
         >
           Saved. <strong className="font-semibold">{justRated.title}</strong> is{" "}
           {justRated.point.quality} / {justRated.point.enjoyment}:{" "}
@@ -104,7 +104,7 @@ export default async function MyFilmsPage({ searchParams }: PageProps<"/">) {
       <section aria-labelledby="film-list" className="flex flex-col gap-4">
         <h2 id="film-list" className="text-lg font-semibold">
           {filter ? PLACEMENT_LABELS[filter] : "All films"}{" "}
-          <span className="font-normal opacity-70">
+          <span className="font-normal text-ink-muted">
             ({shown.length === 1 ? "1 film" : `${shown.length} films`})
           </span>
         </h2>

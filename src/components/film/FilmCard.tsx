@@ -17,7 +17,7 @@ export function FilmCard({ film }: { film: TmdbFilm }) {
       href={`/film/${film.tmdbId}`}
       // Marks this link as the film in its row, for Up and Down (R64).
       {...ARROW_ITEM}
-      className="flex items-center gap-4 rounded p-2 hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2"
+      className="flex items-center gap-4 rounded-xl p-2 hover:bg-well active:brightness-95 dark:active:brightness-125 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
     >
       <PosterImage
         posterPath={film.posterPath}
@@ -28,7 +28,7 @@ export function FilmCard({ film }: { film: TmdbFilm }) {
           wider than a phone screen. */}
       <span className="flex min-w-0 flex-col gap-1">
         <span className="font-medium break-words">{film.title}</span>
-        <span className="text-sm opacity-70">
+        <span className="text-sm text-ink-muted">
           {film.year ?? "Year unknown"}
         </span>
       </span>

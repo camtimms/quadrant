@@ -28,7 +28,7 @@ export function SortLinks({ active, filter }: Props) {
   return (
     <nav aria-label="Order" className="flex flex-wrap items-center gap-2">
       {/* Hidden from screen readers: the nav's own label already says it. */}
-      <span aria-hidden="true" className="text-sm opacity-70">
+      <span aria-hidden="true" className="text-sm text-ink-muted">
         Order
       </span>
       {SORTS.map(({ sort, label }) => (

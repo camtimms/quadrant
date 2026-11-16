@@ -43,6 +43,13 @@ export const errorText = "text-sm text-danger";
 export const pill = `inline-flex items-center justify-center gap-1 rounded-full bg-well px-3 py-1.5 text-ink ${pressed} ${focusRing}`;
 
 /**
+ * A smaller pill for the buttons inside a film row ("Update scores",
+ * "Film page"). T32c measured both on one line at 375 px only with 10 px
+ * side padding (R65).
+ */
+export const pillSmall = `inline-flex items-center justify-center gap-1 rounded-full bg-well px-2.5 py-1 text-sm whitespace-nowrap text-ink ${pressed} ${focusRing}`;
+
+/**
  * The chosen pill: the current page, the chosen filter. Yellow with dark
  * text, bold, and outlined in light mode, where yellow on cream is too
  * faint to be the only sign (NFR14).

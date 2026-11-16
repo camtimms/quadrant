@@ -21,7 +21,10 @@ export default function Loading() {
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 p-6">
       {/* role="status" makes a screen reader say "Loading". */}
-      <p role="status" className="flex items-center gap-2 text-sm opacity-80">
+      <p
+        role="status"
+        className="flex items-center gap-2 text-sm text-ink-muted"
+      >
         <Spinner /> Loading…
       </p>
       {/* Grey blocks roughly where content will be, so the page does not
@@ -31,10 +34,10 @@ export default function Loading() {
         aria-hidden="true"
         className="flex animate-pulse flex-col gap-4 motion-reduce:animate-none"
       >
-        <div className="h-7 w-40 rounded bg-foreground/10" />
-        <div className="h-24 rounded bg-foreground/10" />
-        <div className="h-24 rounded bg-foreground/10" />
-        <div className="h-24 rounded bg-foreground/10" />
+        <div className="h-7 w-40 rounded-xl bg-well" />
+        <div className="h-24 rounded-xl bg-well" />
+        <div className="h-24 rounded-xl bg-well" />
+        <div className="h-24 rounded-xl bg-well" />
       </div>
     </main>
   );

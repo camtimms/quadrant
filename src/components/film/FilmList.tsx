@@ -48,14 +48,19 @@ type Props = {
  */
 export function FilmList({ films, editReturnTo }: Props) {
   if (films.length === 0) {
-    return <p className="text-sm opacity-70">No films to show here.</p>;
+    return <p className="text-sm text-ink-muted">No films to show here.</p>;
   }
 
   // ArrowKeyList makes the list one selectable area: Up and Down move
   // between the films, Tab passes the whole list in a step or two, and Down
   // from elsewhere on the page comes here ("primary", R64).
   return (
-    <ArrowKeyList kind="primary" className="flex flex-col gap-1">
+    // One card holds the whole list, with a thin line between films,
+    // rather than a card per film (design 17.4).
+    <ArrowKeyList
+      kind="primary"
+      className="flex flex-col divide-y divide-well rounded-2xl bg-card"
+    >
       {films.map((film) => (
         // The film, then its buttons tucked under its details beside the
         // poster (R65; see rowLayout.ts).
@@ -79,7 +84,7 @@ export function FilmList({ films, editReturnTo }: Props) {
               >
                 {film.title}
               </span>
-              <span className="text-sm opacity-70">
+              <span className="text-sm text-ink-muted">
                 {film.year ?? "Year unknown"}
               </span>
               <span className="text-sm">

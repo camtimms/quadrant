@@ -92,7 +92,7 @@ export default async function FilmPage({
         />
         <div className="flex min-w-0 flex-col gap-1">
           <h1 className="text-2xl font-semibold break-words">{film.title}</h1>
-          <p className="opacity-70">{film.year ?? "Year unknown"}</p>
+          <p className="text-ink-muted">{film.year ?? "Year unknown"}</p>
         </div>
       </div>
 
@@ -105,7 +105,7 @@ export default async function FilmPage({
           <h2 id="about-film" className="text-lg font-semibold">
             About this film
           </h2>
-          <p className="text-sm break-words whitespace-pre-line opacity-90">
+          <p className="text-sm break-words whitespace-pre-line">
             {film.overview}
           </p>
         </section>

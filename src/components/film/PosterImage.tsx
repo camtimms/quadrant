@@ -33,7 +33,7 @@ export function PosterImage({ posterPath, title, size }: Props) {
   const [failed, setFailed] = useState(false);
 
   const url = posterUrl(posterPath, size);
-  const shape = `${WIDTH_CLASS[size]} aspect-[2/3] shrink-0 rounded`;
+  const shape = `${WIDTH_CLASS[size]} aspect-[2/3] shrink-0 rounded-lg`;
 
   if (!url || failed) {
     return (
@@ -42,7 +42,7 @@ export function PosterImage({ posterPath, title, size }: Props) {
         // it would a real poster, by the film's title.
         role="img"
         aria-label={title}
-        className={`${shape} flex items-center justify-center border border-foreground/20 bg-foreground/10 p-1 text-center text-xs opacity-80`}
+        className={`${shape} flex items-center justify-center bg-well p-1 text-center text-xs text-ink-muted`}
       >
         No poster
       </div>
@@ -60,7 +60,7 @@ export function PosterImage({ posterPath, title, size }: Props) {
       // Posters further down the page are only fetched as they scroll near.
       loading="lazy"
       onError={() => setFailed(true)}
-      className={`${shape} bg-foreground/10 object-cover`}
+      className={`${shape} bg-well object-cover`}
     />
   );
 }

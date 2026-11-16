@@ -39,7 +39,7 @@ export function GroupLine({
   disagreement?: number | null;
 }) {
   return (
-    <span data-testid="group-line" className="text-sm opacity-70">
+    <span data-testid="group-line" className="text-sm text-ink-muted">
       Rated by {ratedBy === 1 ? "1 member" : `${ratedBy} members`}
       {disagreement != null
         ? ` · Biggest disagreement ${formatScore(roundToOneDecimal(disagreement))}`
@@ -89,7 +89,7 @@ export function RaterLines({ raters, ratedBy, tmdbId, title }: Props) {
                     link simply leads to My films. */}
                 <MemberName rating={{ ...rater, isViewer: false }} />
               </span>
-              <span data-testid="rater-scores" className="opacity-80">
+              <span data-testid="rater-scores" className="text-ink-muted">
                 Quality {formatScore(rater.point.quality)} · Enjoyment{" "}
                 {formatScore(rater.point.enjoyment)}
               </span>
@@ -101,7 +101,7 @@ export function RaterLines({ raters, ratedBy, tmdbId, title }: Props) {
               // everywhere a member's words are shown.
               <p
                 data-testid="review-start"
-                className="line-clamp-3 break-words opacity-90"
+                className="line-clamp-3 break-words"
               >
                 {rater.reviewStart}
               </p>

@@ -83,36 +83,13 @@ describe("source accessibility rules", () => {
   // breaks the rule fails too, as a reminder to take it off.
   describe("colours come from the theme", () => {
     const UNTOKENED =
-      /(?:foreground|background)\/\d+|(?<![\w:-])opacity-(?!100\b)[1-9]\d*\b|\b(?:text|bg|border|fill|stroke)-(?:red|green|blue|gray|yellow|zinc|neutral|slate|white|black)(?:-\d+)?\b|#[0-9a-fA-F]{3,8}\b/;
+      /(?:foreground|background)\/\d+|(?:bg|text|border|fill|stroke|outline|ring|ring-offset|divide|decoration|accent)-(?:foreground|background)|(?<![\w:-])opacity-(?!100\b)[1-9]\d*\b|\b(?:text|bg|border|fill|stroke)-(?:red|green|blue|gray|yellow|zinc|neutral|slate|white|black)(?:-\d+)?\b|#[0-9a-fA-F]{3,8}\b/;
 
     const NOT_YET_MOVED = [
-      "src/app/(app)/film/[tmdbId]/loading.tsx",
-      "src/app/(app)/film/[tmdbId]/page.tsx",
-      "src/app/(app)/friends/page.tsx",
-      "src/app/(app)/loading.tsx",
-      "src/app/(app)/members/[id]/page.tsx",
-      "src/app/(app)/page.tsx",
       "src/components/chart/PointPanel.tsx",
       "src/components/chart/QuadrantChart.tsx",
       "src/components/chart/SpokeMap.tsx",
       "src/components/film/DisagreementTable.tsx",
-      "src/components/film/FilmCard.tsx",
-      "src/components/film/FilmList.tsx",
-      "src/components/film/FilmPageButton.tsx",
-      "src/components/film/FilterChips.tsx",
-      "src/components/film/GroupAverage.tsx",
-      "src/components/film/MemberName.tsx",
-      "src/components/film/PosterImage.tsx",
-      "src/components/film/RaterLines.tsx",
-      "src/components/film/RatingCards.tsx",
-      "src/components/film/rowLayout.ts",
-      "src/components/film/SortLinks.tsx",
-      "src/components/rating/DeleteRatingButton.tsx",
-      "src/components/rating/InlineRatingEditor.tsx",
-      "src/components/rating/MyRatingSection.tsx",
-      "src/components/rating/PlacementPreview.tsx",
-      "src/components/rating/RatingForm.tsx",
-      "src/components/rating/ScoreSlider.tsx",
     ];
 
     /** Lines that break the rule, ignoring links to a part of the page. */

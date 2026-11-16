@@ -25,8 +25,10 @@
  *    open); the margins are then dropped and the editor sits full width
  *    under the film. Pure CSS: nothing has to tell the row it opened.
  */
+// hover:bg-well: inside a white (or dark grey) card the row darkens to
+// the theme's "well" colour on hover; a press dims it at once (NFR23).
 export const FILM_LINK =
-  "flex items-start gap-3 rounded p-2 hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2";
+  "flex items-start gap-3 rounded-xl p-2 hover:bg-well active:brightness-95 dark:active:brightness-125 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
 
 export const FILM_DETAILS = "flex min-w-0 flex-col gap-0.5 pb-10";
 

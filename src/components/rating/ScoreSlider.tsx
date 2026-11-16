@@ -60,7 +60,7 @@ export function ScoreSlider({
           {value}
         </span>
       </div>
-      <p id={`${id}_hint`} className="text-sm opacity-70">
+      <p id={`${id}_hint`} className="text-sm text-ink-muted">
         {hint}
         {/* "sr-only" text is invisible on screen but read by screen
             readers. Sighted members see the same words under the slider. */}
@@ -86,13 +86,15 @@ export function ScoreSlider({
         aria-invalid={invalid ? true : undefined}
         // h-11 gives a finger-sized target on a phone; accent-color tints
         // the browser's own slider to match the text colour.
-        className="h-11 w-full cursor-pointer accent-foreground focus-visible:outline-2 focus-visible:outline-offset-2"
+        // accent-color tints the browser's own slider: dark ink on cream, the
+        // yellow on black, so the thumb can be seen in either mode (17.4).
+        className="h-11 w-full cursor-pointer accent-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus dark:accent-accent"
       />
       {/* The ends of the scale, in words (R49). Hidden from screen readers
           only because the hint above already tells them the same thing. */}
       <div
         aria-hidden="true"
-        className="flex justify-between text-sm opacity-70"
+        className="flex justify-between text-sm text-ink-muted"
       >
         <span>{lowLabel}</span>
         <span>{highLabel}</span>

@@ -8,6 +8,7 @@ import { useActionState, useState } from "react";
 import { saveRating } from "@/app/(app)/actions/rating";
 import { PlacementPreview } from "@/components/rating/PlacementPreview";
 import { ScoreSlider } from "@/components/rating/ScoreSlider";
+import { buttonMain, errorText, textField } from "@/components/ui/styles";
 import { SCALE_END_LABELS } from "@/lib/quadrant";
 import {
   REVIEW_MAX_LENGTH,
@@ -98,7 +99,7 @@ export function RatingForm({ tmdbId, initialRating }: Props) {
 
       <div className="flex flex-col gap-1">
         <label htmlFor="review" className="font-medium">
-          Review <span className="font-normal opacity-70">(optional)</span>
+          Review <span className="font-normal text-ink-muted">(optional)</span>
         </label>
         <textarea
           id="review"
@@ -110,16 +111,16 @@ export function RatingForm({ tmdbId, initialRating }: Props) {
           maxLength={REVIEW_MAX_LENGTH}
           aria-describedby="review_count"
           aria-invalid={errorField === "review" ? true : undefined}
-          className="rounded border border-foreground/50 bg-transparent px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2"
+          className={textField}
         />
-        <p id="review_count" className="text-sm tabular-nums opacity-70">
+        <p id="review_count" className="text-sm tabular-nums text-ink-muted">
           {reviewLength} / {REVIEW_MAX_LENGTH}
         </p>
       </div>
 
       {state.status === "error" ? (
         // role="alert" makes screen readers announce the problem (NFR15).
-        <p role="alert" className="text-sm text-red-700 dark:text-red-400">
+        <p role="alert" className={errorText}>
           {state.message}
         </p>
       ) : null}
@@ -127,7 +128,7 @@ export function RatingForm({ tmdbId, initialRating }: Props) {
       <button
         type="submit"
         disabled={isPending}
-        className="self-start rounded bg-foreground px-4 py-2 font-medium text-background hover:opacity-90 active:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
+        className={`${buttonMain} self-start`}
       >
         {isPending
           ? "Saving…"

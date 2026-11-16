@@ -57,7 +57,7 @@ export default async function MemberPage({
         <h1 className="text-2xl font-semibold break-words">
           {name}&apos;s films
         </h1>
-        <p className="break-words opacity-70">
+        <p className="break-words text-ink-muted">
           {name} hasn&apos;t rated anything yet.
         </p>
       </main>
@@ -80,7 +80,7 @@ export default async function MemberPage({
       <section aria-labelledby="film-list" className="flex flex-col gap-4">
         <h2 id="film-list" className="text-lg font-semibold">
           {filter ? PLACEMENT_LABELS[filter] : "All films"}{" "}
-          <span className="font-normal opacity-70">
+          <span className="font-normal text-ink-muted">
             ({shown.length === 1 ? "1 film" : `${shown.length} films`})
           </span>
         </h2>

@@ -12,7 +12,10 @@ import { Spinner } from "@/components/Spinner";
 export default function FilmLoading() {
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 p-6">
-      <p role="status" className="flex items-center gap-2 text-sm opacity-80">
+      <p
+        role="status"
+        className="flex items-center gap-2 text-sm text-ink-muted"
+      >
         <Spinner /> Loading film…
       </p>
       <div
@@ -21,15 +24,15 @@ export default function FilmLoading() {
       >
         <div className="flex items-start gap-4">
           {/* Same size as the poster on the real page (w-44, 2:3). */}
-          <div className="aspect-[2/3] w-44 shrink-0 rounded bg-foreground/10" />
+          <div className="aspect-[2/3] w-44 shrink-0 rounded-xl bg-well" />
           <div className="flex flex-1 flex-col gap-2">
-            <div className="h-7 w-3/4 rounded bg-foreground/10" />
-            <div className="h-5 w-16 rounded bg-foreground/10" />
+            <div className="h-7 w-3/4 rounded-xl bg-well" />
+            <div className="h-5 w-16 rounded-xl bg-well" />
           </div>
         </div>
-        <div className="h-6 w-32 rounded bg-foreground/10" />
-        <div className="h-16 rounded bg-foreground/10" />
-        <div className="h-16 rounded bg-foreground/10" />
+        <div className="h-6 w-32 rounded-xl bg-well" />
+        <div className="h-16 rounded-xl bg-well" />
+        <div className="h-16 rounded-xl bg-well" />
       </div>
     </main>
   );

@@ -66,7 +66,7 @@ export default async function FriendsFilmsPage({
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 p-6">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">Friends&apos; films</h1>
-        <p className="text-sm opacity-70">
+        <p className="text-sm text-ink-muted">
           Every film anyone here has rated, yours included, placed at the
           group&apos;s average score.
         </p>
@@ -86,7 +86,7 @@ export default async function FriendsFilmsPage({
       <section aria-labelledby="film-list" className="flex flex-col gap-4">
         <h2 id="film-list" className="text-lg font-semibold">
           {filter ? PLACEMENT_LABELS[filter] : "All films"}{" "}
-          <span className="font-normal opacity-70">
+          <span className="font-normal text-ink-muted">
             ({shown.length === 1 ? "1 film" : `${shown.length} films`})
           </span>
         </h2>

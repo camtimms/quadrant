@@ -19,7 +19,7 @@ export function MemberName({ rating }: Props) {
     return (
       <>
         {rating.displayName}
-        <span className="font-normal opacity-70"> (you)</span>
+        <span className="font-normal text-ink-muted"> (you)</span>
       </>
     );
   }
