@@ -1606,8 +1606,9 @@ headings and 400 for text.
   - Labels are placed one at a time: "You" first, then friends from the
     longest spoke to the shortest, then "Average". For each, eight places
     around the point are tried (right, left, below, above, then the four
-    diagonals) at the normal distance, then at two and three times that
-    distance. The first place that stays inside the chart and touches no
+    diagonals) at the normal distance, then at two, three, four and five
+    times that distance _(four and five added in T32a6: in a 3 × 3 block of
+    neighbouring scores the centre name had no clear place within three)_. The first place that stays inside the chart and touches no
     placed label and no point is used. A place beyond the normal distance
     gets a thin joining line (R66).
   - If no place is free (E39), the label goes at the tried place that

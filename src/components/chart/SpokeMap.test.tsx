@@ -365,3 +365,85 @@ describe("SpokeMap friend colours (R67)", () => {
     expect(container.innerHTML).toMatch(/border-friend-\d/);
   });
 });
+
+// R66 (design 17.6): names drawn above everything, each on its own solid
+// pill, placed so that none overlap and none covers a point.
+describe("SpokeMap names (R66)", () => {
+  const labels = (container: HTMLElement) =>
+    all(container, "[data-point-label], [data-average-label]");
+
+  it("draws every name after (above) every line and point", () => {
+    const { container } = render(
+      <SpokeMap ratings={[me, rating("Bob", 2, 9), rating("Zoe", 9, 8)]} />,
+    );
+    const drawn = [
+      ...all(container, "[data-point]"),
+      ...all(container, "[data-spoke]"),
+    ];
+    for (const label of labels(container)) {
+      for (const element of drawn) {
+        expect(
+          element.compareDocumentPosition(label) &
+            Node.DOCUMENT_POSITION_FOLLOWING,
+        ).toBeTruthy();
+      }
+    }
+  });
+
+  it("puts every name in a place of its own", () => {
+    // Nine friends in a 3 x 3 block of neighbouring scores, round the
+    // viewer: the most crowded map a group of ten is likely to make.
+    const block = [4, 5, 6].flatMap((q) =>
+      [4, 6, 7].map((e) => rating(`F${q}${e}`, q, e)),
+    );
+    const { container } = render(<SpokeMap ratings={[me, ...block]} />);
+    const places = labels(container).map(
+      (label) => `${label.style.left} ${label.style.top}`,
+    );
+    expect(places.every((place) => place.trim() !== "")).toBe(true);
+    expect(new Set(places).size).toBe(places.length);
+    // Some had to move further out, and are joined to their point.
+    expect(all(container, "[data-leader]").length).toBeGreaterThan(0);
+  });
+
+  it("draws no joining lines when every name fits beside its point", () => {
+    const { container } = render(
+      <SpokeMap ratings={[me, rating("Bob", 2, 9)]} />,
+    );
+    expect(all(container, "[data-leader]")).toHaveLength(0);
+  });
+
+  it("writes the viewer's own name on yellow", () => {
+    const { container } = render(
+      <SpokeMap ratings={[me, rating("Bob", 2, 9)]} />,
+    );
+    const [you] = all(container, "[data-point-label]");
+    expect(you.textContent).toBe("You");
+    expect(you.className).toContain("bg-accent");
+    expect(you.className).toContain("text-on-accent");
+  });
+
+  it("puts every other name on a solid card-coloured pill", () => {
+    const { container } = render(
+      <SpokeMap ratings={[me, rating("Bob", 2, 9), rating("Zoe", 9, 8)]} />,
+    );
+    const others = labels(container).filter(
+      (label) => label.textContent !== "You",
+    );
+    for (const label of others) {
+      expect(label.className).toContain("bg-card");
+      expect(label.className).not.toMatch(/bg-card\//);
+    }
+  });
+
+  // The tables under the chart give the full name.
+  it("cuts a long name short on the chart", () => {
+    const { container } = render(
+      <SpokeMap ratings={[me, rating("Bartholomew Fitzwilliam", 2, 9)]} />,
+    );
+    const name = container.querySelector(
+      '[data-name-of="id-Bartholomew Fitzwilliam"]',
+    )!;
+    expect(name.textContent).toBe("Bartholomew Fit…");
+  });
+});

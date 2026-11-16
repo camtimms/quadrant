@@ -1,5 +1,12 @@
 import { Fragment } from "react";
 import { friendColourClasses } from "@/components/chart/friendColours";
+import {
+  chartName,
+  placeLabels,
+  REFERENCE_SIZE,
+  type LabelRequest,
+  type Marker,
+} from "@/components/chart/labelPlacement";
 import { ChartFrame } from "@/components/chart/QuadrantChart";
 import {
   CHART_SIZE,
@@ -19,6 +26,17 @@ type Props = {
   /** Every member's current rating of the film, the viewer's included. */
   ratings: readonly MemberRating[];
 };
+
+/** The id the group average's label is placed under. */
+const AVERAGE_ID = "average";
+
+/**
+ * A name's pill. Its height (18 px) and padding (6 px each side) are what
+ * labelPlacement.ts assumes when it works out where names fit; whitespace-
+ * nowrap keeps the text on one line, as the estimate does.
+ */
+const LABEL =
+  "absolute h-[18px] rounded-full px-1.5 text-xs leading-[18px] font-medium whitespace-nowrap";
 
 /** Centres a marker on the position given by its left and top. */
 const CENTRED = "absolute -translate-x-1/2 -translate-y-1/2";
@@ -79,8 +97,8 @@ export function SpokeMap({ ratings }: Props) {
   );
   const colourOf = (userId: string) =>
     friendColourClasses(colours.get(userId) ?? 1);
-  const isHub = (place: (typeof places)[number]) =>
-    place.items.some((rating) => rating.isViewer);
+  type Place = (typeof places)[number];
+  const isHub = (place: Place) => place.items.some((rating) => rating.isViewer);
   const hub = places.find(isHub);
 
   // One spoke to each OTHER place. A friend who agrees exactly is on the hub
@@ -97,6 +115,63 @@ export function SpokeMap({ ratings }: Props) {
   // same spot would only cover the first, so it is left out (E11).
   const average =
     ratings.length > 1 ? groupAverage(ratings.map((r) => r.point)) : null;
+
+  // ---- Where every name goes (R66, design 17.6) ----------------------
+  // placeLabels works in pixels on the narrowest chart; these turn the
+  // chart's own units into those pixels.
+  const toPixels = (units: number) => (units / CHART_SIZE) * REFERENCE_SIZE;
+  const pixelPoint = (quality: number, enjoyment: number) => ({
+    x: toPixels(chartX(quality)),
+    y: toPixels(chartY(enjoyment)),
+  });
+  // How far each marker reaches from its centre, in pixels: half its size,
+  // plus the viewer's ring (2 px wide, 2 px from the dot).
+  const markerOf = (place: Place): Marker => {
+    const half = place.items.length > 1 ? 12 : 8;
+    return {
+      ...pixelPoint(place.point.quality, place.point.enjoyment),
+      radius: isHub(place) ? half + 4 : half,
+    };
+  };
+  // The diamond is a 20 px square turned on its corner: about 14 px out.
+  const averageMarker: Marker | null = average
+    ? { ...pixelPoint(average.quality, average.enjoyment), radius: 14 }
+    : null;
+  const markers = [
+    ...places.map(markerOf),
+    ...(averageMarker ? [averageMarker] : []),
+  ];
+
+  /** What a place's label says: "You", or names cut to 16 characters. */
+  const namesAt = (place: Place) =>
+    place.items.map((rating) =>
+      rating.isViewer ? "You" : chartName(rating.displayName),
+    );
+
+  // The most important names choose first: "You", then friends from the
+  // furthest away (the longest spokes are what the map is about), then
+  // anyone else, then "Average".
+  const furthestFirst = [...spokes]
+    .sort((a, b) => b.disagreement - a.disagreement)
+    .map(({ item }) => item);
+  const ordered = [
+    ...(hub ? [hub] : []),
+    ...furthestFirst,
+    ...places.filter(
+      (place) => !isHub(place) && !furthestFirst.includes(place),
+    ),
+  ];
+  const requests: LabelRequest[] = ordered.map((place) => ({
+    id: place.items[0].userId,
+    text: namesAt(place).join(", "),
+    point: markerOf(place),
+  }));
+  if (averageMarker) {
+    requests.push({ id: AVERAGE_ID, text: "Average", point: averageMarker });
+  }
+  const placement = new Map(
+    placeLabels(requests, markers).map((label) => [label.id, label]),
+  );
 
   const description =
     (ratings.length === 1
@@ -143,32 +218,40 @@ export function SpokeMap({ ratings }: Props) {
             : null}
         </svg>
 
+        {/* Joining lines, from a point to a name that had to move further
+            out to find room (R66). Drawn in pixels of the reference chart,
+            the units placeLabels works in. */}
+        <svg
+          viewBox={`0 0 ${REFERENCE_SIZE} ${REFERENCE_SIZE}`}
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full"
+        >
+          {[...placement.values()].map((label) =>
+            label.leader ? (
+              <line
+                key={label.id}
+                data-leader
+                {...label.leader}
+                className="stroke-ink-muted"
+                strokeWidth={1}
+              />
+            ) : null,
+          )}
+        </svg>
+
         {/* The group average, drawn first so it sits UNDER the members'
             points. It is slightly larger and hollow, so a member's dot at
             the same spot shows inside it instead of being hidden. */}
         {average ? (
-          <>
-            <div
-              data-point="average"
-              data-shape="diamond"
-              style={{
-                left: toPercent(chartX(average.quality)),
-                top: toPercent(chartY(average.enjoyment)),
-              }}
-              className={`${CENTRED} h-5 w-5 ${SHAPES.average}`}
-            />
-            <span
-              data-average-label
-              style={{
-                left: toPercent(chartX(average.quality)),
-                top: toPercent(chartY(average.enjoyment)),
-              }}
-              // Written under the diamond; members' names go beside theirs.
-              className="absolute -translate-x-1/2 translate-y-3.5 rounded-full bg-card px-1.5 text-xs text-ink"
-            >
-              Average
-            </span>
-          </>
+          <div
+            data-point="average"
+            data-shape="diamond"
+            style={{
+              left: toPercent(chartX(average.quality)),
+              top: toPercent(chartY(average.enjoyment)),
+            }}
+            className={`${CENTRED} h-5 w-5 ${SHAPES.average}`}
+          />
         ) : null}
 
         {places.map((place) => {
@@ -187,10 +270,6 @@ export function SpokeMap({ ratings }: Props) {
             kind === "viewer"
               ? SHAPES.viewer
               : `${FRIEND_MARKER} ${onlyFriend ? colourOf(onlyFriend.userId).border : "border-ink"}`;
-          // The name goes on whichever side has more room: to the right of
-          // a point in the left half, to the left of one in the right half.
-          const nameOnRight = place.point.quality <= 5;
-
           return (
             // A Fragment groups two elements without adding one to the page.
             // It is written out in full (not as <>) so it can take the key,
@@ -207,38 +286,59 @@ export function SpokeMap({ ratings }: Props) {
               >
                 {count > 1 ? count : null}
               </div>
-              <span
-                data-point-label
-                style={position}
-                // max-w and truncate stop a 40-character name running off
-                // the chart; the tables below give every name in full.
-                className={`absolute max-w-[40%] -translate-y-1/2 truncate rounded-full bg-card px-1.5 text-xs font-medium text-ink ${
-                  nameOnRight
-                    ? "translate-x-4"
-                    : "-translate-x-[calc(100%+1rem)]"
-                }`}
-              >
-                {/* The viewer is "You"; everyone sharing the spot is
-                    named, so no rating is hidden behind another (R31). */}
-                {place.items.map((rating, index) => (
-                  <Fragment key={rating.userId}>
-                    {index > 0 ? ", " : null}
-                    <span
-                      data-name-of={rating.userId}
-                      className={
-                        rating.isViewer
-                          ? "font-semibold"
-                          : colourOf(rating.userId).text
-                      }
-                    >
-                      {rating.isViewer ? "You" : rating.displayName}
-                    </span>
-                  </Fragment>
-                ))}
-              </span>
             </Fragment>
           );
         })}
+
+        {/* Every name, drawn LAST so it sits above every line and point
+            (R66), each on a solid pill. Drawn in chart order; placed in
+            order of importance (above). */}
+        {places.map((place) => {
+          const label = placement.get(place.items[0].userId)!;
+          const youAlone = place.items.length === 1 && isHub(place);
+          return (
+            <span
+              key={place.items[0].userId}
+              data-point-label
+              style={{ left: label.left, top: label.top }}
+              className={`${LABEL} ${
+                youAlone
+                  ? "bg-accent font-semibold text-on-accent ring-1 ring-accent-outline"
+                  : "bg-card text-ink"
+              }`}
+            >
+              {/* The viewer is "You"; everyone sharing the spot is named,
+                  so no rating is hidden behind another (R31). */}
+              {place.items.map((rating, index) => (
+                <Fragment key={rating.userId}>
+                  {index > 0 ? ", " : null}
+                  <span
+                    data-name-of={rating.userId}
+                    className={
+                      rating.isViewer
+                        ? "font-semibold"
+                        : colourOf(rating.userId).text
+                    }
+                  >
+                    {rating.isViewer ? "You" : chartName(rating.displayName)}
+                  </span>
+                </Fragment>
+              ))}
+            </span>
+          );
+        })}
+        {average ? (
+          <span
+            data-average-label
+            style={{
+              left: placement.get(AVERAGE_ID)!.left,
+              top: placement.get(AVERAGE_ID)!.top,
+            }}
+            className={`${LABEL} bg-card text-ink`}
+          >
+            Average
+          </span>
+        ) : null}
       </div>
 
       {/* The key: what each shape means, in words (NFR14). */}
