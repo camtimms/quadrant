@@ -44,3 +44,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# end-to-end tests: saved test sessions, reports and failure traces
+/tests/e2e/.auth/
+/playwright-report/
+/test-results/

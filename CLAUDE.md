@@ -50,6 +50,7 @@ Stack: Next.js 16 (App Router) + TypeScript, Tailwind, Vitest. Node 22 or newer.
 | `npm test` | Unit tests once (Vitest) |
 | `npm run test:watch` | Unit tests, re-running on save |
 | `npm run test:rls` | Access-control tests against the dev Supabase project (needs `.env.test.local`) |
+| `npm run test:e2e` | End-to-end tests (Playwright): builds the app, runs it on port 3111 against the dev project, drives a phone-sized browser (needs `.env.test.local`) |
 | `npm run format` | Format code and config with Prettier |
 | `npm run format:check` | Check formatting without changing files |
 | `npm run build` | Production build |
@@ -58,7 +59,8 @@ Stack: Next.js 16 (App Router) + TypeScript, Tailwind, Vitest. Node 22 or newer.
 | `npm run db:types` | Regenerate `src/lib/supabase/database.types.ts` from the linked project |
 
 Run lint, typecheck and test after every task, plus `test:rls` after any task
-that changes a migration or a policy. End-to-end commands arrive in T33.
+that changes a migration or a policy. Run `test:e2e` before a release and
+after any task that changes signing in, rating or the film page (about a minute).
 
 Next.js 16 differs from older versions in ways that matter (for example
 `proxy.ts` instead of `middleware.ts`). Its own docs are bundled in

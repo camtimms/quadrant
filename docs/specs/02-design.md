@@ -1034,6 +1034,15 @@ Notes:
 - **Test users.** Google sign-in can't be automated, so the dev project also
   has email/password sign-in enabled, used only by tests to create two members
   and one uninvited user. The production project has it disabled.
+- **End-to-end set-up (T33).** `npm run test:e2e` builds the app and runs it
+  on port 3111, so it never collides with a dev server on 3000. A setup step
+  creates two throwaway members (`e2e-test-…@example.com`) with the secret
+  key and signs each in with a password, capturing the session cookies
+  through `@supabase/ssr` itself rather than building them by hand; a
+  teardown step deletes them and their ratings. The browser is a phone
+  (Pixel 7 in Chromium), because the app is used mostly on phones. Tests run
+  one at a time, since they share one database. The same "dev project only"
+  safety catch as the access-control tests applies.
 - The access-control tests are the proof of NFR1; they are worth more than any
   amount of UI testing because they test the real lock, not the door sign.
 - `npm run lint`, `npm run typecheck`, `npm test` are run after every task

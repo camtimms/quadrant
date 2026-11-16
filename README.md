@@ -70,7 +70,7 @@ Environment variables for the deployed site are set in the Vercel dashboard
 
 | Project | Used for | Sign-in methods |
 | --- | --- | --- |
-| `quadrant-dev` | Local development and the automated access-control tests | Google, plus email + password for test users only |
+| `quadrant-dev` | Local development and the automated access-control and end-to-end tests | Google, plus email + password for test users only |
 | `quadrant-prod` | The live site and real ratings | Google only |
 
 The Supabase command-line tool is linked to `quadrant-dev`, so every database
@@ -80,6 +80,7 @@ command targets dev unless you deliberately use the production one:
 | --- | --- |
 | `npm run db:push` | `quadrant-dev` |
 | `npm run test:rls` | `quadrant-dev` (refuses to run against anything else) |
+| `npm run test:e2e` | `quadrant-dev` (same safety catch; creates and removes its own `e2e-test-` members) |
 | `npm run db:push:prod` | `quadrant-prod` |
 
 **Order for any database change:** write the migration, `npm run db:push`,
