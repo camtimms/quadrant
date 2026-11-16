@@ -312,3 +312,20 @@ describe("RatingCards likes", () => {
     expect(likeButtons()).toHaveLength(0);
   });
 });
+
+describe("RatingCards: times watched (R84)", () => {
+  it("says how many times a member has watched the film", () => {
+    render(
+      <RatingCards
+        ratings={[
+          rating("Bob", 3, 9, { timesWatched: 3 }),
+          rating("Zoe", 5, 5, { timesWatched: 2 }),
+          rating("Al", 5, 5, { timesWatched: 1 }),
+        ]}
+      />,
+    );
+    expect(cardOf("Bob").textContent).toContain("Watched 3 times");
+    expect(cardOf("Zoe").textContent).toContain("Watched twice");
+    expect(cardOf("Al").textContent).not.toContain("Watched");
+  });
+});

@@ -214,3 +214,23 @@ describe("MyRatingSection (R56)", () => {
     expect(details().open).toBe(true);
   });
 });
+
+describe("MyRatingSection: times watched (R84)", () => {
+  it("says how many times on the closed line", () => {
+    render(
+      <MyRatingSection rating={{ quality: 3, enjoyment: 9 }} timesWatched={4}>
+        <p>the form</p>
+      </MyRatingSection>,
+    );
+    expect(summary().textContent).toContain("Watched 4 times");
+  });
+
+  it("says nothing for a first watch", () => {
+    render(
+      <MyRatingSection rating={{ quality: 3, enjoyment: 9 }} timesWatched={1}>
+        <p>the form</p>
+      </MyRatingSection>,
+    );
+    expect(summary().textContent).not.toContain("Watched");
+  });
+});

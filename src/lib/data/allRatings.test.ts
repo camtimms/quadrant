@@ -70,6 +70,7 @@ function row(overrides: Record<string, unknown> = {}) {
     enjoyment: 9,
     review: "So bad it's good.",
     created_at: "2026-11-01T10:00:00+00:00",
+    watch_number: 1,
     profiles: {
       display_name: "Bob",
       avatar_url: null,
@@ -110,8 +111,16 @@ describe("loadAllRatings", () => {
         review: "So bad it's good.",
         ratingId: 7,
         likes: [],
+        timesWatched: 1,
       },
     ]);
+  });
+
+  // R84: the feed says "Watched 3 times" from this.
+  it("passes on how many times the member has watched the film", async () => {
+    mocks.rows = [row({ watch_number: 3 })];
+    const [rating] = await loadAllRatings();
+    expect(rating.timesWatched).toBe(3);
   });
 
   it("asks for every member's current ratings", async () => {

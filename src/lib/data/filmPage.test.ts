@@ -22,17 +22,27 @@ vi.mock("@/lib/supabase/server", () => ({
   // for one row, and `await` on the query itself for a list of rows.
   createClient: async () => ({
     from: (table: string) => {
+      // This query's own filters. A ratings query filtered to earlier
+      // viewings (is_current = false) answers from "ratings-earlier", so a
+      // test can give the two ratings queries different answers.
+      const own: [string, unknown][] = [];
+      const answer = () =>
+        own.some(([column, value]) => column === "is_current" && !value)
+          ? (mocks.tables[`${table}-earlier`] ?? { data: [], error: null })
+          : mocks.tables[table];
       const query = {
         select: () => query,
         eq(column: string, value: unknown) {
+          own.push([column, value]);
           (mocks.filters[table] ??= []).push([column, value]);
           return query;
         },
-        maybeSingle: async () => mocks.tables[table],
+        order: () => query,
+        maybeSingle: async () => answer(),
         // The real query builder can be awaited directly: it has a then()
         // method, like a promise. This gives the stand-in the same ability.
         then(resolve: (answer: { data: unknown; error: unknown }) => void) {
-          resolve(mocks.tables[table]);
+          resolve(answer());
         },
       };
       return query;
@@ -63,10 +73,12 @@ function ratingRow(
   review: string | null = null,
   avatarUrl: string | null = null,
   updatedAt = "2026-11-16T10:00:00+00:00",
+  watchNumber = 1,
 ) {
   return {
     id: 1,
     user_id: userId,
+    watch_number: watchNumber,
     quality,
     enjoyment,
     review,
@@ -134,6 +146,7 @@ describe("loadFilmPage", () => {
         titleId: null,
         myRating: null,
         ratings: [],
+        earlierViewings: [],
       });
     });
 
@@ -169,6 +182,7 @@ describe("loadFilmPage", () => {
         titleId: 42,
         myRating: null,
         ratings: [],
+        earlierViewings: [],
       });
       expect(mocks.getMovie).not.toHaveBeenCalled();
       expect(mocks.ensureTitle).not.toHaveBeenCalled();
@@ -479,6 +493,84 @@ describe("loadFilmPage", () => {
       await expect(loadFilmPage(10999, USER_ID)).rejects.toThrow(
         "Could not load the ratings.",
       );
+    });
+  });
+
+  describe("rewatches (R84, R85)", () => {
+    beforeEach(() => {
+      mocks.tables.titles = { data: storedTitle(1), error: null };
+    });
+
+    it("passes on how many times each member has watched it", async () => {
+      mocks.tables.ratings = {
+        data: [
+          ratingRow(USER_ID, "Cam", 7, 7),
+          ratingRow(BOB_ID, "Bob", 5, 5, null, null, undefined, 3),
+        ],
+        error: null,
+      };
+      const page = await loadFilmPage(10999, USER_ID);
+      if (page.status !== "ok") throw new Error(page.status);
+      expect(page.ratings.map((rating) => rating.timesWatched)).toEqual([1, 3]);
+    });
+
+    it("lists the viewer's earlier viewings when they have rewatched it", async () => {
+      mocks.tables.ratings = {
+        data: [ratingRow(USER_ID, "Cam", 9, 8, null, null, undefined, 2)],
+        error: null,
+      };
+      mocks.tables["ratings-earlier"] = {
+        data: [
+          {
+            created_at: "2025-12-24T10:00:00+00:00",
+            quality: 6,
+            enjoyment: 4,
+            review: "",
+          },
+        ],
+        error: null,
+      };
+      const page = await loadFilmPage(10999, USER_ID);
+      if (page.status !== "ok") throw new Error(page.status);
+      expect(page.earlierViewings).toEqual([
+        {
+          watchedAt: "2025-12-24T10:00:00+00:00",
+          point: { quality: 6, enjoyment: 4 },
+          review: null,
+        },
+      ]);
+      // Only the viewer's own, for this film.
+      expect(mocks.filters.ratings).toEqual(
+        expect.arrayContaining([
+          ["user_id", USER_ID],
+          ["title_id", 42],
+          ["is_current", false],
+        ]),
+      );
+    });
+
+    // Most films are watched once: no second query for them.
+    it("does not look for earlier viewings of a first watch", async () => {
+      mocks.tables.ratings = {
+        data: [ratingRow(USER_ID, "Cam", 9, 8)],
+        error: null,
+      };
+      const page = await loadFilmPage(10999, USER_ID);
+      if (page.status !== "ok") throw new Error(page.status);
+      expect(page.earlierViewings).toEqual([]);
+      expect(mocks.filters.ratings).not.toContainEqual(["is_current", false]);
+    });
+
+    it("lets a failure to read earlier viewings surface as an error", async () => {
+      mocks.tables.ratings = {
+        data: [ratingRow(USER_ID, "Cam", 9, 8, null, null, undefined, 2)],
+        error: null,
+      };
+      mocks.tables["ratings-earlier"] = {
+        data: null,
+        error: { message: "boom" },
+      };
+      await expect(loadFilmPage(10999, USER_ID)).rejects.toThrow();
     });
   });
 

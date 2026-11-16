@@ -41,6 +41,8 @@ export type RatingRow = {
   ratingId: number;
   /** Who liked the review, sorted by name (R78). */
   likes: readonly { userId: string; displayName: string }[];
+  /** How many times the member has watched the film (R84); 1 if left out. */
+  timesWatched?: number;
 };
 
 /** How many raters the Friends' films panel lists for one film (R58). */

@@ -111,3 +111,15 @@ describe("RecentRatings", () => {
     expect(screen.getByText("No ratings to show here.")).toBeTruthy();
   });
 });
+
+describe("RecentRatings: times watched (R84)", () => {
+  it("says how many times, and nothing for a first watch", () => {
+    show([
+      entry({ ratingId: 1, timesWatched: 2 }),
+      entry({ ratingId: 2, timesWatched: 1 }),
+    ]);
+    const items = screen.getAllByRole("listitem");
+    expect(items[0].textContent).toContain("Watched twice");
+    expect(items[1].textContent).not.toContain("Watched");
+  });
+});

@@ -7,6 +7,7 @@ import type { Liker } from "@/components/film/RatingCards";
 import { buttonSecondary, focusRing } from "@/components/ui/styles";
 import type { FeedEntry } from "@/lib/data/groupFilms";
 import { classify, formatScore, PLACEMENT_LABELS } from "@/lib/quadrant";
+import { timesWatchedLabel } from "@/lib/rewatch";
 
 type Props = {
   /** From recentFeed: newest first, reviews already cut short. */
@@ -80,6 +81,10 @@ export function RecentRatings({ entries, more, moreHref, viewer }: Props) {
                   Quality {formatScore(entry.point.quality)} · Enjoyment{" "}
                   {formatScore(entry.point.enjoyment)} ·{" "}
                   {PLACEMENT_LABELS[classify(entry.point)]}
+                  {/* R84: a rewatch says so; a first watch says nothing. */}
+                  {timesWatchedLabel(entry.timesWatched)
+                    ? ` · ${timesWatchedLabel(entry.timesWatched)}`
+                    : null}
                 </p>
                 {entry.reviewStart ? (
                   <>

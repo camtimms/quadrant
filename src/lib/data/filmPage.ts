@@ -5,6 +5,7 @@ import { pictureAddress } from "@/lib/picture";
 import { RATING_AUTHOR, REVIEW_LIKERS, toLikers } from "@/lib/data/embeds";
 
 import type { MemberRating } from "@/components/film/RatingCards";
+import type { EarlierViewing } from "@/components/rating/EarlierViewings";
 import { createClient } from "@/lib/supabase/server";
 import { getMovie, TmdbUnavailableError } from "@/lib/tmdb/client";
 import type { TmdbFilm } from "@/lib/tmdb/schema";
@@ -52,6 +53,11 @@ export type FilmPageData =
        * rated it.
        */
       ratings: MemberRating[];
+      /**
+       * The viewer's own earlier viewings of the film, newest first
+       * (R85). Empty unless they have logged a rewatch.
+       */
+      earlierViewings: EarlierViewing[];
     }
   // TMDB has no film with this id.
   | { status: "not-found" }
@@ -86,6 +92,7 @@ export async function loadFilmPage(
         titleId: null,
         myRating: null,
         ratings: [],
+        earlierViewings: [],
       };
     } catch (error) {
       if (!(error instanceof TmdbUnavailableError)) throw error;
@@ -116,7 +123,7 @@ export async function loadFilmPage(
   const { data: rows, error: ratingsError } = await supabase
     .from("ratings")
     .select(
-      `id, user_id, quality, enjoyment, review, updated_at, ${RATING_AUTHOR}, ${REVIEW_LIKERS}` as const,
+      `id, user_id, quality, enjoyment, review, updated_at, watch_number, ${RATING_AUTHOR}, ${REVIEW_LIKERS}` as const,
     )
     .eq("title_id", title.id)
     .eq("is_current", true);
@@ -143,6 +150,8 @@ export async function loadFilmPage(
       ratingId: row.id,
       // Who liked the review, by name (embeds.ts).
       likes: toLikers(row.review_likes),
+      // Which viewing the current rating is: "Watched 3 times" (R84).
+      timesWatched: row.watch_number,
     }))
     // The viewer's own rating first, then everyone else by name. Sorting
     // here, not in the database, keeps "whose page is this" out of the query.
@@ -160,6 +169,30 @@ export async function loadFilmPage(
   // The save time is only needed for the viewer's own rating, so it is
   // taken from the raw row rather than added to every member's card.
   const myRow = rows.find((row) => row.user_id === userId);
+
+  // R85: the viewer's earlier viewings. Asked for only when their current
+  // rating is a rewatch, so the usual film page (watched once) costs no
+  // second query.
+  let earlierViewings: EarlierViewing[] = [];
+  if (myRow && myRow.watch_number > 1) {
+    const { data: earlier, error: earlierError } = await supabase
+      .from("ratings")
+      .select("created_at, quality, enjoyment, review")
+      .eq("user_id", userId)
+      .eq("title_id", title.id)
+      .eq("is_current", false)
+      .order("created_at", { ascending: false });
+    if (earlierError) {
+      throw new Error("Could not load your earlier viewings.", {
+        cause: earlierError,
+      });
+    }
+    earlierViewings = earlier.map((row) => ({
+      watchedAt: row.created_at,
+      point: { quality: row.quality, enjoyment: row.enjoyment },
+      review: row.review || null,
+    }));
+  }
 
   return {
     status: "ok",
@@ -184,5 +217,6 @@ export async function loadFilmPage(
           }
         : null,
     ratings,
+    earlierViewings,
   };
 }

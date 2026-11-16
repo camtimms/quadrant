@@ -3,6 +3,7 @@ import { formatScore } from "@/components/chart/scale";
 import { LikeButton } from "@/components/film/LikeButton";
 import { MemberName } from "@/components/film/MemberName";
 import { classify, PLACEMENT_LABELS, type Point } from "@/lib/quadrant";
+import { timesWatchedLabel } from "@/lib/rewatch";
 
 /** One member's current rating of a film, ready to show. */
 export type MemberRating = {
@@ -25,6 +26,8 @@ export type MemberRating = {
   ratingId?: number;
   /** Who liked the review, sorted by name (R70). */
   likes?: readonly Liker[];
+  /** How many times the member has watched the film (R84); 1 if left out. */
+  timesWatched?: number;
 };
 
 /** A member who liked a review. */
@@ -105,6 +108,10 @@ export function RatingCards({ ratings, viewer }: Props) {
           <p data-testid="card-scores" className="text-sm text-ink-muted">
             Quality {formatScore(rating.point.quality)} · Enjoyment{" "}
             {formatScore(rating.point.enjoyment)}
+            {/* R84: says nothing for a single watch. */}
+            {timesWatchedLabel(rating.timesWatched)
+              ? ` · ${timesWatchedLabel(rating.timesWatched)}`
+              : null}
           </p>
 
           {rating.review ? (

@@ -8,6 +8,7 @@ import { PosterImage } from "@/components/film/PosterImage";
 import { RatingCards } from "@/components/film/RatingCards";
 import { SpreadCurves } from "@/components/film/SpreadCurves";
 import { DeleteRatingButton } from "@/components/rating/DeleteRatingButton";
+import { EarlierViewings } from "@/components/rating/EarlierViewings";
 import { MyRatingSection } from "@/components/rating/MyRatingSection";
 import { RatingForm } from "@/components/rating/RatingForm";
 import { RewatchSwitch } from "@/components/rating/RewatchSwitch";
@@ -82,7 +83,8 @@ export default async function FilmPage({
     );
   }
 
-  const { film, titleId, myRating, ratings } = data;
+  const { film, titleId, myRating, ratings, earlierViewings } = data;
+  const mine = ratings.find((rating) => rating.isViewer);
 
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 p-6">
@@ -119,6 +121,7 @@ export default async function FilmPage({
         rating={myRating}
         changedAt={myRating?.changedAt}
         justSaved={justSaved}
+        timesWatched={mine?.timesWatched}
       >
         {/* The form copies its starting values into its own state once,
             when it first appears. Changing `key` tells React "this is a
@@ -132,7 +135,13 @@ export default async function FilmPage({
             initialRating={myRating}
             key={`${myRating.changedAt}-${myRating.quality}-${myRating.enjoyment}-${myRating.review}`}
           >
-            <DeleteRatingButton titleId={titleId} filmTitle={film.title} />
+            <DeleteRatingButton
+              titleId={titleId}
+              filmTitle={film.title}
+              earlierViewings={earlierViewings.length}
+            />
+            {/* R85: only the member's own, under their rating. */}
+            <EarlierViewings viewings={earlierViewings} />
           </RewatchSwitch>
         ) : (
           <RatingForm tmdbId={film.tmdbId} initialRating={null} key="unrated" />

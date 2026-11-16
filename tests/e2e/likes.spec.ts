@@ -1,6 +1,25 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
 import { MEMBERS, storageStatePath } from "./support/members";
 import { setScore } from "./support/rating";
+
+/**
+ * Press a like button and wait until it shows as liked.
+ *
+ * The page arrives as finished HTML before its JavaScript has loaded, so a
+ * press in that first moment can land on a button that does nothing yet
+ * (seen twice on 2026-11-16). Once the JavaScript is running, a press
+ * changes the button at once, so: press, look briefly, and press again only
+ * while the button still says "Like". It can never be pressed twice into
+ * "not liked".
+ */
+async function pressLike(like: Locator, unlike: Locator) {
+  await expect(async () => {
+    if (await like.isVisible()) await like.click();
+    await expect(unlike).toHaveAttribute("aria-pressed", "true", {
+      timeout: 1_000,
+    });
+  }).toPass();
+}
 
 /** Clue (1985). */
 const CLUE = 15196;
@@ -35,12 +54,10 @@ test("like a friend's review, then take the like back", async ({
     name: `Like ${MEMBERS.bob.displayName}'s review`,
   });
   await expect(like).toHaveAttribute("aria-pressed", "false");
-  await like.click();
-
   const unlike = page.getByRole("button", {
     name: `Unlike ${MEMBERS.bob.displayName}'s review`,
   });
-  await expect(unlike).toHaveAttribute("aria-pressed", "true");
+  await pressLike(like, unlike);
   await expect(page.getByText("Liked by you")).toBeVisible();
 
   // Saved for real: still there after a fresh load.
@@ -87,14 +104,14 @@ test("a like in the Friends' films feed shows on the film page", async ({
     .getByRole("listitem")
     .filter({ hasText: "The shower scene still works." });
   await expect(entry).toContainText(MEMBERS.bob.displayName);
-  await entry
-    .getByRole("button", { name: `Like ${MEMBERS.bob.displayName}'s review` })
-    .click();
-  await expect(
+  await pressLike(
+    entry.getByRole("button", {
+      name: `Like ${MEMBERS.bob.displayName}'s review`,
+    }),
     entry.getByRole("button", {
       name: `Unlike ${MEMBERS.bob.displayName}'s review`,
     }),
-  ).toHaveAttribute("aria-pressed", "true");
+  );
 
   // The film page shows the very same like.
   await page.goto(`/film/${PSYCHO}`);

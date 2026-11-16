@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { formatScore } from "@/components/chart/scale";
 import { classify, PLACEMENT_LABELS, type Point } from "@/lib/quadrant";
+import { timesWatchedLabel } from "@/lib/rewatch";
 
 type Props = {
   /** The member's current scores for this film, or null if unrated. */
@@ -12,6 +13,8 @@ type Props = {
   changedAt?: string;
   /** True when the member has just saved this rating: says "Saved" (R23). */
   justSaved?: boolean;
+  /** How many times the member has watched the film (R84); 1 if left out. */
+  timesWatched?: number;
   /** The rating form and, for a rated film, the delete button. */
   children: ReactNode;
 };
@@ -35,6 +38,7 @@ export function MyRatingSection({
   rating,
   changedAt,
   justSaved = false,
+  timesWatched,
   children,
 }: Props) {
   return (
@@ -100,6 +104,9 @@ export function MyRatingSection({
             <span className="font-medium">
               {PLACEMENT_LABELS[classify(rating)]}
             </span>
+            {timesWatchedLabel(timesWatched)
+              ? ` · ${timesWatchedLabel(timesWatched)}`
+              : null}
           </span>
         ) : null}
       </summary>

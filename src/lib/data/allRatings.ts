@@ -24,7 +24,7 @@ import { createClient } from "@/lib/supabase/server";
 // `as const` keeps the exact text as the type, which is how the Supabase
 // client works out the shape of the rows it returns.
 const ALL_RATINGS_SELECT =
-  `id, user_id, quality, enjoyment, review, created_at, titles (tmdb_id, title, release_year, poster_path), ${RATING_AUTHOR}, ${REVIEW_LIKERS}` as const;
+  `id, user_id, quality, enjoyment, review, created_at, watch_number, titles (tmdb_id, title, release_year, poster_path), ${RATING_AUTHOR}, ${REVIEW_LIKERS}` as const;
 
 /**
  * Every member's current rating of every film: the data behind Friends'
@@ -80,5 +80,7 @@ export async function loadAllRatings(): Promise<RatingRow[]> {
     // For the feed's like button (R78): the same likes as the film page.
     ratingId: row.id,
     likes: toLikers(row.review_likes),
+    // Which viewing this is, so the feed can say "Watched 3 times" (R84).
+    timesWatched: row.watch_number,
   }));
 }
