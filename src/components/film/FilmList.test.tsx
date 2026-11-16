@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen, within } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { FilmList, type ListFilm } from "@/components/film/FilmList";
 import { FilterChips } from "@/components/film/FilterChips";
@@ -325,5 +331,22 @@ describe("FilmList on a group list", () => {
     render(<FilmList films={[film(1, "Mine", 7, 7)]} />);
 
     expect(screen.queryByTestId("group-line")).toBeNull();
+  });
+});
+
+// R64: the list's films can be moved between with Up and Down.
+describe("FilmList with the arrow keys (R64)", () => {
+  it("moves from one film to the next with Down, and not onto its buttons", () => {
+    render(
+      <FilmList films={[film(1, "Alien", 9, 9), film(2, "Heat", 8, 8)]} />,
+    );
+    const [alien, heat] = screen
+      .getAllByRole("listitem")
+      .map((item) => item.querySelector("a") as HTMLElement);
+    alien.focus();
+
+    fireEvent.keyDown(alien, { key: "ArrowDown" });
+
+    expect(document.activeElement).toBe(heat);
   });
 });

@@ -843,7 +843,7 @@ max="10" step="1">` starting at 5, with the current number shown beside it and
   stops on the panel itself); Close or Escape closes it and puts focus back
   on the point. A point the page opens by itself (after a save) does not
   take focus.
-- _(v8, T32b, proposed.)_ **Up and Down between films** (R64). One small
+- _(v8, T32b.)_ **Up and Down between films** (R64). One small
   client component, `ArrowKeyList`, wraps each film list (`FilmList`, the
   search results, the chart panel's list). It listens for key presses on
   the whole list (one listener, not one per film) and acts only when the

@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen, within } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { PointPanel } from "@/components/chart/PointPanel";
 import type { ChartFilm } from "@/components/chart/QuadrantChart";
@@ -139,5 +145,19 @@ describe("PointPanel on one member's chart", () => {
     expect(screen.queryByTestId("group-line")).toBeNull();
     expect(screen.queryByTestId("rater-line")).toBeNull();
     expect(screen.queryByTestId("more-raters")).toBeNull();
+  });
+});
+
+// R64: the films at one point can be moved between with Up and Down.
+describe("PointPanel with the arrow keys (R64)", () => {
+  it("moves from one film to the next with Down", () => {
+    show([OWN, { ...OWN, tmdbId: 2, title: "Heat" }]);
+    const commando = screen.getByText("Commando").closest("a")!;
+    const heat = screen.getByText("Heat").closest("a")!;
+    commando.focus();
+
+    fireEvent.keyDown(commando, { key: "ArrowDown" });
+
+    expect(document.activeElement).toBe(heat);
   });
 });

@@ -2,7 +2,7 @@
 
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
-**v8 change proposed on 2026-11-16, awaiting approval:** Up and Down move
+**v8 change approved by the owner on 2026-11-16:** Up and Down move
 between films in every film list, and between the search box and its
 results (new R64, section 9).
 
@@ -382,7 +382,7 @@ person.) So selecting a point on Friends' films opens that one film, and
 
 **Q16 — When is the Google picture taken, and can a member opt out?** It is taken at sign-in, and a member can opt out when they sign up (R63), or later from the same form. Uploading your own picture is a nice-to-have (N5), not part of v6.
 
-## 9. v8 change — proposed 2026-11-16, awaiting the owner's approval
+## 9. v8 change — APPROVED by the owner, 2026-11-16
 
 Requested by the owner while checking T32 with the keyboard: Up and Down
 should move between films the way Tab does. The owner chose every film

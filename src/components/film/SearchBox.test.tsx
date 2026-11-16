@@ -299,3 +299,61 @@ describe("SearchBox", () => {
     expect(screen.queryByText(/No films found/)).toBeNull();
   });
 });
+
+// R64: Up and Down between the search box and its results.
+describe("SearchBox with the arrow keys (R64)", () => {
+  const results = () =>
+    screen
+      .getAllByRole("listitem")
+      .map((item) => item.querySelector("a") as HTMLElement);
+
+  async function search() {
+    apiAnswers(COMMANDO);
+    render(<SearchBox />);
+    type("commando");
+    submit();
+    await wait(0);
+  }
+
+  it("moves from the search box to the first result with Down", async () => {
+    await search();
+    input().focus();
+
+    fireEvent.keyDown(input(), { key: "ArrowDown" });
+
+    expect(document.activeElement).toBe(results()[0]);
+  });
+
+  it("moves between results with Down and Up", async () => {
+    await search();
+    results()[0].focus();
+
+    fireEvent.keyDown(results()[0], { key: "ArrowDown" });
+    expect(document.activeElement).toBe(results()[1]);
+
+    fireEvent.keyDown(results()[1], { key: "ArrowUp" });
+    expect(document.activeElement).toBe(results()[0]);
+  });
+
+  it("goes back to the search box with Up on the first result", async () => {
+    await search();
+    results()[0].focus();
+
+    fireEvent.keyDown(results()[0], { key: "ArrowUp" });
+
+    expect(document.activeElement).toBe(input());
+  });
+
+  // E33
+  it("does nothing special with Down when there are no results", async () => {
+    apiAnswers({ results: [] });
+    render(<SearchBox />);
+    type("comando");
+    submit();
+    await wait(0);
+    input().focus();
+
+    expect(fireEvent.keyDown(input(), { key: "ArrowDown" })).toBe(true);
+    expect(document.activeElement).toBe(input());
+  });
+});

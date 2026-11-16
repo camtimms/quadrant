@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ARROW_ITEM } from "@/lib/arrowKeys";
 import { PendingMark } from "@/components/PendingMark";
 import { PosterImage } from "@/components/film/PosterImage";
 import type { TmdbFilm } from "@/lib/tmdb/schema";
@@ -14,6 +15,8 @@ export function FilmCard({ film }: { film: TmdbFilm }) {
   return (
     <Link
       href={`/film/${film.tmdbId}`}
+      // Marks this link as the film in its row, for Up and Down (R64).
+      {...ARROW_ITEM}
       className="flex items-center gap-4 rounded p-2 hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2"
     >
       <PosterImage

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowKeyList } from "@/components/ArrowKeyList";
 import { PendingMark } from "@/components/PendingMark";
 import type { ChartFilm } from "@/components/chart/QuadrantChart";
 import { formatScore } from "@/components/chart/scale";
@@ -6,6 +7,7 @@ import { FilmPageButton } from "@/components/film/FilmPageButton";
 import { PosterImage } from "@/components/film/PosterImage";
 import { GroupLine } from "@/components/film/RaterLines";
 import { InlineRatingEditor } from "@/components/rating/InlineRatingEditor";
+import { ARROW_ITEM } from "@/lib/arrowKeys";
 import { classify, PLACEMENT_LABELS } from "@/lib/quadrant";
 
 /**
@@ -44,12 +46,14 @@ export function FilmList({ films, editReturnTo }: Props) {
     return <p className="text-sm opacity-70">No films to show here.</p>;
   }
 
+  // ArrowKeyList: Up and Down move between the films, as Tab does (R64).
   return (
-    <ul className="flex flex-col gap-1">
+    <ArrowKeyList className="flex flex-col gap-1">
       {films.map((film) => (
         <li key={film.tmdbId} className="flex flex-col gap-1">
           <Link
             href={`/film/${film.tmdbId}`}
+            {...ARROW_ITEM}
             className="flex items-center gap-4 rounded p-2 hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2"
           >
             <PosterImage
@@ -112,6 +116,6 @@ export function FilmList({ films, editReturnTo }: Props) {
           </div>
         </li>
       ))}
-    </ul>
+    </ArrowKeyList>
   );
 }

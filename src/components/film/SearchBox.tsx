@@ -5,7 +5,14 @@
 // /api/search, which holds the secret token on the server.
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type KeyboardEvent,
+} from "react";
+import { ArrowKeyList } from "@/components/ArrowKeyList";
 import { FilmCard } from "@/components/film/FilmCard";
 import {
   SEARCH_QUERY_MAX_LENGTH,
@@ -13,6 +20,7 @@ import {
   parseSearchQuery,
   type SearchResponse,
 } from "@/lib/search";
+import { ARROW_ITEM_SELECTOR } from "@/lib/arrowKeys";
 import type { TmdbFilm } from "@/lib/tmdb/schema";
 
 /**
@@ -45,6 +53,21 @@ export function SearchBox({ initialQuery = "" }: Props) {
 
   // Refs hold values that must survive between renders but are not shown on
   // screen, so changing them does not redraw anything.
+  // The box and the results list, so Up and Down can move between them
+  // (R64).
+  const inputRef = useRef<HTMLInputElement>(null);
+  const resultsRef = useRef<HTMLUListElement>(null);
+
+  /** Down in the box goes to the first result, when there is one. */
+  function handleInputKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== "ArrowDown") return;
+    const first =
+      resultsRef.current?.querySelector<HTMLElement>(ARROW_ITEM_SELECTOR);
+    if (!first) return; // E33: no results, so Down does nothing special.
+    event.preventDefault();
+    first.focus();
+  }
+
   const pauseTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   // Lets us cancel a request that is still in flight when a newer one starts.
   const inFlight = useRef<AbortController>(undefined);
@@ -156,6 +179,8 @@ export function SearchBox({ initialQuery = "" }: Props) {
         <div className="flex gap-2">
           <input
             id="film_search"
+            ref={inputRef}
+            onKeyDown={handleInputKeyDown}
             // type="search" gives phones a "search" key and a clear button.
             type="search"
             value={text}
@@ -204,14 +229,19 @@ export function SearchBox({ initialQuery = "" }: Props) {
       ) : null}
 
       {state.status === "results" && state.films.length > 0 ? (
-        <ul className="flex flex-col gap-1">
+        <ArrowKeyList
+          ref={resultsRef}
+          // Up on the first result goes back to the box (R64).
+          onUpFromFirst={() => inputRef.current?.focus()}
+          className="flex flex-col gap-1"
+        >
           {state.films.map((film) => (
             // key tells React which row is which when the list changes.
             <li key={film.tmdbId}>
               <FilmCard film={film} />
             </li>
           ))}
-        </ul>
+        </ArrowKeyList>
       ) : null}
     </div>
   );
