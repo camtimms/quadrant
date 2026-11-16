@@ -2,6 +2,10 @@
 
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
+**v11 change PROPOSED on 2026-11-16, waiting for the owner's approval:**
+a switch between light and dark mode at the top right of the signed-in
+header (new R68, section 12). Answers Q17, which v10 had assumed "no".
+
 **v10 change approved by the owner on 2026-11-16:**
 the visual design (NFR24 filled in from the owner's choice: the "Soft app"
 layout, yellow on black in dark mode, "Sunshine" in light mode), names on
@@ -463,6 +467,32 @@ covered here too, as T32a's task entry said it would be.
 
 ### Open questions, and what I will assume without an answer
 
-- **Q17 — A switch for light or dark inside the app?** _Assumed: no._ The app follows the phone's own setting, as it does today. A switch can be added later.
+- **Q17 — A switch for light or dark inside the app?** _Assumed: no._ **Answered by the owner on 2026-11-16: yes** (v11, R68). The app follows the phone's own setting, as it does today. A switch can be added later.
 - **Q18 — Friend colours beyond the spoke map?** _Assumed: on the spoke map, plus a small dot of the same colour beside each name in the "How far each friend is from you" table under it, so the two can be matched._ Not on the lists, cards or Friends' films, where there is no chart of members to match.
+
+## 12. v11 change — PROPOSED 2026-11-16, waiting for the owner's approval
+
+Task T32d. While T32a was being built the owner asked whether there is a
+switch between light and dark mode, and if not, for one where it makes
+sense on a phone: top right, or, if the header is short of room, on the
+page where a member changes their name and picture. The header's top row
+has about 110 px free at 375 px wide, so the top right fits.
+
+### Requirement
+
+- **R68** — WHEN a signed-in page is shown, THE SYSTEM SHALL show a button at the right of the header's top row that switches the app between light and dark mode, labelled for screen readers with the mode it switches to; WHEN the member presses it, THE SYSTEM SHALL change mode at once, without reloading the page, and SHALL remember the choice on that device, for every page, including the sign-in and about pages; WHEN the member has never pressed it on that device, THE SYSTEM SHALL follow the device's own light or dark setting, as before.
+
+### Edge cases
+
+| #   | Situation                                                     | Proposed behaviour                                                                                      |
+| --- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| E42 | A page loads after the member chose a mode                    | It appears in the chosen mode straight away, with no flash of the other mode                             |
+| E43 | The member signs out, or another member signs in on the phone | The choice stays: it belongs to the device, not the account (Q20)                                       |
+| E44 | The browser forbids saving the choice (some private modes)    | The switch still works for the page that is open; the next page follows the device setting again        |
+| E45 | A very long display name                                       | The name wraps onto its own line as it does today; the button stays beside "Sign out"                   |
+
+### Open questions, and what I will assume without an answer
+
+- **Q19 — Two choices (light, dark) or three (light, dark, follow my phone)?** _Assumed: two._ One button that flips between light and dark is the simplest thing to use on a phone. A member who wants to follow the phone again would need a third option somewhere; that can be added later on the name-and-picture page.
+- **Q20 — Remember the choice per device or per account?** _Assumed: per device._ It needs no database change, works before sign-in, and someone with a laptop and a phone may want different modes on each.
 

@@ -11,6 +11,9 @@ Implements: `01-requirements.md` (approved v2)
 **Section 17 (the design for requirements v10: the visual theme) was approved
 by the owner on 2026-11-16.**
 
+**Section 18 (the design for requirements v11: the light/dark switch) is
+PROPOSED, waiting for the owner's approval.**
+
 Every section lists the requirement IDs it satisfies. Section 14 is the reverse
 lookup (requirement → section). Section 15 lists facts I could **not** confirm
 from documentation and that must be checked with a real call before the code
@@ -1663,3 +1666,57 @@ headings and 400 for text.
 | E38 more friends than colours   | 17.7             |
 | E39 no free place for a label   | 17.6             |
 | E40, E41 mode switch, no flash  | 17.1             |
+
+---
+
+## 18. v11 design: the light and dark switch (PROPOSED)
+
+_Satisfies: R68, E42–E45, NFR12, NFR24_
+
+- **Where.** An icon button at the right of the header's top row, before
+  "Sign out": a moon in light mode (meaning "switch to dark"), a sun in dark
+  mode. It is a 36 px round `pill` (design 17.2), a comfortable thumb target.
+  Its accessible name says what it does: "Switch to dark mode" or "Switch to
+  light mode" (NFR12). The icons are two small inline SVGs, not an icon
+  library.
+- **How the mode is chosen.** A `data-theme` attribute on `<html>`, set to
+  `light` or `dark` when the member has chosen, absent when they have not.
+  `globals.css` then applies the dark colours when either
+  `[data-theme="dark"]` is set, or the device prefers dark and
+  `[data-theme="light"]` is not set. Tailwind's `dark:` variant (used in six
+  places) is redefined with `@custom-variant` to follow the same rule, so it
+  cannot disagree with the colours.
+- **Remembering it (Q20).** The choice is saved in the browser's
+  `localStorage` under one key. Reading or writing it is wrapped in
+  try/catch: where the browser refuses (E44), the switch still changes the
+  open page.
+- **No flash (E42).** A few lines of plain JavaScript in the root layout's
+  `<head>` read the saved choice and set `data-theme` before the page is
+  painted. It has to run before React, which is why it is an inline script
+  rather than part of a component. It is fixed text with no member data in
+  it. `<html>` gets `suppressHydrationWarning`, because the attribute it adds
+  is deliberately not in the server's HTML.
+- **The button itself** is a small client component (`ThemeSwitch`) that
+  reads the current mode from the page when it appears and flips it on a
+  press: it sets `data-theme`, saves the choice, and updates its own icon
+  and label. Nothing reloads.
+- _Rejected:_ a cookie read by the server (it would make every page,
+  including the public ones, wait on the request, and Cache Components
+  would have to prepare less ahead of time); saving the choice to the
+  member's profile (a migration and an extra query on every page for a
+  device preference, Q20); the `next-themes` package (it does the same few
+  lines; one more dependency for little); putting the switch only on the
+  name-and-picture page (the header has room, and a switch you use at night
+  is most useful one tap away).
+- **Tests (written first):** a pure helper `nextTheme(current)` and
+  `resolveTheme(saved, prefersDark)` with unit tests; the inline script's
+  text checked to set the attribute from a saved value and do nothing
+  without one; `ThemeSwitch` (jsdom) flips `data-theme`, saves the choice,
+  swaps its label, and survives `localStorage` throwing; the CSS keeps the
+  dark colours under both selectors (a test reads `globals.css`, as
+  `theme.test.ts` already does); the header shows the button before "Sign
+  out". **Manual:** at 375 px in both starting modes, the switch flips the
+  mode at once, a reload keeps it with no flash, and it carries over to the
+  sign-in page after signing out.
+- **Traceability:** R68 and E42–E45 → this section.
+
