@@ -2,7 +2,7 @@
 
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
-**v17 change, DRAFT, 2026-11-16:** the rewatch log (N3 as R83–R87,
+**v17 change shipped with the owner's go-ahead on 2026-11-17** (decisions marked ⚑ still open for fine tuning): the rewatch log (N3 as R83–R87,
 section 18; tasks T38a–T38c), built while the owner was away at their
 request, with my product choices marked ⚑ for their review.
 
@@ -647,7 +647,7 @@ on dev, then on prod once its access tests pass.
 | E68 | A friend's uploaded picture cannot be loaded                  | Their initial, as for a Google picture that fails (R61)                                 |
 | E69 | A member chooses "my own picture" but has not uploaded one    | The choice needs an upload first; until then it cannot be saved                         |
 
-## 18. v17 change — DRAFT, built while the owner was away (2026-11-16)
+## 18. v17 change — built while the owner was away (2026-11-16), shipped with their go-ahead 2026-11-17
 
 N3, the rewatch log. On 2026-11-16 the owner asked for the remaining
 nice-to-haves to be built while away ("I like them all except the biggest
