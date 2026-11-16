@@ -2,7 +2,7 @@
 
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
-**v10 change PROPOSED on 2026-11-16, waiting for the owner's approval:**
+**v10 change approved by the owner on 2026-11-16:**
 the visual design (NFR24 filled in from the owner's choice: the "Soft app"
 layout, yellow on black in dark mode, "Sunshine" in light mode), names on
 the spoke map that never sit under lines or each other (new R66), and a
@@ -432,7 +432,7 @@ The owner chose both list changes below, not the arrows alone.
 | E36 | Down is pressed in the search box                                 | Unchanged from v8: focus goes to the first result                           |
 | E37 | A long title on a phone, with the buttons beside it               | The title wraps onto more lines; nothing runs off the screen (E15)          |
 
-## 11. v10 change — PROPOSED 2026-11-16, waiting for the owner's approval
+## 11. v10 change — APPROVED by the owner, 2026-11-16
 
 Task T32a. The owner was shown three themes as phone mock-ups (Marquee,
 Paper, Soft app), chose **Soft app**, asked for the logo's **yellow and

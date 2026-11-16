@@ -1,28 +1,123 @@
 @import "tailwindcss";
 
+/* The theme's colours (NFR24, design section 17.1). Each is a CSS variable
+   with a light value here and a dark value below; the browser switches
+   between them with the device's setting, at once and without a reload
+   (E40). src/lib/theme.ts holds the same values for the tests, which fail
+   if the two ever differ. What each is for is written there. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  --page: #fffbe3;
+  --card: #ffffff;
+  --well: #f3ecc4;
+  --ink: #1d1a0a;
+  --ink-muted: #5f5730;
+  --edge: #857a45;
+  --accent: #f5e400;
+  --on-accent: #1d1a0a;
+  --accent-outline: #1d1a0a;
+  --spoke: #7a6200;
+  --focus: #1d1a0a;
+  --danger: #b42318;
+  --q-tr: #e4f4e9;
+  --q-tl: #fbe9f1;
+  --q-br: #e6eefb;
+  --q-bl: #efeee6;
+  --q-tr-ink: #27500a;
+  --q-tl-ink: #72243e;
+  --q-br-ink: #0c447c;
+  --q-bl-ink: #444441;
+  --friend-1: #993556;
+  --friend-2: #0f6e56;
+  --friend-3: #185fa5;
+  --friend-4: #993c1d;
+  --friend-5: #534ab7;
+  --friend-6: #3b6d11;
+  --friend-7: #5f5e5a;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* The two colours the site used before the theme. Components still
+     written with fades of them ("text-foreground/70") keep working until
+     T32a2–T32a4 move them to the names above; then these go. */
+  --background: var(--page);
+  --foreground: var(--ink);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --page: #0d0d0d;
+    --card: #1a1a1a;
+    --well: #262626;
+    --ink: #f2f2ee;
+    --ink-muted: #a3a39b;
+    --edge: #77776f;
+    --accent: #f5e400;
+    --on-accent: #0d0d0d;
+    --accent-outline: transparent;
+    --spoke: #f5e400;
+    --focus: #f5e400;
+    --danger: #ff8a80;
+    --q-tr: #15261a;
+    --q-tl: #2a1720;
+    --q-br: #141e2b;
+    --q-bl: #1c1c1e;
+    --q-tr-ink: #97c459;
+    --q-tl-ink: #ed93b1;
+    --q-br-ink: #85b7eb;
+    --q-bl-ink: #b4b2a9;
+    --friend-1: #ed93b1;
+    --friend-2: #5dcaa5;
+    --friend-3: #85b7eb;
+    --friend-4: #f0997b;
+    --friend-5: #afa9ec;
+    --friend-6: #97c459;
+    --friend-7: #b4b2a9;
   }
 }
 
+/* Tailwind makes classes from every "--color-…" here: --color-card gives
+   bg-card, text-card, border-card, fill-card and so on. "inline" makes each
+   class use the variable itself, so the dark values above apply too. */
+@theme inline {
+  --color-page: var(--page);
+  --color-card: var(--card);
+  --color-well: var(--well);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-edge: var(--edge);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-accent-outline: var(--accent-outline);
+  --color-spoke: var(--spoke);
+  --color-focus: var(--focus);
+  --color-danger: var(--danger);
+  --color-q-tr: var(--q-tr);
+  --color-q-tl: var(--q-tl);
+  --color-q-br: var(--q-br);
+  --color-q-bl: var(--q-bl);
+  --color-q-tr-ink: var(--q-tr-ink);
+  --color-q-tl-ink: var(--q-tl-ink);
+  --color-q-br-ink: var(--q-br-ink);
+  --color-q-bl-ink: var(--q-bl-ink);
+  --color-friend-1: var(--friend-1);
+  --color-friend-2: var(--friend-2);
+  --color-friend-3: var(--friend-3);
+  --color-friend-4: var(--friend-4);
+  --color-friend-5: var(--friend-5);
+  --color-friend-6: var(--friend-6);
+  --color-friend-7: var(--friend-7);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  /* The layout loads Geist into --font-geist-sans; Tailwind's base styles
+     use --font-sans for the whole page, so this is all it takes (NFR24). */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--page);
+  color: var(--ink);
+  /* No font-family here: an old rule naming a system font used to hide
+     the Geist font the layout loads (design 17.3). */
   /* A safety net for E15: a word too long for its line (a name or review
      with no spaces) is broken onto the next line instead of running off a
      phone screen. It only breaks a word that cannot fit any other way.

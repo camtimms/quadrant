@@ -63,6 +63,84 @@ describe("source accessibility rules", () => {
     expect(faintEdges).toEqual([]);
   });
 
+  // NFR24, NFR14 (design 17.1): colours come only from the theme's named
+  // tokens, whose contrast theme.test.ts measures. A fade of the text
+  // colour ("text-foreground/70", "opacity-60"), a Tailwind palette colour
+  // ("text-red-700") or a colour written out ("#fff") has a contrast that
+  // nobody has checked against the new surfaces.
+  //
+  // Files written before the theme are listed below and are moved over in
+  // T32a2–T32a4. The list may only shrink: a listed file that no longer
+  // breaks the rule fails too, as a reminder to take it off.
+  describe("colours come from the theme", () => {
+    const UNTOKENED =
+      /(?:foreground|background)\/\d+|(?<![\w:-])opacity-[1-9]\d*\b|\b(?:text|bg|border|fill|stroke)-(?:red|green|blue|gray|yellow|zinc|neutral|slate|white|black)(?:-\d+)?\b|#[0-9a-fA-F]{3,8}\b/;
+
+    const NOT_YET_MOVED = [
+      "src/app/(app)/film/[tmdbId]/loading.tsx",
+      "src/app/(app)/film/[tmdbId]/page.tsx",
+      "src/app/(app)/friends/page.tsx",
+      "src/app/(app)/layout.tsx",
+      "src/app/(app)/loading.tsx",
+      "src/app/(app)/members/[id]/page.tsx",
+      "src/app/(app)/page.tsx",
+      "src/app/login/page.tsx",
+      "src/app/welcome/page.tsx",
+      "src/components/Avatar.tsx",
+      "src/components/EmptyState.tsx",
+      "src/components/Footer.tsx",
+      "src/components/Nav.tsx",
+      "src/components/PendingMark.tsx",
+      "src/components/chart/PointPanel.tsx",
+      "src/components/chart/QuadrantChart.tsx",
+      "src/components/chart/SpokeMap.tsx",
+      "src/components/film/DisagreementTable.tsx",
+      "src/components/film/FilmCard.tsx",
+      "src/components/film/FilmList.tsx",
+      "src/components/film/FilmPageButton.tsx",
+      "src/components/film/FilterChips.tsx",
+      "src/components/film/GroupAverage.tsx",
+      "src/components/film/MemberName.tsx",
+      "src/components/film/PosterImage.tsx",
+      "src/components/film/RaterLines.tsx",
+      "src/components/film/RatingCards.tsx",
+      "src/components/film/SearchBox.tsx",
+      "src/components/film/SortLinks.tsx",
+      "src/components/profile/DisplayNameForm.tsx",
+      "src/components/rating/DeleteRatingButton.tsx",
+      "src/components/rating/InlineRatingEditor.tsx",
+      "src/components/rating/MyRatingSection.tsx",
+      "src/components/rating/PlacementPreview.tsx",
+      "src/components/rating/RatingForm.tsx",
+      "src/components/rating/ScoreSlider.tsx",
+    ];
+
+    /** Lines that break the rule, ignoring links to a part of the page. */
+    function untokened(text: string): string[] {
+      return text
+        .split("\n")
+        .map((line) => line.replace(/["'`]#[\w-]*["'`]|href=\{?`[^`]*#/g, ""))
+        .filter((line) => UNTOKENED.test(line));
+    }
+
+    it("is kept by every file not on the list", () => {
+      const breaking = FILES.filter(
+        ({ path }) => !NOT_YET_MOVED.includes(path),
+      ).flatMap(({ path, text }) =>
+        untokened(text).map((line) => `${path}: ${line.trim()}`),
+      );
+      expect(breaking).toEqual([]);
+    });
+
+    it("lists only files that still need moving", () => {
+      const done = NOT_YET_MOVED.filter((path) => {
+        const file = FILES.find((candidate) => candidate.path === path);
+        return !file || untokened(file.text).length === 0;
+      });
+      expect(done).toEqual([]);
+    });
+  });
+
   // NFR15: an image either describes itself or says it is decoration.
   it("gives every image an alt attribute", () => {
     const missing = FILES.flatMap(({ path, text }) =>

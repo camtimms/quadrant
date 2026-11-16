@@ -48,14 +48,12 @@ describe("blend", () => {
 });
 
 describe("the site's colours (NFR14)", () => {
-  // The two colours are defined in globals.css; this keeps the copy used
-  // for checking in step with them.
-  it("match globals.css", () => {
+  // The fades are made from the old --background and --foreground, which
+  // globals.css now points at the theme's page and text colours.
+  it("fade from the theme's page and text colours", () => {
     const css = readFileSync("src/app/globals.css", "utf8");
-    for (const theme of Object.values(THEMES)) {
-      expect(css).toContain(`--background: ${theme.background};`);
-      expect(css).toContain(`--foreground: ${theme.foreground};`);
-    }
+    expect(css).toContain("--background: var(--page);");
+    expect(css).toContain("--foreground: var(--ink);");
   });
 
   describe.each(Object.entries(THEMES))("in %s mode", (_, theme) => {

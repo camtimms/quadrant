@@ -8,8 +8,8 @@ Implements: `01-requirements.md` (approved v2)
 **Section 16 (the design for requirements v6) was approved by the owner on
 2026-11-15.**
 
-**Section 17 (the design for requirements v10: the visual theme) is PROPOSED,
-waiting for the owner's approval.**
+**Section 17 (the design for requirements v10: the visual theme) was approved
+by the owner on 2026-11-16.**
 
 Every section lists the requirement IDs it satisfies. Section 14 is the reverse
 lookup (requirement → section). Section 15 lists facts I could **not** confirm
@@ -1482,7 +1482,7 @@ that only where its address comes from would change.
 
 ---
 
-## 17. v10 design: the visual theme (PROPOSED)
+## 17. v10 design: the visual theme
 
 _Satisfies: NFR24, R66, R67, NFR14, E38–E41_
 
