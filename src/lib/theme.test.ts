@@ -132,6 +132,11 @@ describe("contrast (NFR14)", () => {
         expect(TEXT_PAIRS).toContainEqual([text, surface]);
       }
     }
+    // Corner names are written in their quarter's colour in the chart's
+    // margin, on the card, as well as on the quarter itself (design 17.5).
+    for (const quarter of ["q-tr", "q-tl", "q-br", "q-bl"]) {
+      expect(TEXT_PAIRS).toContainEqual([`${quarter}-ink`, "card"]);
+    }
     // Members' names sit on a card-coloured pill on the spoke map (R66).
     for (let i = 1; i <= FRIEND_COUNT; i++) {
       expect(TEXT_PAIRS).toContainEqual([`friend-${i}`, "card"]);

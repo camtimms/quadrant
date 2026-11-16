@@ -30,10 +30,9 @@ const CENTRED = "absolute -translate-x-1/2 -translate-y-1/2";
  */
 const SHAPES = {
   viewer:
-    "rounded-full bg-foreground text-background ring-2 ring-foreground ring-offset-2 ring-offset-background",
-  friend:
-    "rounded-full border-2 border-foreground bg-background text-foreground",
-  average: "rotate-45 border-2 border-foreground bg-background",
+    "rounded-full bg-accent text-on-accent ring-2 ring-ink ring-offset-2 ring-offset-card",
+  friend: "rounded-full border-2 border-ink bg-card text-ink",
+  average: "rotate-45 border-2 border-ink bg-card",
 } as const;
 
 /**
@@ -91,7 +90,7 @@ export function SpokeMap({ ratings }: Props) {
       <div
         role="img"
         aria-label={description}
-        className="relative mx-auto aspect-square w-full max-w-xl"
+        className="relative mx-auto aspect-square w-full max-w-xl rounded-2xl bg-card"
       >
         <ChartFrame />
 
@@ -114,9 +113,7 @@ export function SpokeMap({ ratings }: Props) {
                   y1={chartY(hub.point.enjoyment)}
                   x2={chartX(place.point.quality)}
                   y2={chartY(place.point.enjoyment)}
-                  className={
-                    isLargest ? "stroke-foreground" : "stroke-foreground/60"
-                  }
+                  className={"stroke-spoke"}
                   strokeWidth={isLargest ? 0.9 : 0.5}
                   strokeLinecap="round"
                 />
@@ -145,7 +142,7 @@ export function SpokeMap({ ratings }: Props) {
                 top: toPercent(chartY(average.enjoyment)),
               }}
               // Written under the diamond; members' names go beside theirs.
-              className="absolute -translate-x-1/2 translate-y-3.5 rounded bg-background/80 px-1 text-xs opacity-80"
+              className="absolute -translate-x-1/2 translate-y-3.5 rounded-full bg-card px-1.5 text-xs text-ink"
             >
               Average
             </span>
@@ -188,7 +185,7 @@ export function SpokeMap({ ratings }: Props) {
                 style={position}
                 // max-w and truncate stop a 40-character name running off
                 // the chart; the tables below give every name in full.
-                className={`absolute max-w-[40%] -translate-y-1/2 truncate rounded bg-background/80 px-1 text-xs font-medium ${
+                className={`absolute max-w-[40%] -translate-y-1/2 truncate rounded-full bg-card px-1.5 text-xs font-medium text-ink ${
                   nameOnRight
                     ? "translate-x-4"
                     : "-translate-x-[calc(100%+1rem)]"
@@ -215,7 +212,7 @@ export function SpokeMap({ ratings }: Props) {
         </ul>
         {hub ? (
           spokes.length > 0 ? (
-            <p className="opacity-70">
+            <p className="text-ink-muted">
               Each line runs from your rating to a friend&apos;s. The longer the
               line, the more you disagree.
             </p>

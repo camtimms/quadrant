@@ -127,13 +127,21 @@ describe("SpokeMap", () => {
         <SpokeMap ratings={[me, rating("Bob", 2, 9)]} />,
       );
 
-      // The hub is solid and ringed; a friend is an outline.
+      // The hub is solid yellow and ringed; a friend is an outline.
       const [hub] = pointsIn(container, "viewer");
       const [friend] = pointsIn(container, "friend");
-      expect(hub.className).toContain("bg-foreground");
+      expect(hub.className).toContain("bg-accent");
       expect(hub.className).toContain("ring-2");
-      expect(friend.className).toContain("bg-background");
+      expect(friend.className).toContain("border-2");
+      expect(friend.className).toContain("bg-card");
       expect(friend.className).not.toContain("ring-2");
+    });
+
+    it("draws only in the theme's colours", () => {
+      const { container } = render(
+        <SpokeMap ratings={[me, rating("Bob", 2, 9), rating("Cy", 4, 4)]} />,
+      );
+      expect(container.innerHTML).not.toMatch(/foreground|background/);
     });
 
     it("explains the shapes in words under the chart", () => {

@@ -60,32 +60,71 @@ export type ChartFilm = {
 // ---------------------------------------------------------------------------
 
 /**
+ * The plot's four quarters, each lightly tinted (NFR24, design 17.5): top
+ * right green, top left pink, bottom right blue, bottom left grey. The
+ * tint is a hint of which part of the chart a point is in; the names say
+ * it in words (NFR14).
+ */
+type Quarter = "tr" | "tl" | "br" | "bl";
+
+const QUARTERS: {
+  quarter: Quarter;
+  quality: [number, number];
+  enjoyment: [number, number];
+}[] = [
+  { quarter: "tr", quality: [MIDPOINT, 10], enjoyment: [MIDPOINT, 10] },
+  { quarter: "tl", quality: [0, MIDPOINT], enjoyment: [MIDPOINT, 10] },
+  { quarter: "br", quality: [MIDPOINT, 10], enjoyment: [0, MIDPOINT] },
+  { quarter: "bl", quality: [0, MIDPOINT], enjoyment: [0, MIDPOINT] },
+];
+
+/**
+ * Each quarter's colours as Tailwind classes. Written out in full, never
+ * built as `fill-q-${quarter}`: Tailwind only creates the classes it can
+ * find spelled out in the source. Measured in src/lib/theme.test.ts.
+ */
+const QUARTER_CLASSES: Record<
+  Quarter,
+  { tint: string; ink: string; edge: string }
+> = {
+  tr: { tint: "fill-q-tr", ink: "fill-q-tr-ink", edge: "stroke-q-tr-ink" },
+  tl: { tint: "fill-q-tl", ink: "fill-q-tl-ink", edge: "stroke-q-tl-ink" },
+  br: { tint: "fill-q-br", ink: "fill-q-br-ink", edge: "stroke-q-br-ink" },
+  bl: { tint: "fill-q-bl", ink: "fill-q-bl-ink", edge: "stroke-q-bl-ink" },
+};
+
+/**
  * The four outer corners (R25): both scores extreme. Each is described by the
  * range of scores it covers, taken from the SAME constants classify() uses,
  * so the shaded squares can never disagree with the rule that names films.
  */
 const CORNERS: {
   placement: Placement;
+  quarter: Quarter;
   quality: [number, number];
   enjoyment: [number, number];
 }[] = [
   {
     placement: "masterpieces",
+    quarter: "tr",
     quality: [EXTREME_HIGH, 10],
     enjoyment: [EXTREME_HIGH, 10],
   },
   {
     placement: "guilty-pleasures",
+    quarter: "tl",
     quality: [0, EXTREME_LOW],
     enjoyment: [EXTREME_HIGH, 10],
   },
   {
     placement: "serious-watches",
+    quarter: "br",
     quality: [EXTREME_HIGH, 10],
     enjoyment: [0, EXTREME_LOW],
   },
   {
     placement: "dumpster-fires",
+    quarter: "bl",
     quality: [0, EXTREME_LOW],
     enjoyment: [0, EXTREME_LOW],
   },
@@ -101,13 +140,19 @@ const CORNERS: {
  */
 const INNER_BANDS: {
   placement: Placement;
+  quarter: Quarter;
   quality: number;
   enjoyment: number;
 }[] = [
-  { placement: "worth-watching", quality: 6.25, enjoyment: 6.5 },
-  { placement: "cheap-thrills", quality: 3.75, enjoyment: 6.5 },
-  { placement: "respectable", quality: 6.25, enjoyment: 3.5 },
-  { placement: "not-worth-watching", quality: 3.75, enjoyment: 3.5 },
+  { placement: "worth-watching", quarter: "tr", quality: 6.25, enjoyment: 6.5 },
+  { placement: "cheap-thrills", quarter: "tl", quality: 3.75, enjoyment: 6.5 },
+  { placement: "respectable", quarter: "br", quality: 6.25, enjoyment: 3.5 },
+  {
+    placement: "not-worth-watching",
+    quarter: "bl",
+    quality: 3.75,
+    enjoyment: 3.5,
+  },
 ];
 
 /** Font sizes, in chart units (the chart is 120 units wide). */
@@ -158,9 +203,10 @@ function ChartLabel({
  * It is exported separately because the film page's spoke map (task T28)
  * draws different things on top of the same frame.
  *
- * Colours are all the page's own text colour at different strengths
- * ("foreground/15" = 15% opacity), so the chart follows light and dark mode
- * by itself, and nothing relies on telling two hues apart (NFR14).
+ * Colours are the theme's (design 17.5): each quarter tinted, its names in
+ * a darker shade of the same colour, lines in the muted text colour. They
+ * follow light and dark mode by themselves, and every name is written out,
+ * so nothing relies on telling two colours apart (NFR14).
  */
 export function ChartFrame() {
   const middleX = chartX(MIDPOINT);
@@ -175,22 +221,27 @@ export function ChartFrame() {
       aria-hidden="true"
       className="absolute inset-0 h-full w-full"
     >
-      {/* The plot's outer edge. */}
-      <rect
-        x={chartX(0)}
-        y={chartY(10)}
-        width={chartX(10) - chartX(0)}
-        height={chartY(0) - chartY(10)}
-        className="fill-none stroke-foreground/30"
-        strokeWidth={0.3}
-      />
+      {/* The four tinted quarters, drawn first so that everything else
+          sits on top of them. */}
+      {QUARTERS.map(({ quarter, quality, enjoyment }) => (
+        <rect
+          key={quarter}
+          data-quarter={quarter}
+          x={chartX(quality[0])}
+          y={chartY(enjoyment[1])}
+          width={chartX(quality[1]) - chartX(quality[0])}
+          height={chartY(enjoyment[0]) - chartY(enjoyment[1])}
+          className={QUARTER_CLASSES[quarter].tint}
+        />
+      ))}
 
-      {/* The four outer corners: lightly shaded, with a thin outline. Each
+      {/* The four outer corners: a thin outline in their quarter's colour
+          (the quarter's tint already shades them). Each
           one's name is written in the margin directly above or below it,
           not inside it. Inside, it would sit exactly where the points for
           scores of 8, 9 and 10 (or 0, 1 and 2) are drawn, and be hidden by
           the very films it describes. */}
-      {CORNERS.map(({ placement, quality, enjoyment }) => {
+      {CORNERS.map(({ placement, quarter, quality, enjoyment }) => {
         const left = chartX(quality[0]);
         const right = chartX(quality[1]);
         // y grows downwards, so the HIGH enjoyment score is the top edge.
@@ -205,7 +256,7 @@ export function ChartFrame() {
               y={top}
               width={right - left}
               height={bottom - top}
-              className="fill-foreground/10 stroke-foreground/40"
+              className={`fill-none ${QUARTER_CLASSES[quarter].edge}`}
               strokeWidth={0.3}
             />
             <ChartLabel
@@ -213,7 +264,7 @@ export function ChartFrame() {
               x={(left + right) / 2}
               y={isTopCorner ? top - MARGIN_OFFSET : bottom + MARGIN_OFFSET}
               fontSize={NAME_FONT}
-              className="fill-foreground font-semibold"
+              className={`${QUARTER_CLASSES[quarter].ink} font-semibold`}
             />
           </g>
         );
@@ -224,14 +275,14 @@ export function ChartFrame() {
           without crowding the dots; from the "sm" width (640px) up they are
           shown ("sm:block"). The list and filter chips still name them. */}
       <g data-inner-band-labels className="hidden sm:block">
-        {INNER_BANDS.map(({ placement, quality, enjoyment }) => (
+        {INNER_BANDS.map(({ placement, quarter, quality, enjoyment }) => (
           <ChartLabel
             key={placement}
             placement={placement}
             x={chartX(quality)}
             y={chartY(enjoyment)}
             fontSize={BAND_FONT}
-            className="fill-foreground/60"
+            className={QUARTER_CLASSES[quarter].ink}
           />
         ))}
       </g>
@@ -244,7 +295,7 @@ export function ChartFrame() {
         x2={middleX}
         y1={chartY(10)}
         y2={chartY(0)}
-        className="stroke-foreground/60"
+        className="stroke-ink-muted"
         strokeWidth={0.4}
       />
       <line
@@ -253,7 +304,7 @@ export function ChartFrame() {
         x2={chartX(10)}
         y1={middleY}
         y2={middleY}
-        className="stroke-foreground/60"
+        className="stroke-ink-muted"
         strokeWidth={0.4}
       />
 
@@ -265,14 +316,14 @@ export function ChartFrame() {
         x={middleX}
         y={chartY(10) - MARGIN_OFFSET}
         fontSize={NAME_FONT}
-        className="fill-foreground"
+        className="fill-ink"
       />
       <ChartLabel
         placement="not-enjoyable"
         x={middleX}
         y={chartY(0) + MARGIN_OFFSET}
         fontSize={NAME_FONT}
-        className="fill-foreground"
+        className="fill-ink"
       />
       <ChartLabel
         placement="bad"
@@ -280,7 +331,7 @@ export function ChartFrame() {
         y={middleY}
         fontSize={NAME_FONT}
         rotate={-90}
-        className="fill-foreground"
+        className="fill-ink"
       />
       <ChartLabel
         placement="good"
@@ -288,7 +339,7 @@ export function ChartFrame() {
         y={middleY}
         fontSize={NAME_FONT}
         rotate={90}
-        className="fill-foreground"
+        className="fill-ink"
       />
     </svg>
   );
@@ -447,7 +498,9 @@ export function QuadrantChart({
     <div className="flex flex-col gap-3">
       {/* aspect-square keeps the chart square at any width. overflow-hidden
           clips whatever the zoom pushes outside it. */}
-      <div className="relative mx-auto aspect-square w-full max-w-xl overflow-hidden">
+      {/* The chart sits on a card (design 17.5); rounded-2xl with
+          overflow-hidden rounds the zoomed drawing too. */}
+      <div className="relative mx-auto aspect-square w-full max-w-xl overflow-hidden rounded-2xl bg-card">
         <div
           data-zoom-layer
           // origin-top-left: enlarge from the top-left corner, which is what
@@ -493,9 +546,9 @@ export function QuadrantChart({
                 // translates). A cluster is larger and shows its count, so
                 // "several films here" is told by size and a number, not by
                 // colour (NFR14). The selected point gets a ring.
-                className={`absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-background bg-foreground text-xs leading-none font-semibold text-background before:absolute before:-inset-2 before:content-[''] hover:opacity-80 active:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 ${ANIMATE} ${
+                className={`absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-card bg-ink text-xs leading-none font-semibold text-card before:absolute before:-inset-2 before:content-[''] hover:opacity-80 active:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus ${ANIMATE} ${
                   count > 1 ? "h-7 w-7" : "h-4 w-4"
-                } ${isOpen ? "ring-2 ring-foreground ring-offset-2 ring-offset-background" : ""}`}
+                } ${isOpen ? "ring-2 ring-ink ring-offset-2 ring-offset-card" : ""}`}
               >
                 {count > 1 ? count : null}
               </button>

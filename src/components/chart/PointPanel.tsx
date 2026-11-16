@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { pillSmall } from "@/components/ui/styles";
 import { ArrowKeyList } from "@/components/ArrowKeyList";
 import { PendingMark } from "@/components/PendingMark";
 import type { ChartFilm } from "@/components/chart/QuadrantChart";
@@ -54,18 +55,14 @@ export function PointPanel({ films, onClose, editReturnTo }: Props) {
       }}
       // The ring shows when focus arrives from the keyboard; after a tap
       // the browser leaves it off.
-      className="flex flex-col gap-2 rounded border border-foreground/20 p-3 focus-visible:outline-2 focus-visible:outline-offset-2"
+      className="flex flex-col gap-2 rounded-2xl bg-card p-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
     >
       <div className="flex items-center justify-between gap-3">
         <h3 className="font-semibold">
           {films.length === 1 ? "1 film" : `${films.length} films`} at this
           point
         </h3>
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded border border-foreground/30 px-2 py-1 text-sm hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2"
-        >
+        <button type="button" onClick={onClose} className={pillSmall}>
           Close
         </button>
       </div>
@@ -89,7 +86,7 @@ export function PointPanel({ films, onClose, editReturnTo }: Props) {
               />
               <span className={FILM_DETAILS}>
                 <span className="font-medium break-words">{film.title}</span>
-                <span className="text-sm opacity-70">
+                <span className="text-sm text-ink-muted">
                   {film.year ?? "Year unknown"}
                 </span>
                 <span className="text-sm">

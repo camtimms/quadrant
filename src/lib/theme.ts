@@ -126,9 +126,11 @@ export const TEXT_PAIRS: [TokenName, TokenName][] = [
     SURFACES.map((surface): [TokenName, TokenName] => [text, surface]),
   ),
   ["on-accent", "accent"],
-  ...QUARTERS.map((quarter): [TokenName, TokenName] => [
-    `${quarter}-ink`,
-    quarter,
+  // Each quarter's names: on the quarter itself (inner bands), and in the
+  // chart's margin on the card (corner names).
+  ...QUARTERS.flatMap((quarter): [TokenName, TokenName][] => [
+    [`${quarter}-ink`, quarter],
+    [`${quarter}-ink`, "card"],
   ]),
   // Members' names sit on a card-coloured pill on the spoke map (R66).
   ...FRIENDS.map((friend): [TokenName, TokenName] => [friend, "card"]),

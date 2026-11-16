@@ -174,6 +174,58 @@ describe("ChartFrame (R28)", () => {
     expect(group.querySelector('[data-label="good"]')).toBeNull();
   });
 
+  // NFR24 (design 17.5): each quarter of the plot is lightly tinted, under
+  // the lines, so the lines and points are drawn on top of the colour.
+  it.each([
+    // quarter, quality from, to, enjoyment from, to
+    ["tr", MIDPOINT, 10, MIDPOINT, 10],
+    ["tl", 0, MIDPOINT, MIDPOINT, 10],
+    ["br", MIDPOINT, 10, 0, MIDPOINT],
+    ["bl", 0, MIDPOINT, 0, MIDPOINT],
+  ] as const)(
+    "tints the %s quarter, under the dividing lines",
+    (quarter, qLow, qHigh, eLow, eHigh) => {
+      const { container } = render(<ChartFrame />);
+      const rect = container.querySelector(`rect[data-quarter="${quarter}"]`)!;
+
+      expect(rect.getAttribute("class")).toContain(`fill-q-${quarter}`);
+      expect(num(rect, "x")).toBe(chartX(qLow));
+      expect(num(rect, "x") + num(rect, "width")).toBe(chartX(qHigh));
+      expect(num(rect, "y")).toBe(chartY(eHigh));
+      expect(num(rect, "y") + num(rect, "height")).toBe(chartY(eLow));
+
+      // Earlier in the drawing means underneath.
+      const divider = container.querySelector('[data-divider="quality"]')!;
+      expect(
+        rect.compareDocumentPosition(divider) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    },
+  );
+
+  // A corner's and an inner band's name take their quarter's colour, so the
+  // names group with their part of the chart. The words still say it all
+  // (NFR14); the colours are measured in theme.test.ts.
+  it.each([
+    ["masterpieces", "tr"],
+    ["worth-watching", "tr"],
+    ["guilty-pleasures", "tl"],
+    ["cheap-thrills", "tl"],
+    ["serious-watches", "br"],
+    ["respectable", "br"],
+    ["dumpster-fires", "bl"],
+    ["not-worth-watching", "bl"],
+  ] as const)("writes %s in its quarter's colour", (placement, quarter) => {
+    const { container } = render(<ChartFrame />);
+    const label = container.querySelector(`[data-label="${placement}"]`)!;
+    expect(label.getAttribute("class")).toContain(`fill-q-${quarter}-ink`);
+  });
+
+  it("draws only in the theme's colours", () => {
+    const { container } = render(<ChartFrame />);
+    expect(container.innerHTML).not.toMatch(/foreground|background/);
+  });
+
   // The buttons and the list carry the information; the drawing is scenery.
   it("is hidden from screen readers", () => {
     const { container } = render(<ChartFrame />);

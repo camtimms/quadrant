@@ -85,12 +85,7 @@ describe("source accessibility rules", () => {
     const UNTOKENED =
       /(?:foreground|background)\/\d+|(?:bg|text|border|fill|stroke|outline|ring|ring-offset|divide|decoration|accent)-(?:foreground|background)|(?<![\w:-])opacity-(?!100\b)[1-9]\d*\b|\b(?:text|bg|border|fill|stroke)-(?:red|green|blue|gray|yellow|zinc|neutral|slate|white|black)(?:-\d+)?\b|#[0-9a-fA-F]{3,8}\b/;
 
-    const NOT_YET_MOVED = [
-      "src/components/chart/PointPanel.tsx",
-      "src/components/chart/QuadrantChart.tsx",
-      "src/components/chart/SpokeMap.tsx",
-      "src/components/film/DisagreementTable.tsx",
-    ];
+    const NOT_YET_MOVED = ["src/components/film/DisagreementTable.tsx"];
 
     /** Lines that break the rule, ignoring links to a part of the page. */
     function untokened(text: string): string[] {
