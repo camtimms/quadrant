@@ -232,3 +232,4 @@ Running log: date, decision, why. Newest at the bottom.
 | 2026-11-16 | T32e: light mode becomes "Butter": page `#f8efcc`, cards `#fffaea`, pills and tracks `#efe4b8` (were `#fffbe3`, `#ffffff`, `#f3ecc4`). | Owner's choice from three measured options: white cards were too hard on the cream page. Rejected a soft ivory card on the old page (1.02 : 1 against it, so cards would vanish). |
 | 2026-11-16 | T34: backup checked against dev with Docker Desktop; task closed. | Owner ran Docker; the dump held schema, policies, functions and all data including sign-in accounts. |
 | 2026-11-16 | T32a7 and T32a: owner confirmed the new look on the live site ("Yes, all good"). | Owner's check. |
+| 2026-11-16 | V8 settled (T35): a paused free Supabase project can be resumed for up to one year. | Supabase's current "Project Pausing" guide; an older changelog had said 90 days. Written into README with the Resume steps. |

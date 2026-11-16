@@ -3,9 +3,10 @@
 A private film log for a small group of friends. Every film gets two scores from
 0 to 10 — **Quality** (how good it is) and **Enjoyment** (how much you enjoyed
 it) — and the pair places it on a chart with four quadrants: Masterpieces,
-Guilty Pleasures, Serious Watches and Not Worth Watching.
+Guilty Pleasures, Serious Watches and Dumpster Fires.
 
-Live site: https://quadrant-db.vercel.app/ (invite-only once sign-in is built)
+Live site: https://quadrant-db.vercel.app/ (invite-only: Google sign-in for
+people on the invite list)
 
 ## How this project is built
 
@@ -123,6 +124,30 @@ dashboard's Table Editor, in the project you mean (production for real friends).
   case**, then send them the site link.
 - **Remove:** delete their row. They are locked out on their next page load;
   their ratings stay.
+
+### If the site stops working: a paused database
+
+The free Supabase plan **pauses a project after a week of low activity**. A
+few visits a day keeps it awake; a quiet week among friends may not. While it
+is paused the site shows "Something went wrong". Nothing is lost.
+
+- **Before it happens:** Supabase emails the owner a warning about a week
+  before pausing, and again once it has paused. Opening the project in the
+  dashboard, or simply using the site, counts as activity.
+- **To bring it back:** in the [Supabase dashboard](https://supabase.com/dashboard),
+  open the organisation, select `quadrant-prod`, click **Resume project** and
+  confirm. It returns as it was, data and settings included, after a few
+  minutes.
+- **How long you have:** Supabase's guide says a paused project can be
+  resumed for up to **one year** after it was paused (checked 2026-11-16;
+  an older notice said 90 days). Past that, the dashboard can no longer
+  resume it, and the way back is a new project restored from a backup (see
+  "Back up the database" below). Taking a backup every month or two keeps
+  that option open.
+- **To stop it happening:** a paid plan never pauses; a scheduled visit could
+  also keep it awake (nice-to-have T40, not built).
+
+Source: [Supabase, "Project Pausing"](https://supabase.com/docs/guides/platform/free-project-pausing).
 
 ## Maintenance
 
