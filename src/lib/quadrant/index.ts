@@ -13,3 +13,4 @@ export * from "@/lib/quadrant/disagreement";
 export * from "@/lib/quadrant/spokes";
 export * from "@/lib/quadrant/counts";
 export * from "@/lib/quadrant/cluster";
+export * from "@/lib/quadrant/memberColours";

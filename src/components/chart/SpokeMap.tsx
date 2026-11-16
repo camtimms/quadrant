@@ -1,4 +1,5 @@
 import { Fragment } from "react";
+import { friendColourClasses } from "@/components/chart/friendColours";
 import { ChartFrame } from "@/components/chart/QuadrantChart";
 import {
   CHART_SIZE,
@@ -7,7 +8,12 @@ import {
   toPercent,
 } from "@/components/chart/scale";
 import type { MemberRating } from "@/components/film/RatingCards";
-import { clusterPoints, groupAverage, spokesFrom } from "@/lib/quadrant";
+import {
+  clusterPoints,
+  groupAverage,
+  memberColours,
+  spokesFrom,
+} from "@/lib/quadrant";
 
 type Props = {
   /** Every member's current rating of the film, the viewer's included. */
@@ -36,6 +42,12 @@ const SHAPES = {
 } as const;
 
 /**
+ * A friend's marker on the map, without its outline colour: that is the
+ * friend's own (R67), or ink for a marker shared by several friends.
+ */
+const FRIEND_MARKER = "rounded-full border-2 bg-card text-ink";
+
+/**
  * The spoke map on a film's page: where every member put this one film, and
  * how far each friend is from the viewer (R38–R40).
  *
@@ -57,6 +69,16 @@ export function SpokeMap({ ratings }: Props) {
   // other, so they share one marker with a count, as films do on My films
   // (R31). A cell size of 1 merges only identical whole-number scores.
   const places = clusterPoints(ratings, 1);
+
+  // R67: a colour of their own for each friend, the same one from film to
+  // film where possible (design 17.7). The viewer stays yellow.
+  const viewerId = ratings.find((rating) => rating.isViewer)?.userId ?? "";
+  const colours = memberColours(
+    viewerId,
+    ratings.filter((rating) => !rating.isViewer).map((r) => r.userId),
+  );
+  const colourOf = (userId: string) =>
+    friendColourClasses(colours.get(userId) ?? 1);
   const isHub = (place: (typeof places)[number]) =>
     place.items.some((rating) => rating.isViewer);
   const hub = places.find(isHub);
@@ -156,11 +178,15 @@ export function SpokeMap({ ratings }: Props) {
             left: toPercent(chartX(place.point.quality)),
             top: toPercent(chartY(place.point.enjoyment)),
           };
-          // The viewer is "You"; everyone sharing the spot is named, so no
-          // rating is hidden behind another (R31).
-          const names = place.items
-            .map((rating) => (rating.isViewer ? "You" : rating.displayName))
-            .join(", ");
+          // A friend alone at their spot is drawn in their own colour. A
+          // marker shared by several cannot be in all their colours, so it
+          // is drawn in ink, and each NAME keeps its colour (R31, R67).
+          const onlyFriend =
+            kind === "friend" && count === 1 ? place.items[0] : null;
+          const markerClasses =
+            kind === "viewer"
+              ? SHAPES.viewer
+              : `${FRIEND_MARKER} ${onlyFriend ? colourOf(onlyFriend.userId).border : "border-ink"}`;
           // The name goes on whichever side has more room: to the right of
           // a point in the left half, to the left of one in the right half.
           const nameOnRight = place.point.quality <= 5;
@@ -173,10 +199,11 @@ export function SpokeMap({ ratings }: Props) {
               <div
                 data-point={kind}
                 data-shape="circle"
+                data-member={onlyFriend?.userId}
                 style={position}
                 className={`${CENTRED} flex items-center justify-center text-xs leading-none font-semibold ${
                   count > 1 ? "h-6 w-6" : "h-4 w-4"
-                } ${SHAPES[kind]}`}
+                } ${markerClasses}`}
               >
                 {count > 1 ? count : null}
               </div>
@@ -191,7 +218,23 @@ export function SpokeMap({ ratings }: Props) {
                     : "-translate-x-[calc(100%+1rem)]"
                 }`}
               >
-                {names}
+                {/* The viewer is "You"; everyone sharing the spot is
+                    named, so no rating is hidden behind another (R31). */}
+                {place.items.map((rating, index) => (
+                  <Fragment key={rating.userId}>
+                    {index > 0 ? ", " : null}
+                    <span
+                      data-name-of={rating.userId}
+                      className={
+                        rating.isViewer
+                          ? "font-semibold"
+                          : colourOf(rating.userId).text
+                      }
+                    >
+                      {rating.isViewer ? "You" : rating.displayName}
+                    </span>
+                  </Fragment>
+                ))}
               </span>
             </Fragment>
           );

@@ -1527,6 +1527,7 @@ something in light mode (`accent-outline`).
   data. A test reads `globals.css` and fails if the two differ (the pattern
   T32 already uses), and the contrast tests measure every pair the app uses
   from `theme.ts`, in both modes.
+- **The old two colours are gone** _(T32a5)_: `--background` and `--foreground` stayed as aliases of `page` and `ink` while components moved over (T32a1–T32a5), then were removed.
 - **Opacity is no longer used on text.** A faded colour's contrast depends
   on what is behind it, which is how T32 found two failures. The source
   test from T32 changes accordingly: no `opacity-*` or `foreground/…` on

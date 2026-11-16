@@ -26,7 +26,7 @@ export function MemberName({ rating }: Props) {
   return (
     <Link
       href={`/members/${rating.userId}`}
-      className="underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 active:opacity-60"
+      className="rounded underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:opacity-60"
     >
       {rating.displayName}
     </Link>

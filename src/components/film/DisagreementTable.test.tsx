@@ -4,6 +4,7 @@ import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { DisagreementTable } from "@/components/film/DisagreementTable";
 import type { MemberRating } from "@/components/film/RatingCards";
+import { memberColours } from "@/lib/quadrant";
 
 afterEach(cleanup);
 
@@ -142,5 +143,32 @@ describe("DisagreementTable (R41)", () => {
     const { container } = render(<DisagreementTable ratings={[me]} />);
 
     expect(container.textContent).toBe("");
+  });
+});
+
+// Q18 (design 17.7): a dot in the friend's spoke-map colour beside their
+// name, so the table and the map can be matched. Decoration only: the name
+// is the information.
+describe("DisagreementTable colour dots (R67)", () => {
+  it("puts a dot in each friend's map colour beside their name", () => {
+    const bob = rating("Bob", 2, 9);
+    const ann = rating("Ann", 8, 2);
+    const colours = memberColours(me.userId, [bob.userId, ann.userId]);
+    render(<DisagreementTable ratings={[me, bob, ann]} />);
+
+    for (const friend of [bob, ann]) {
+      const dot = rowOf(friend.displayName).querySelector("[data-colour-dot]")!;
+      expect(dot.className).toContain(
+        `bg-friend-${colours.get(friend.userId)}`,
+      );
+      expect(dot.getAttribute("aria-hidden")).toBe("true");
+    }
+  });
+
+  it("uses only the theme's colours", () => {
+    const { container } = render(
+      <DisagreementTable ratings={[me, rating("Bob", 2, 9)]} />,
+    );
+    expect(container.innerHTML).not.toMatch(/foreground|background/);
   });
 });

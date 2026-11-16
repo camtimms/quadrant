@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { chartX, chartY, toPercent } from "@/components/chart/scale";
 import { SpokeMap } from "@/components/chart/SpokeMap";
 import type { MemberRating } from "@/components/film/RatingCards";
+import { memberColours } from "@/lib/quadrant";
 
 afterEach(cleanup);
 
@@ -296,5 +297,71 @@ describe("SpokeMap", () => {
       expect(image.getAttribute("aria-label")).toMatch(/2 members/);
       expect(image.getAttribute("aria-label")).toMatch(/table/);
     });
+  });
+});
+
+// R67 (design 17.7): each friend has a colour of their own on the map,
+// used for their point and their name; the viewer stays yellow.
+describe("SpokeMap friend colours (R67)", () => {
+  const bob = rating("Bob", 2, 9);
+  const ann = rating("Ann", 8, 2);
+  const colours = memberColours(me.userId, [bob.userId, ann.userId]);
+
+  it("draws each friend's point in their own colour", () => {
+    const { container } = render(<SpokeMap ratings={[me, bob, ann]} />);
+    const [bobPoint, annPoint] = [bob, ann].map((friend) =>
+      container.querySelector<HTMLElement>(
+        `[data-point="friend"][data-member="${friend.userId}"]`,
+      )!,
+    );
+    expect(bobPoint.className).toContain(
+      `border-friend-${colours.get(bob.userId)}`,
+    );
+    expect(annPoint.className).toContain(
+      `border-friend-${colours.get(ann.userId)}`,
+    );
+    expect(colours.get(bob.userId)).not.toBe(colours.get(ann.userId));
+  });
+
+  it("writes each friend's name in the same colour as their point", () => {
+    const { container } = render(<SpokeMap ratings={[me, bob, ann]} />);
+    const name = container.querySelector<HTMLElement>(
+      `[data-name-of="${bob.userId}"]`,
+    )!;
+    expect(name.textContent).toBe("Bob");
+    expect(name.className).toContain(`text-friend-${colours.get(bob.userId)}`);
+  });
+
+  it("keeps the viewer yellow, with no friend colour", () => {
+    const { container } = render(<SpokeMap ratings={[me, bob]} />);
+    const [hub] = pointsIn(container, "viewer");
+    expect(hub.className).toContain("bg-accent");
+    expect(hub.className).not.toMatch(/friend-\d/);
+  });
+
+  // Friends with identical scores share one marker (R31): it cannot be in
+  // two colours, so it is drawn in ink, and each name keeps its colour.
+  it("draws a shared marker in ink and colours each name on it", () => {
+    const twin = rating("Twin", 2, 9);
+    const { container } = render(<SpokeMap ratings={[me, bob, twin]} />);
+    const [shared] = pointsIn(container, "friend");
+    expect(shared.className).toContain("border-ink");
+    expect(shared.className).not.toMatch(/friend-\d/);
+    for (const friend of [bob, twin]) {
+      const name = container.querySelector<HTMLElement>(
+        `[data-name-of="${friend.userId}"]`,
+      )!;
+      const colour = memberColours(me.userId, [bob.userId, twin.userId]).get(
+        friend.userId,
+      );
+      expect(name.className).toContain(`text-friend-${colour}`);
+    }
+  });
+
+  // Without a rating of their own the viewer has no hub, but friends are
+  // still coloured.
+  it("colours friends when the viewer has not rated the film", () => {
+    const { container } = render(<SpokeMap ratings={[bob, ann]} />);
+    expect(container.innerHTML).toMatch(/border-friend-\d/);
   });
 });

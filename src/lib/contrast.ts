@@ -1,44 +1,9 @@
-import { THEME } from "@/lib/theme";
-
 /**
  * Colour contrast, as WCAG 2 defines it (NFR14: text meets WCAG AA).
  *
- * The theme's named colours are measured in theme.test.ts. Components not
- * yet moved to them (T32a2–T32a4) still make shades by fading the text
- * colour: Tailwind's "opacity-70" or "border-foreground/30". A faded colour
- * is just the text colour mixed with what is behind it, so the contrast of
- * each fade can be worked out here and tested, instead of checked by eye.
+ * The theme's colours, and the pairs of them the app draws, are measured
+ * with this in src/lib/theme.test.ts.
  */
-
-/** Each mode's page and text colours (from theme.ts, which a test keeps in
- *  step with globals.css), plus the Tailwind red that error messages use
- *  until they move to the theme's "danger". */
-export const THEMES = {
-  light: {
-    background: THEME.light.page,
-    foreground: THEME.light.ink,
-    errorText: "#b91c1c",
-  },
-  dark: {
-    background: THEME.dark.page,
-    foreground: THEME.dark.ink,
-    errorText: "#f87171",
-  },
-} as const;
-
-/**
- * The faintest text the site may use, as a fraction of full strength: the
- * "opacity-60" class. Anything fainter falls below WCAG AA's 4.5 : 1 in
- * light mode (50% is about 3.4 : 1).
- */
-export const MIN_TEXT_OPACITY = 0.6;
-
-/**
- * The edge of a text box: "border-foreground/50". WCAG asks for 3 : 1
- * between a control's edge and its background, because the edge is how
- * the box is seen at all. The old /30 was about 2 : 1 in light mode.
- */
-export const FIELD_BORDER_OPACITY = 0.5;
 
 type Rgb = [number, number, number];
 
@@ -46,10 +11,6 @@ function toRgb(hex: string): Rgb {
   return [1, 3, 5].map((start) =>
     parseInt(hex.slice(start, start + 2), 16),
   ) as Rgb;
-}
-
-function toHex(rgb: Rgb): string {
-  return `#${rgb.map((v) => Math.round(v).toString(16).padStart(2, "0")).join("")}`;
 }
 
 /**
@@ -72,16 +33,4 @@ export function contrastRatio(a: string, b: string): number {
     (x, y) => y - x,
   );
   return (light + 0.05) / (dark + 0.05);
-}
-
-/**
- * The colour seen when `colour` is drawn at `alpha` (0 to 1) over
- * `background`: what "opacity-70" does to text.
- */
-export function blend(colour: string, background: string, alpha: number) {
-  const front = toRgb(colour);
-  const back = toRgb(background);
-  return toHex(
-    front.map((value, i) => value * alpha + back[i] * (1 - alpha)) as Rgb,
-  );
 }

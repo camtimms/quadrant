@@ -33,12 +33,6 @@
   --friend-5: #534ab7;
   --friend-6: #3b6d11;
   --friend-7: #5f5e5a;
-
-  /* The two colours the site used before the theme. Components still
-     written with fades of them ("text-foreground/70") keep working until
-     T32a2–T32a4 move them to the names above; then these go. */
-  --background: var(--page);
-  --foreground: var(--ink);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -104,8 +98,6 @@
   --color-friend-5: var(--friend-5);
   --color-friend-6: var(--friend-6);
   --color-friend-7: var(--friend-7);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
 
   /* The layout loads Geist into --font-geist-sans; Tailwind's base styles
      use --font-sans for the whole page, so this is all it takes (NFR24). */
