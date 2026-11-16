@@ -24,6 +24,9 @@ build the nice-to-haves.**
 **Section 21 (the design for requirements v14: spread curves and comparing
 members) was approved by the owner on 2026-11-16, through the owner's answers.**
 
+**Section 22 (the design for requirements v15: the recent-ratings feed) was
+approved by the owner on 2026-11-16, through the owner's answers.**
+
 Every section lists the requirement IDs it satisfies. Section 14 is the reverse
 lookup (requirement → section). Section 15 lists facts I could **not** confirm
 from documentation and that must be checked with a real call before the code
@@ -1979,4 +1982,42 @@ _Satisfies: R73–R76, E55–E60, NFR13, NFR17, NFR21_
 | R75, R76    | 21.2    |
 | E55, E56    | 21.1    |
 | E57–E60     | 21.2    |
+
+---
+
+## 22. v15 design: the recent-ratings feed on Friends' films
+
+_Satisfies: R77, R78, E61–E64_
+
+- **Data.** Friends' films already reads every current rating in one paged
+  query (`loadAllRatings`). That query gains the rating's `id` and
+  `REVIEW_LIKERS` (design 20.3), so each `RatingRow` carries `ratingId` and
+  `likes`. The like on a feed entry and on the film page's card point at
+  the same rating row in `review_likes`, which is what makes them the same
+  like (R78); no new table or query.
+- **Pure, tested** (`recentFeed` in `src/lib/data/groupFilms.ts`): takes
+  the rows, the films as grouped (for each film's group placement), the
+  filter and how many to show; returns the newest first by first-rated
+  time, ties by rating id, keeping only films in the filter's placement
+  (E62), cut to the count, with the review cut to `REVIEW_START` like the
+  panel's, and whether more exist (E61).
+- **Drawing** (`RecentRatings`, server component with the client
+  `LikeButton` inside): one card list like the film list; each entry has
+  the avatar and `MemberName`, "rated", the film link (poster, title,
+  year), "Quality 8 · Enjoyment 9 · Masterpieces", the review start (three
+  lines), and `LikeButton` when there is a review. "Show 50 more" is a link
+  to `?shown=100` (and so on), kept with the filter, so Back returns to the
+  same place.
+- **Page.** In most-recent order the list section shows the feed, headed
+  "Recent ratings"; in biggest-disagreement order it shows the film list
+  as now. The chart, chips and order links are unchanged.
+- **`shown`** is read like `filter` and `sort`: anything that is not a
+  multiple of 50 between 50 and 1,000 counts as 50.
+- **Tests (written first):** `recentFeed` (order, ties, filter by group
+  placement, count and "more", review cut); the loader maps `ratingId`
+  and sorted `likes`; `RecentRatings` (entry contents, a like button only
+  with a review, "You" for the viewer, "Show 50 more" only when there are
+  more, keeping the filter); `parseShown`; the real query on dev
+  (`tests/rls/all-ratings.test.ts`); an end-to-end test that likes a review
+  in the feed and finds it liked on the film page.
 

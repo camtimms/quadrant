@@ -2,6 +2,11 @@
 
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
+**v15 change approved by the owner on 2026-11-16:** Friends' films in
+most-recent order becomes a feed of ratings, each with who rated, their
+scores, the start of their review and the same like button as the film page
+(R77, R78, section 16; task T29e).
+
 **v14 change approved by the owner on 2026-11-16:** score spread curves
 on the film page from five ratings (N4 as R73–R74), and comparing yourself
 with another member from their page (N2 as R75–R76), section 15. The rewatch
@@ -588,4 +593,26 @@ for the nice-to-haves to be built and pushed without a stop at each spec.
 | E58 | The viewer, or the other member, has rated nothing          | That chart shows its empty state; the list says there is nothing to compare yet                       |
 | E59 | A member opens the compare page for themselves              | Sent to My films, as their own member page does (T30)                                                 |
 | E60 | An unknown member id in the compare address                 | "Page not found", as for an unknown member page                                                       |
+
+## 16. v15 change — APPROVED by the owner, 2026-11-16
+
+Asked for by the owner on 2026-11-16 after likes went live: in Friends'
+films' most-recent order, show each rating with who made it, their score
+and part of their review, likeable, with the same likes as on the film page.
+The owner chose one entry per rating (a feed) over one per film, and to
+leave the biggest-disagreement order as it is.
+
+### Requirements
+
+- **R77** — WHEN "Friends' films" is shown in most-recent order (R44), THE SYSTEM SHALL list, under the chart, one entry per member's rating, newest first by when it was first made: the member's picture or initial and name, the film (poster, title and year, linking to its page), that member's two scores and placement, and the start of their review if they wrote one. The biggest-disagreement order keeps its list of films (R44).
+- **R78** — WHEN an entry in that feed has a written review, THE SYSTEM SHALL show the same like button, count and names as that review's card on the film page (R69–R71); a like given or taken back in either place is the same like.
+
+### Edge cases
+
+| #   | Situation                                  | Proposed behaviour                                                                                         |
+| --- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| E61 | More than 50 ratings                       | The newest 50, then "Show 50 more" (a link: the address remembers how many, so Back keeps the place)       |
+| E62 | A placement filter is chosen               | Only ratings of films whose group average is in that placement, matching the chart and the chips           |
+| E63 | The viewer's own ratings                   | Included, as everywhere on Friends' films; their name is shown as theirs ("You") and their reviews can be liked (R71) |
+| E64 | A rating is edited                         | It keeps its place: the order is when it was first made, as R36 does for films                             |
 
