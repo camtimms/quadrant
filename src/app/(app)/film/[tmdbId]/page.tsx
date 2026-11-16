@@ -10,6 +10,7 @@ import { SpreadCurves } from "@/components/film/SpreadCurves";
 import { DeleteRatingButton } from "@/components/rating/DeleteRatingButton";
 import { MyRatingSection } from "@/components/rating/MyRatingSection";
 import { RatingForm } from "@/components/rating/RatingForm";
+import { RewatchSwitch } from "@/components/rating/RewatchSwitch";
 import { getCurrentMember } from "@/lib/auth/member";
 import { loadFilmPage } from "@/lib/data/filmPage";
 import { parseTmdbId } from "@/lib/validation/rating";
@@ -119,23 +120,23 @@ export default async function FilmPage({
         changedAt={myRating?.changedAt}
         justSaved={justSaved}
       >
-        <RatingForm
-          tmdbId={film.tmdbId}
-          initialRating={myRating}
-          // The form copies its starting values into its own state once,
-          // when it first appears. Changing `key` tells React "this is a
-          // different form now, start again", so after a delete (or a save
-          // made in another tab) it shows what is really stored instead of
-          // what it remembered.
-          key={
-            myRating
-              ? `${myRating.quality}-${myRating.enjoyment}-${myRating.review}`
-              : "unrated"
-          }
-        />
+        {/* The form copies its starting values into its own state once,
+            when it first appears. Changing `key` tells React "this is a
+            different form now, start again", so after a delete, a rewatch
+            (or a save made in another tab) it shows what is really stored
+            instead of what it remembered. */}
         {myRating && titleId !== null ? (
-          <DeleteRatingButton titleId={titleId} filmTitle={film.title} />
-        ) : null}
+          // A rated film: edit it, or log a rewatch (R83).
+          <RewatchSwitch
+            tmdbId={film.tmdbId}
+            initialRating={myRating}
+            key={`${myRating.changedAt}-${myRating.quality}-${myRating.enjoyment}-${myRating.review}`}
+          >
+            <DeleteRatingButton titleId={titleId} filmTitle={film.title} />
+          </RewatchSwitch>
+        ) : (
+          <RatingForm tmdbId={film.tmdbId} initialRating={null} key="unrated" />
+        )}
       </MyRatingSection>
 
       {/* Shown whether or not the viewer has rated the film (E12). The

@@ -22,6 +22,12 @@ type Props = {
   tmdbId: number;
   /** The member's existing rating, or null if they have not rated the film. */
   initialRating: RatingInput | null;
+  /**
+   * Log a rewatch instead of editing (R83): the sliders start from the
+   * current scores, the review starts empty (it is a new viewing), and the
+   * action is told to keep the current rating as an earlier viewing.
+   */
+  rewatch?: boolean;
 };
 
 /** R49: both sliders start in the middle. A 5 left alone is a real 5. */
@@ -43,14 +49,19 @@ const DEFAULT_SCORE = 5;
  * Nothing is saved until Save is pressed. A slider is easy to brush by
  * accident on a phone, so moving one never saves by itself.
  */
-export function RatingForm({ tmdbId, initialRating }: Props) {
+export function RatingForm({ tmdbId, initialRating, rewatch = false }: Props) {
   const [quality, setQuality] = useState<number>(
     initialRating?.quality ?? DEFAULT_SCORE,
   );
   const [enjoyment, setEnjoyment] = useState<number>(
     initialRating?.enjoyment ?? DEFAULT_SCORE,
   );
-  const [review, setReview] = useState(initialRating?.review ?? "");
+  const [review, setReview] = useState(
+    rewatch ? "" : (initialRating?.review ?? ""),
+  );
+  // The review box's id, unique per mode, so its label always points at
+  // the right box.
+  const reviewId = rewatch ? "rewatch_review" : "review";
 
   // useActionState connects the form to the server action:
   //   state      what the action returned last time
@@ -73,6 +84,7 @@ export function RatingForm({ tmdbId, initialRating }: Props) {
           action adds "?rated=" to it, which is how the page knows to say
           "Saved". The server only accepts a path on this site. */}
       <input type="hidden" name="return_to" value={`/film/${tmdbId}`} />
+      {rewatch ? <input type="hidden" name="rewatch" value="1" /> : null}
 
       <ScoreSlider
         name="quality"
@@ -98,22 +110,25 @@ export function RatingForm({ tmdbId, initialRating }: Props) {
       <PlacementPreview quality={quality} enjoyment={enjoyment} />
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="review" className="font-medium">
+        <label htmlFor={reviewId} className="font-medium">
           Review <span className="font-normal text-ink-muted">(optional)</span>
         </label>
         <textarea
-          id="review"
+          id={reviewId}
           name="review"
           rows={4}
           value={review}
           onChange={(event) => setReview(event.target.value)}
           // The browser stops typing at the limit; the server checks again.
           maxLength={REVIEW_MAX_LENGTH}
-          aria-describedby="review_count"
+          aria-describedby={`${reviewId}_count`}
           aria-invalid={errorField === "review" ? true : undefined}
           className={textField}
         />
-        <p id="review_count" className="text-sm tabular-nums text-ink-muted">
+        <p
+          id={`${reviewId}_count`}
+          className="text-sm tabular-nums text-ink-muted"
+        >
           {reviewLength} / {REVIEW_MAX_LENGTH}
         </p>
       </div>
@@ -132,9 +147,11 @@ export function RatingForm({ tmdbId, initialRating }: Props) {
       >
         {isPending
           ? "Saving…"
-          : initialRating
-            ? "Update rating"
-            : "Save rating"}
+          : rewatch
+            ? "Log rewatch"
+            : initialRating
+              ? "Update rating"
+              : "Save rating"}
       </button>
     </form>
   );

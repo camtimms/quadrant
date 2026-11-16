@@ -46,6 +46,9 @@ function text(value: FormDataEntryValue | null): string {
  *              does, since it only changes scores (R51). An empty review
  *              field, by contrast, means "remove my review".
  *   return_to  where on this site to go afterwards (default: My films).
+ *   rewatch    "1" to log a rewatch (R83): the current rating is kept as an
+ *              earlier viewing and these scores become a new current one.
+ *              Anything else, or nothing, edits the current rating.
  *
  * Expected problems are RETURNED as { status: "error", ... } together with
  * what was typed, so the form can show the message and refill itself. A
@@ -79,8 +82,13 @@ export async function saveRating(
   });
   if (!parsed.ok) return fail(parsed.message, parsed.field);
   const rating = parsed.value;
-  // null means the form had no review field at all (not an empty one).
-  const keepExistingReview = formData.get("review") === null;
+  // R83: a rewatch adds a new entry instead of changing the current one.
+  // Only the exact value "1" counts, so a stray value can never turn an
+  // edit into a rewatch.
+  const isRewatch = formData.get("rewatch") === "1";
+  // null means the form had no review field at all (not an empty one). A
+  // rewatch never copies the earlier review: it is a new viewing.
+  const keepExistingReview = !isRewatch && formData.get("review") === null;
 
   try {
     // 2. Who is asking? This MUST come before step 3. Storing a film uses
@@ -132,15 +140,23 @@ export async function saveRating(
       review = current?.review ?? "";
     }
 
-    const { error } = await supabase.rpc("save_rating", {
-      p_title_id: film.title.id,
-      p_quality: rating.quality,
-      p_enjoyment: rating.enjoyment,
-      // "No review" is sent as "", which save_rating stores as null.
-      p_review: review,
-    });
+    // Both functions take the same four values and write only under the
+    // caller's own id (migrations 3 and 8).
+    const { error } = await supabase.rpc(
+      isRewatch ? "log_rewatch" : "save_rating",
+      {
+        p_title_id: film.title.id,
+        p_quality: rating.quality,
+        p_enjoyment: rating.enjoyment,
+        // "No review" is sent as "", which save_rating stores as null.
+        p_review: review,
+      },
+    );
     if (error) {
-      console.error("save_rating failed:", error);
+      console.error(
+        isRewatch ? "log_rewatch failed:" : "save_rating failed:",
+        error,
+      );
       // The session can run out between step 2 and here.
       return fail(
         error.code === PERMISSION_DENIED ? SESSION_EXPIRED : NOT_SAVED,
@@ -177,7 +193,8 @@ export async function saveRating(
 }
 
 /**
- * Delete the member's own rating of a film (R21). The form sends title_id,
+ * Delete the member's own rating of a film (R21), with every earlier
+ * viewing of it (R87). The form sends title_id,
  * which is OUR id for the film (titles.id), not TMDB's.
  *
  * Asking "are you sure?" is the form's job; by the time this runs, the
@@ -202,7 +219,8 @@ export async function deleteRating(
     const member = await getCurrentMember();
     if (!member) return fail("Your session expired. Sign in again to delete.");
 
-    // Only rows that are the member's own AND for this film. The user id
+    // Only rows that are the member's own AND for this film: the current
+    // rating and any earlier viewings (R87), hence no is_current filter. The user id
     // comes from the verified session, never from the form. Even if it did
     // not, the database's policy lets a member delete only their own rows.
     const supabase = await createClient();
@@ -210,8 +228,7 @@ export async function deleteRating(
       .from("ratings")
       .delete()
       .eq("user_id", member.userId)
-      .eq("title_id", titleId)
-      .eq("is_current", true);
+      .eq("title_id", titleId);
     if (error) {
       console.error("Deleting a rating failed:", error);
       return fail("That couldn't be deleted. Please try again.");

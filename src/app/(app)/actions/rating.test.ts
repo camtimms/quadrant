@@ -495,18 +495,79 @@ describe("saveRating from the in-place editor", () => {
   });
 });
 
+describe("saveRating as a rewatch (R83)", () => {
+  it("logs a rewatch instead of editing", async () => {
+    await savedAndRedirected({ rewatch: "1", quality: "8", enjoyment: "7" });
+
+    expect(mocks.rpc).toHaveBeenCalledWith("log_rewatch", {
+      p_title_id: 42,
+      p_quality: 8,
+      p_enjoyment: 7,
+      p_review: "So bad it's good.",
+    });
+    expect(mocks.rpc).not.toHaveBeenCalledWith(
+      "save_rating",
+      expect.anything(),
+    );
+  });
+
+  it("returns to the film page saying Saved, as any save does", async () => {
+    await savedAndRedirected({ rewatch: "1", return_to: "/film/10999" });
+    expect(mocks.redirect).toHaveBeenCalledWith("/film/10999?rated=10999");
+  });
+
+  // A rewatch always brings its own review (empty for none): it never
+  // copies the earlier one.
+  it("does not keep the earlier review when the field is left out", async () => {
+    const data = form({
+      tmdb_id: "10999",
+      quality: "3",
+      enjoyment: "9",
+      rewatch: "1",
+    });
+    await expect(saveRating(IDLE, data)).rejects.toThrow("NEXT_REDIRECT");
+    expect(mocks.existingReview).not.toHaveBeenCalled();
+    expect(mocks.rpc).toHaveBeenCalledWith(
+      "log_rewatch",
+      expect.objectContaining({ p_review: "" }),
+    );
+  });
+
+  it("checks the scores as any save does", async () => {
+    const result = await save({ rewatch: "1", quality: "11" });
+    expect(result).toMatchObject({ status: "error", field: "quality" });
+    expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+
+  it("keeps what was typed when the database refuses", async () => {
+    mocks.rpc.mockResolvedValue({
+      data: null,
+      error: { code: "XX000", message: "boom" },
+    });
+    const result = await save({ rewatch: "1" });
+    expect(result).toMatchObject({
+      status: "error",
+      values: { review: "So bad it's good." },
+    });
+    expect(JSON.stringify(result)).not.toContain("boom");
+  });
+
+  it("ignores any other value of the field", async () => {
+    await savedAndRedirected({ rewatch: "yes" });
+    expect(mocks.rpc).toHaveBeenCalledWith("save_rating", expect.anything());
+  });
+});
+
 describe("deleteRating (R21)", () => {
-  it("deletes the member's own current rating of that film", async () => {
+  // R87: every viewing goes, earlier ones included.
+  it("deletes all of the member's entries for that film", async () => {
     expect(await remove("42")).toEqual({ status: "deleted" });
 
     // The user id comes from the session, never from the form.
-    expect(mocks.deleteFilters).toEqual(
-      expect.arrayContaining([
-        ["user_id", MEMBER.userId],
-        ["title_id", 42],
-        ["is_current", true],
-      ]),
-    );
+    expect(mocks.deleteFilters).toEqual([
+      ["user_id", MEMBER.userId],
+      ["title_id", 42],
+    ]);
     expect(mocks.refresh).toHaveBeenCalledTimes(1);
   });
 

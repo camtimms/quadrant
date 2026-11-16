@@ -17,6 +17,8 @@ type Props = {
   titleId: number;
   /** Shown in the question, so the member knows exactly what will go. */
   filmTitle: string;
+  /** How many earlier viewings go with it (R87); none if left out. */
+  earlierViewings?: number;
 };
 
 /**
@@ -27,7 +29,11 @@ type Props = {
  * than a browser pop-up (window.confirm) so that it can name the film, be
  * styled like everything else, and be used comfortably with a keyboard.
  */
-export function DeleteRatingButton({ titleId, filmTitle }: Props) {
+export function DeleteRatingButton({
+  titleId,
+  filmTitle,
+  earlierViewings = 0,
+}: Props) {
   const [confirming, setConfirming] = useState(false);
   const [state, formAction, isPending] = useActionState<
     DeleteRatingState,
@@ -53,8 +59,13 @@ export function DeleteRatingButton({ titleId, filmTitle }: Props) {
     >
       <input type="hidden" name="title_id" value={titleId} />
       <p className="text-sm">
-        Delete your rating of {filmTitle}? Your scores and review will be
-        removed. This cannot be undone.
+        Delete your rating of {filmTitle}
+        {earlierViewings === 1
+          ? " and your earlier viewing"
+          : earlierViewings > 1
+            ? ` and your ${earlierViewings} earlier viewings`
+            : ""}
+        ? Your scores and review will be removed. This cannot be undone.
       </p>
       <div className="flex gap-2">
         <button
