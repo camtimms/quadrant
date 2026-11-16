@@ -6,6 +6,9 @@
    (E40). src/lib/theme.ts holds the same values for the tests, which fail
    if the two ever differ. What each is for is written there. */
 :root {
+  /* The browser's own controls (scroll bars, the slider's track, the tick
+     box) follow this, so they switch with the mode too. */
+  color-scheme: light;
   --page: #fffbe3;
   --card: #ffffff;
   --well: #f3ecc4;
@@ -35,8 +38,15 @@
   --friend-7: #5f5e5a;
 }
 
+/* Dark mode (R68, design 18). It applies in two cases, so the values are
+   written twice and theme.test.ts checks the two copies match:
+     - the device is set to dark and the member has not chosen light here;
+     - the member chose dark with the header's switch (data-theme="dark",
+       set before the page is painted by the script in the root layout).
+   With nothing chosen, the device's own setting decides (E46). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --page: #0d0d0d;
     --card: #1a1a1a;
     --well: #262626;
@@ -64,6 +74,50 @@
     --friend-5: #afa9ec;
     --friend-6: #97c459;
     --friend-7: #b4b2a9;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --card: #1a1a1a;
+  --well: #262626;
+  --ink: #f2f2ee;
+  --ink-muted: #a3a39b;
+  --edge: #77776f;
+  --accent: #f5e400;
+  --on-accent: #0d0d0d;
+  --accent-outline: transparent;
+  --spoke: #f5e400;
+  --focus: #f5e400;
+  --danger: #ff8a80;
+  --q-tr: #15261a;
+  --q-tl: #2a1720;
+  --q-br: #141e2b;
+  --q-bl: #1c1c1e;
+  --q-tr-ink: #97c459;
+  --q-tl-ink: #ed93b1;
+  --q-br-ink: #85b7eb;
+  --q-bl-ink: #b4b2a9;
+  --friend-1: #ed93b1;
+  --friend-2: #5dcaa5;
+  --friend-3: #85b7eb;
+  --friend-4: #f0997b;
+  --friend-5: #afa9ec;
+  --friend-6: #97c459;
+  --friend-7: #b4b2a9;
+}
+
+/* Tailwind's dark: classes follow exactly the same rule as the colours
+   above, instead of its default (the device setting only). */
+@custom-variant dark {
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+  &:where(:root[data-theme="dark"] *) {
+    @slot;
   }
 }
 

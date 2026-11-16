@@ -5,6 +5,7 @@ import { signOut } from "@/app/(app)/actions/auth";
 import { getCurrentMember } from "@/lib/auth/member";
 import { Nav } from "@/components/Nav";
 import { SiteLogo } from "@/components/SiteLogo";
+import { ThemeSwitch } from "@/components/ThemeSwitch";
 import { focusRing, mutedText, pill } from "@/components/ui/styles";
 import { SITE_NAME } from "@/lib/site";
 
@@ -42,6 +43,8 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
             <Suspense fallback={null}>
               <SignedInAs />
             </Suspense>
+            {/* Light or dark mode, one tap from every page (R68). */}
+            <ThemeSwitch />
             <form action={signOut}>
               <button type="submit" className={`${pill} whitespace-nowrap`}>
                 Sign out

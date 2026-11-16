@@ -11,8 +11,8 @@ Implements: `01-requirements.md` (approved v2)
 **Section 17 (the design for requirements v10: the visual theme) was approved
 by the owner on 2026-11-16.**
 
-**Section 18 (the design for requirements v11: the light/dark switch) is
-PROPOSED, waiting for the owner's approval.**
+**Section 18 (the design for requirements v11: the light/dark switch) was
+approved by the owner on 2026-11-16.**
 
 Every section lists the requirement IDs it satisfies. Section 14 is the reverse
 lookup (requirement → section). Section 15 lists facts I could **not** confirm
@@ -1669,7 +1669,7 @@ headings and 400 for text.
 
 ---
 
-## 18. v11 design: the light and dark switch (PROPOSED)
+## 18. v11 design: the light and dark switch
 
 _Satisfies: R68, E42–E46, NFR12, NFR24_
 

@@ -2,7 +2,7 @@
 
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
-**v11 change PROPOSED on 2026-11-16, waiting for the owner's approval:**
+**v11 change approved by the owner on 2026-11-16:**
 a switch between light and dark mode at the top right of the signed-in
 header (new R68, section 12). Answers Q17, which v10 had assumed "no".
 
@@ -470,7 +470,7 @@ covered here too, as T32a's task entry said it would be.
 - **Q17 — A switch for light or dark inside the app?** _Assumed: no._ **Answered by the owner on 2026-11-16: yes** (v11, R68). The app follows the phone's own setting, as it does today. A switch can be added later.
 - **Q18 — Friend colours beyond the spoke map?** _Assumed: on the spoke map, plus a small dot of the same colour beside each name in the "How far each friend is from you" table under it, so the two can be matched._ Not on the lists, cards or Friends' films, where there is no chart of members to match.
 
-## 12. v11 change — PROPOSED 2026-11-16, waiting for the owner's approval
+## 12. v11 change — APPROVED by the owner, 2026-11-16
 
 Task T32d. While T32a was being built the owner asked whether there is a
 switch between light and dark mode, and if not, for one where it makes

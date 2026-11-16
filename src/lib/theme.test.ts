@@ -20,24 +20,34 @@ const NON_TEXT = 3;
 
 const css = readFileSync("src/app/globals.css", "utf8");
 
-/** The `--name: value;` lines in one block of globals.css. */
+/** The `--name: value;` lines (and color-scheme) in one block of globals.css. */
 function declarations(block: string): Map<string, string> {
   return new Map(
-    [...block.matchAll(/--([\w-]+):\s*([^;]+);/g)].map(([, name, value]) => [
-      name,
-      value.trim(),
-    ]),
+    [...block.matchAll(/(?:--)?([\w-]+):\s*([^;]+);/g)].map(
+      ([, name, value]) => [name, value.trim()],
+    ),
   );
 }
 
 /** The light block (`:root { … }`, the first) and the dark one. */
+/**
+ * The light block (`:root { … }`, the first) and the dark one. Dark is
+ * written twice (R68, design 18): once for a device set to dark where the
+ * member has not chosen light, once for a member who chose dark. Both
+ * copies must hold the same values.
+ */
 function cssBlocks(): Record<Mode, Map<string, string>> {
   const light = css.match(/^:root\s*\{([^}]*)\}/m);
-  const dark = css.match(
-    /@media \(prefers-color-scheme: dark\)\s*\{\s*:root\s*\{([^}]*)\}/,
+  const darkDevice = css.match(
+    /@media \(prefers-color-scheme: dark\)\s*\{\s*:root:not\(\[data-theme="light"\]\)\s*\{([^}]*)\}/,
   );
-  if (!light || !dark) throw new Error("globals.css has lost a :root block");
-  return { light: declarations(light[1]), dark: declarations(dark[1]) };
+  const darkChosen = css.match(/^:root\[data-theme="dark"\]\s*\{([^}]*)\}/m);
+  if (!light || !darkDevice || !darkChosen) {
+    throw new Error("globals.css has lost a :root block");
+  }
+  const dark = declarations(darkDevice[1]);
+  expect(declarations(darkChosen[1])).toEqual(dark);
+  return { light: declarations(light[1]), dark };
 }
 
 describe("the theme's colours", () => {
@@ -96,6 +106,24 @@ describe("the theme's colours", () => {
     for (const name of TOKEN_NAMES) {
       expect(block.get(name), `--${name}`).toBe(THEME[mode][name]);
     }
+  });
+
+  // R68: Tailwind's dark: classes (used for a few press effects and the
+  // slider) must follow the same rule as the colours, or a chosen mode and
+  // the device's would mix.
+  it("points Tailwind's dark: variant at the member's choice too", () => {
+    const variant = css.match(/@custom-variant dark\s*\{([\s\S]*?)\n\}/);
+    expect(variant, "@custom-variant dark").not.toBeNull();
+    expect(variant![1]).toContain('[data-theme="dark"]');
+    expect(variant![1]).toContain("prefers-color-scheme: dark");
+    expect(variant![1]).toContain(':not([data-theme="light"])');
+  });
+
+  // The browser's own controls (scroll bars, the slider's track, the tick
+  // box) follow color-scheme, so it switches with the mode too.
+  it("tells the browser which mode its own controls should use", () => {
+    expect(cssBlocks().light.get("color-scheme")).toBe("light");
+    expect(cssBlocks().dark.get("color-scheme")).toBe("dark");
   });
 
   it("turns every token into a Tailwind colour", () => {
