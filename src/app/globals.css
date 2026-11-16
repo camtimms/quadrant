@@ -9,9 +9,9 @@
   /* The browser's own controls (scroll bars, the slider's track, the tick
      box) follow this, so they switch with the mode too. */
   color-scheme: light;
-  --page: #fffbe3;
-  --card: #ffffff;
-  --well: #f3ecc4;
+  --page: #f8efcc;
+  --card: #fffaea;
+  --well: #efe4b8;
   --ink: #1d1a0a;
   --ink-muted: #5f5730;
   --edge: #857a45;

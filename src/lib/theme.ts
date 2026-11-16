@@ -46,16 +46,18 @@ export const TOKEN_NAMES = [
 export type TokenName = (typeof TOKEN_NAMES)[number];
 
 /**
- * Every value. "Sunshine" in light mode: warm cream with yellow fills and
- * near-black text. Dark mode: near-black with the same yellow. The friend
+ * Every value. "Sunshine" in light mode: yellow fills and near-black text
+ * on a butter-yellow page with soft cream cards ("Butter", T32e: the cards
+ * were white, which the owner found too hard against the page). Dark mode:
+ * near-black with the same yellow. The friend
  * colours are a darker set in light mode and a lighter set in dark mode,
  * so each stays readable as text in both.
  */
 export const THEME: Record<Mode, Record<TokenName, string>> = {
   light: {
-    page: "#fffbe3",
-    card: "#ffffff",
-    well: "#f3ecc4",
+    page: "#f8efcc",
+    card: "#fffaea",
+    well: "#efe4b8",
     ink: "#1d1a0a",
     "ink-muted": "#5f5730",
     edge: "#857a45",

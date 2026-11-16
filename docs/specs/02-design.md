@@ -1499,9 +1499,9 @@ value:
 
 | Token             | Used for                                            | Light (Sunshine)                                                      | Dark                                                                  |
 | ----------------- | --------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `page`            | page background                                     | `#fffbe3`                                                             | `#0d0d0d`                                                             |
-| `card`            | cards, the chart, text boxes                        | `#ffffff`                                                             | `#1a1a1a`                                                             |
-| `well`            | the nav track, resting chips and secondary buttons  | `#f3ecc4`                                                             | `#262626`                                                             |
+| `page`            | page background                                     | `#f8efcc`                                                             | `#0d0d0d`                                                             |
+| `card`            | cards, the chart, text boxes                        | `#fffaea`                                                             | `#1a1a1a`                                                             |
+| `well`            | the nav track, resting chips and secondary buttons  | `#efe4b8`                                                             | `#262626`                                                             |
 | `ink`             | text                                                | `#1d1a0a`                                                             | `#f2f2ee`                                                             |
 | `ink-muted`       | secondary text (years, hints, counts)               | `#5f5730`                                                             | `#a3a39b`                                                             |
 | `edge`            | text-box and card edges that must be seen (3 : 1)   | `#857a45`                                                             | `#77776f`                                                             |
@@ -1514,6 +1514,8 @@ value:
 | `q-tr` … `q-bl`   | the chart's quarters (top right, top left, bottom right, bottom left) | `#e4f4e9` `#fbe9f1` `#e6eefb` `#efeee6`             | `#15261a` `#2a1720` `#141e2b` `#1c1c1e`                               |
 | `q-tr-ink` …      | corner names on each quarter                        | `#27500a` `#72243e` `#0c447c` `#444441`                               | `#97c459` `#ed93b1` `#85b7eb` `#b4b2a9`                               |
 | `friend-1` … `-7` | members' points and names on the spoke map (R67)    | `#993556` `#0f6e56` `#185fa5` `#993c1d` `#534ab7` `#3b6d11` `#5f5e5a` | `#ed93b1` `#5dcaa5` `#85b7eb` `#f0997b` `#afa9ec` `#97c459` `#b4b2a9` |
+
+_(T32e, 2026-11-16: light `page`, `card` and `well` changed from `#fffbe3`, `#ffffff` and `#f3ecc4` at the owner's request, "Butter": the white cards were too hard on the cream page. Measured again: the lowest text pair is 4.86 : 1, the lowest edge 3.38 : 1.)_
 
 Every pair above was measured before writing it down: text is 5 : 1 or
 better on every surface it sits on, edges 3.3 : 1 or better. Yellow on cream
