@@ -124,6 +124,61 @@ dashboard's Table Editor, in the project you mean (production for real friends).
 - **Remove:** delete their row. They are locked out on their next page load;
   their ratings stay.
 
+## Maintenance
+
+Two jobs for the owner to run every month or two, from this folder.
+
+### Refresh film details: `npm run refresh-titles:prod`
+
+TMDB's terms forbid keeping their data for more than six months. Film pages
+refresh their own copy after 30 days; this script fetches again every film
+whose copy is over 150 days old, which covers films nobody has opened. It
+changes nothing but the stored film details, and prints what it did. A film
+TMDB has removed keeps its old copy (members' ratings point at it) and is
+listed for you to decide about.
+
+`npm run refresh-titles` does the same on `quadrant-dev`, using `.env.local`.
+The `:prod` version reads **`.env.prod.local`**, a git-ignored file you
+create once, holding the production values of:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://<prod ref>.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
+NEXT_PUBLIC_SITE_URL=<live address>
+SUPABASE_SECRET_KEY=...   (the quadrant-prod secret key)
+TMDB_API_READ_ACCESS_TOKEN=...
+```
+
+It is deliberately not called `.env.production.local`: Next.js reads that
+name in every production build on this machine (the end-to-end tests make
+one), which would point them at real data. The script refuses to run if the
+file's address is not the production project.
+
+### Back up the database: `npm run backup:prod`
+
+Supabase's free plan keeps no backups. This writes three files to
+`backups/prod-<date and time>/`: `roles.sql`, `schema.sql` and `data.sql`
+(every row, including members' sign-in accounts). **Start Docker Desktop
+first**: the Supabase tool runs `pg_dump` inside it. No password is needed;
+it uses the Supabase tool's own sign-in, like `db:push`. `npm run backup`
+does the same for `quadrant-dev`.
+
+`backups/` is git-ignored. The files hold every member's email and review, so
+keep copies somewhere private (not a public share).
+
+**Restoring** (into a new, empty project, following
+[Supabase's backup and restore guide](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore)):
+install Postgres so that `psql` is available, then, with the new project's
+connection string (Project Settings > Database):
+
+```bash
+psql --single-transaction --variable ON_ERROR_STOP=1 --file roles.sql --file schema.sql --command 'SET session_replication_role = replica' --file data.sql --dbname "<connection string>"
+```
+
+Then redo the dashboard settings listed under "Production settings that live
+in dashboards", above: the dump does not include them. Read the guide first:
+it may have changed since this was written (2026-11-16).
+
 ## Privacy
 
 The site asks search engines not to index it (`/robots.txt` and a `noindex` tag

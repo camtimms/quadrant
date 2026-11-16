@@ -56,6 +56,8 @@ Stack: Next.js 16 (App Router) + TypeScript, Tailwind, Vitest. Node 22 or newer.
 | `npm run build` | Production build |
 | `npm run db:push` | Apply new files in `supabase/migrations/` to the linked project (`quadrant-dev`) |
 | `npm run db:push:prod` | Apply new migrations to `quadrant-prod`. Only after `test:rls` passes on dev |
+| `npm run refresh-titles` / `refresh-titles:prod` | Re-fetch film details older than 150 days from TMDB (prod reads `.env.prod.local`) |
+| `npm run backup` / `backup:prod` | Dump roles, schema and data to `backups/` (needs Docker Desktop running) |
 | `npm run db:types` | Regenerate `src/lib/supabase/database.types.ts` from the linked project |
 
 Run lint, typecheck and test after every task, plus `test:rls` after any task

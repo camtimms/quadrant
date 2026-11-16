@@ -1,5 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { findTitle, saveTitle } from "@/lib/titles/store";
+import {
+  findTitle,
+  findTitlesFetchedBefore,
+  saveTitle,
+} from "@/lib/titles/store";
 import {
   admin,
   createTestTitle,
@@ -12,7 +16,7 @@ import {
  *
  * ensureTitle.test.ts checks the decisions (when to fetch, when to refresh)
  * with the database replaced by stand-ins. This file checks the other half:
- * that the two real queries in src/lib/titles/store.ts do what those
+ * that the real queries in src/lib/titles/store.ts do what those
  * stand-ins pretend they do. TMDB is not involved; the film is made up.
  */
 
@@ -105,5 +109,24 @@ describe("the titles store", () => {
     const title = await createTestTitle("No description yet");
     expect(title.overview).toBeNull();
     expect((await findTitle(title.tmdb_id))?.overview).toBeNull();
+  });
+
+  // The refresh script's query (refreshStale.ts): only copies fetched
+  // before the cutoff, never a fresher one.
+  it("finds the films last fetched before a cutoff, and no others", async () => {
+    const old = { ...FILM, tmdbId: TMDB_ID + 2, title: "Old copy" };
+    const fresh = { ...FILM, tmdbId: TMDB_ID + 3, title: "Fresh copy" };
+    await saveTitle(old, new Date("2000-01-01T00:00:00Z"));
+    await saveTitle(fresh, new Date("2000-01-03T00:00:00Z"));
+    const cutoff = new Date("2000-01-02T00:00:00Z");
+
+    const found = await findTitlesFetchedBefore(cutoff);
+
+    const ids = found.map((title) => title.tmdb_id);
+    expect(ids).toContain(old.tmdbId);
+    expect(ids).not.toContain(fresh.tmdbId);
+    for (const title of found) {
+      expect(Date.parse(title.fetched_at)).toBeLessThan(cutoff.getTime());
+    }
   });
 });

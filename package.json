@@ -16,7 +16,11 @@
     "db:types": "supabase gen types typescript --linked > src/lib/supabase/database.types.ts",
     "test:rls": "vitest run --config vitest.rls.config.mts",
     "db:push:prod": "supabase db push --remote=ykmpktjnqlmmirfciycq",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "refresh-titles": "tsx --conditions=react-server scripts/refresh-titles.ts",
+    "refresh-titles:prod": "tsx --conditions=react-server scripts/refresh-titles.ts --prod",
+    "backup": "tsx scripts/backup.ts",
+    "backup:prod": "tsx scripts/backup.ts --prod"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -43,6 +47,7 @@
     "prettier": "^3.10.1",
     "supabase": "^3.1.0",
     "tailwindcss": "4.3.3",
+    "tsx": "4.23.15",
     "typescript": "^5",
     "vitest": "^5.1.0"
   },

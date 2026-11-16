@@ -1,6 +1,7 @@
 // Uses the secret key (through admin.ts), so server only.
 import "server-only";
 
+import { fetchAllPages } from "@/lib/data/paging";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
 import type { TmdbFilmDetails } from "@/lib/tmdb/schema";
@@ -9,7 +10,7 @@ import type { TmdbFilmDetails } from "@/lib/tmdb/schema";
  * Reading and writing our stored copies of films: the `titles` table.
  *
  * This is the ONLY place the app uses the secret-key client. It is kept tiny
- * on purpose (two queries, no decisions) so that everything done with that
+ * on purpose (three queries, no decisions) so that everything done with that
  * much power can be read in one screen. The decisions about WHEN to fetch
  * and store live in ensureTitle.ts.
  *
@@ -31,6 +32,34 @@ export async function findTitle(tmdbId: number): Promise<StoredTitle | null> {
     .maybeSingle();
   if (error) throw new Error("Could not look up the film.", { cause: error });
   return data;
+}
+
+/**
+ * Every stored film last fetched before `cutoff`, oldest first, for the
+ * refresh script (refreshStale.ts). Read a page at a time, since the API
+ * stops at 1,000 rows without saying so.
+ */
+export async function findTitlesFetchedBefore(
+  cutoff: Date,
+): Promise<StoredTitle[]> {
+  const admin = createAdminClient();
+  try {
+    return await fetchAllPages((from, to) =>
+      admin
+        .from("titles")
+        .select("*", { count: "exact" })
+        .eq("media_type", "movie")
+        .lt("fetched_at", cutoff.toISOString())
+        // A fixed order, so that pages never overlap or skip a row.
+        .order("fetched_at")
+        .order("id")
+        .range(from, to),
+    );
+  } catch (error) {
+    throw new Error("Could not look up the films to refresh.", {
+      cause: error,
+    });
+  }
 }
 
 /**

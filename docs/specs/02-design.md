@@ -345,6 +345,10 @@ Confirmed from TMDB's terms of use and FAQ:
   updates the row. A small script (`npm run refresh-titles`) refreshes every row
   older than 150 days, for films nobody has opened; the owner runs it
   occasionally. If a refresh fails, the old copy keeps being shown.
+  _(T34:)_ `refresh-titles:prod` reads its settings from `.env.prod.local`
+  and refuses to run if they are not the production project's. A film TMDB
+  has removed keeps its old copy (its ratings point at it) and is listed for
+  the owner. Requests are spaced 100 ms apart, a quarter of TMDB's limit.
 
 ### 4.4 Rate limits (NFR10)
 
@@ -1092,7 +1096,7 @@ _Satisfies: R48, NFR2, NFR4, NFR6, NFR11_
 | Supabase: 50,000 monthly active users                                      | ≤ 15                                        | —                                                                                                                                                                                                                |
 | Supabase: 5 GB egress / month                                              | Small JSON only; posters come from TMDB     | —                                                                                                                                                                                                                |
 | Supabase: **project pauses after 7 days of low activity**                  | A quiet week among friends would trigger it | The site shows the error page until the owner clicks "restore" in the dashboard (data is kept). **The most likely limit to bite.** Accepted for the POC; a scheduled keep-alive request is a possible later task |
-| Supabase: **no automatic backups** on Free                                 | —                                           | A `npm run backup` script (database dump to a local file) for the owner to run occasionally                                                                                                                      |
+| Supabase: **no automatic backups** on Free                                 | —                                           | `npm run backup:prod` (T34): roles, schema and data dumps to `backups/` through `supabase db dump`, as in Supabase's backup guide; needs Docker Desktop running. Restore steps in README                                                                                                                      |
 | Supabase: 2 active projects                                                | dev + prod = 2                              | No room for a third                                                                                                                                                                                              |
 | Vercel Hobby: 1,000,000 function invocations, 100 GB data transfer / month | Tiny                                        | Feature pauses until the 30-day window passes                                                                                                                                                                    |
 | Vercel Hobby: 5,000 image transformations / month                          | 0 — we don't use image optimisation (4.2)   | —                                                                                                                                                                                                                |
