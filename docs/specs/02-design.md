@@ -14,8 +14,8 @@ by the owner on 2026-11-16.**
 **Section 18 (the design for requirements v11: the light/dark switch) was
 approved by the owner on 2026-11-16.**
 
-**Section 19 (the design for requirements v12: keeping the database awake) is
-PROPOSED, waiting for the owner's approval.**
+**Section 19 (the design for requirements v12: keeping the database awake) was
+approved by the owner on 2026-11-16.**
 
 Every section lists the requirement IDs it satisfies. Section 14 is the reverse
 lookup (requirement → section). Section 15 lists facts I could **not** confirm
@@ -1727,7 +1727,7 @@ _Satisfies: R68, E42–E46, NFR12, NFR24_
 
 ---
 
-## 19. v12 design: keeping the free database awake (PROPOSED)
+## 19. v12 design: keeping the free database awake
 
 _Satisfies: NFR26, NFR11, E47–E50_
 

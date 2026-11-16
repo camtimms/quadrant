@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
+  countTitles,
   findTitle,
   findTitlesFetchedBefore,
   saveTitle,
@@ -128,5 +129,16 @@ describe("the titles store", () => {
     for (const title of found) {
       expect(Date.parse(title.fetched_at)).toBeLessThan(cutoff.getTime());
     }
+  });
+
+  // The keep-alive job's query (NFR26): a real count from the database,
+  // matching what the table holds.
+  it("counts the stored films", async () => {
+    const counted = await countTitles();
+    const { count } = await admin
+      .from("titles")
+      .select("id", { count: "exact", head: true });
+    expect(counted).toBe(count);
+    expect(counted).toBeGreaterThan(0);
   });
 });

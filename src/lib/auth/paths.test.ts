@@ -20,6 +20,15 @@ describe("isApiPath", () => {
   it("no data endpoint is public", () => {
     expect(isPublicPath("/api/search")).toBe(false);
   });
+
+  // NFR26 (design 19): Vercel's scheduler calls this without a member's
+  // session. The route checks its own secret, so it must get past the
+  // sign-in check in proxy.ts first.
+  it("lets the scheduler reach the keep-alive endpoint, and only that", () => {
+    expect(isPublicPath("/api/keep-alive")).toBe(true);
+    expect(isPublicPath("/api/search")).toBe(false);
+    expect(isPublicPath("/api/keep-alive-and-more")).toBe(false);
+  });
 });
 
 describe("isPublicPath", () => {

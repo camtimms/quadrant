@@ -2,7 +2,7 @@
 
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
-**v12 change PROPOSED on 2026-11-16, waiting for the owner's approval:**
+**v12 change approved by the owner on 2026-11-16:**
 keep the free production database from being paused after a quiet week
 (new NFR26, section 13; nice-to-have task T40).
 
@@ -501,7 +501,7 @@ has about 110 px free at 375 px wide, so the top right fits.
 - **Q19 — Two choices (light, dark) or three (light, dark, follow my phone)?** _Assumed: two._ **Confirmed by the owner on 2026-11-16.** One button that flips between light and dark is the simplest thing to use on a phone. A member who wants to follow the phone again would need a third option somewhere; that can be added later on the name-and-picture page.
 - **Q20 — Remember the choice per device or per account?** _Assumed: per device._ **Confirmed by the owner on 2026-11-16** ("per device is better"). It needs no database change, works before sign-in, and someone with a laptop and a phone may want different modes on each.
 
-## 13. v12 change — PROPOSED 2026-11-16, waiting for the owner's approval
+## 13. v12 change — APPROVED by the owner, 2026-11-16
 
 Task T40, the first nice-to-have the owner chose after T35. Supabase's free
 plan pauses a project that "show[s] low activity over a 7-day period"; while

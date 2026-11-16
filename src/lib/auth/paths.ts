@@ -20,6 +20,9 @@ const PUBLIC_PATHS = [
   // The site's name and icons for phones (task T27a). Browsers fetch it
   // without the member's cookies, so behind sign-in it would never load.
   "/manifest.webmanifest",
+  // Called by Vercel's scheduler, which has no member's session (task T40).
+  // The route refuses anyone without the scheduler's secret.
+  "/api/keep-alive",
 ] as const;
 
 export function isPublicPath(pathname: string): boolean {

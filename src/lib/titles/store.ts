@@ -10,13 +10,30 @@ import type { TmdbFilmDetails } from "@/lib/tmdb/schema";
  * Reading and writing our stored copies of films: the `titles` table.
  *
  * This is the ONLY place the app uses the secret-key client. It is kept tiny
- * on purpose (three queries, no decisions) so that everything done with that
+ * on purpose (four queries, no decisions) so that everything done with that
  * much power can be read in one screen. The decisions about WHEN to fetch
  * and store live in ensureTitle.ts.
  *
- * Neither function checks who is asking. Callers must have confirmed the
- * visitor is a member first.
+ * No function here checks who is asking. Callers must have confirmed the
+ * visitor is a member first (or, for countTitles, that the caller is
+ * Vercel's scheduler).
  */
+
+/**
+ * How many films are stored. Asked by the keep-alive job (NFR26) as the
+ * smallest real database query there is: a count, no rows sent back. It
+ * reveals nothing about any member.
+ */
+export async function countTitles(): Promise<number> {
+  const { count, error } = await createAdminClient()
+    .from("titles")
+    // head: true asks for the count only, with no rows in the answer.
+    .select("id", { count: "exact", head: true });
+  if (error || count === null) {
+    throw new Error("Could not count the films.", { cause: error });
+  }
+  return count;
+}
 
 /** A row of the `titles` table. */
 export type StoredTitle = Database["public"]["Tables"]["titles"]["Row"];

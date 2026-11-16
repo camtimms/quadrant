@@ -144,10 +144,38 @@ is paused the site shows "Something went wrong". Nothing is lost.
   resume it, and the way back is a new project restored from a backup (see
   "Back up the database" below). Taking a backup every month or two keeps
   that option open.
-- **To stop it happening:** a paid plan never pauses; a scheduled visit could
-  also keep it awake (nice-to-have T40, not built).
+- **To stop it happening:** the keep-alive job below; a paid plan never
+  pauses.
 
 Source: [Supabase, "Project Pausing"](https://supabase.com/docs/guides/platform/free-project-pausing).
+
+### Keeping the database awake (keep-alive)
+
+Three times a day (03:00, 11:00 and 19:00 UTC, give or take an hour)
+Vercel's scheduler calls `/api/keep-alive`, which asks the production
+database how many films it holds. Those few small queries a day are what
+Supabase counts as activity, so a quiet week no longer pauses the site. The
+schedule is in `vercel.json`; Vercel's free plan allows each job once a day,
+which is why there are three jobs.
+
+**One-time setup:** in Vercel, Project → Settings → Environment Variables,
+add `CRON_SECRET` for **Production**: a random string of letters and numbers,
+at least 16 characters (a password manager's generator is fine). Then
+redeploy (or push any commit): a deployment only picks up the secret when it
+is built. Without it every run is refused.
+
+**Checking it works:** Vercel → the project → **Schedules** → **Cron Jobs**
+lists the three jobs. **Run** on one, then **View Logs**: a `200` means the
+database answered. A `401` means the secret is missing or the deployment
+predates it (redeploy); a `503` means the database did not answer, for
+example because it is already paused (resume it in Supabase; the job cannot).
+Opening the address in a browser gets `401`, which is correct.
+
+Supabase says a few requests a day "typically" keep a project running, not
+always, so its warning email a week before a pause is still the backstop.
+
+Sources: [Vercel, "Managing Cron Jobs"](https://vercel.com/docs/cron-jobs/manage-cron-jobs),
+[Vercel, "Usage & Pricing for Cron Jobs"](https://vercel.com/docs/cron-jobs/usage-and-pricing).
 
 ## Maintenance
 
