@@ -98,6 +98,7 @@ export type Database = {
           title_id: number
           updated_at: string
           user_id: string
+          watch_number: number
         }
         Insert: {
           created_at?: string
@@ -109,6 +110,7 @@ export type Database = {
           title_id: number
           updated_at?: string
           user_id: string
+          watch_number?: number
         }
         Update: {
           created_at?: string
@@ -120,6 +122,7 @@ export type Database = {
           title_id?: number
           updated_at?: string
           user_id?: string
+          watch_number?: number
         }
         Relationships: [
           {
@@ -211,6 +214,32 @@ export type Database = {
     Functions: {
       hook_check_invite: { Args: { event: Json }; Returns: Json }
       is_current_user_member: { Args: never; Returns: boolean }
+      log_rewatch: {
+        Args: {
+          p_enjoyment: number
+          p_quality: number
+          p_review: string
+          p_title_id: number
+        }
+        Returns: {
+          created_at: string
+          enjoyment: number
+          id: number
+          is_current: boolean
+          quality: number
+          review: string | null
+          title_id: number
+          updated_at: string
+          user_id: string
+          watch_number: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "ratings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       save_rating: {
         Args: {
           p_enjoyment: number
@@ -228,6 +257,7 @@ export type Database = {
           title_id: number
           updated_at: string
           user_id: string
+          watch_number: number
         }
         SetofOptions: {
           from: "*"
