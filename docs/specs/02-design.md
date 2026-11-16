@@ -861,7 +861,7 @@ max="10" step="1">` starting at 5, with the current number shown beside it and
     the owner said already works, and suits pickers more than lists of
     links. Also rejected: arrows on the chart's points, which are placed by
     score, not in an order Up and Down would make sense of.
-- _(v9, T32c, proposed; replaces the v8 rejection of "one Tab stop" above,
+- _(v9, T32c; replaces the v8 rejection of "one Tab stop" above,
   at the owner's request.)_ **Each film list is one selectable area**
   (R64 amended). `ArrowKeyList` keeps a "current" film per list:
   - **One Tab stop ("roving tabindex").** Only the current film's link, and
@@ -886,14 +886,26 @@ max="10" step="1">` starting at 5, with the current number shown beside it and
   - _Rejected:_ a separate "selected" highlight that differs from keyboard
     focus. Two markers for "where am I" would confuse more than help; the
     focus ring is the selection.
-- _(v9, T32c, proposed.)_ **Buttons beside the film** (R65). Each row is a
-  wrapping flex row: the film's link (poster, title, scores) takes the
-  remaining width, and the buttons sit in a narrow column on the right,
-  one above the other. When the score editor opens, that column takes the
-  full width and drops under the film (Tailwind's `has-[…]` variant reacts
-  to the open editor, so no extra state is needed). On a phone the title
-  column is narrower and long titles wrap onto more lines (E37); checked at
-  375 px before closing the task.
+- _(v9, T32c; corrected during the build.)_ **Buttons beside the poster**
+  (R65). On a phone the details of a film (title, year, scores, placement)
+  are about 90 px tall and the poster 120 px, so the real spare room is
+  under the details, to the right of the poster. The details column keeps
+  a fixed 40 px of padding at its bottom, and the buttons, which come after
+  the film's link in the page, are pulled up by the same amount into that
+  space (a negative top margin) and lined up with the details (a left
+  margin equal to the poster's width plus its gaps). They are in the normal
+  flow, so if they wrap onto two lines on a narrow screen the second line
+  pushes the row down instead of covering anything. Every film's details
+  are at least four lines, so the details plus the padding are always
+  taller than the poster and the space is always there. When the score
+  editor opens, the margins are dropped and it takes the full width under
+  the film (Tailwind's `has-[…]` variant reacts to the open editor). Shared
+  classes live in `src/components/film/rowLayout.ts`.
+  - _Rejected:_ a column of buttons to the right of the details (the first
+    version: far too narrow on a phone); the "stretched link" pattern,
+    where only the title is a link and an invisible layer makes the whole
+    row clickable (works, but restructures every row and its tests for the
+    same result).
 - **No spokes when the viewer hasn't rated** (R40, Q12): points and average
   only, with a "rate this film" prompt.
 - **Spoke map details** _(added in T28)_. `SpokeMap` draws `ChartFrame`, a

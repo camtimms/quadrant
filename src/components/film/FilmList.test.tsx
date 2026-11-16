@@ -350,3 +350,28 @@ describe("FilmList with the arrow keys (R64)", () => {
     expect(document.activeElement).toBe(heat);
   });
 });
+
+// R65: the buttons sit beside the poster, under the film's details.
+describe("FilmList row layout (R65)", () => {
+  it("tucks the buttons into the space under the details, not a line of their own", () => {
+    render(<FilmList films={[film(1, "Alien", 9, 9)]} editReturnTo="/" />);
+    const row = screen.getByRole("listitem");
+    const [link, buttons] = Array.from(row.children) as HTMLElement[];
+
+    expect(link.tagName).toBe("A");
+    expect(
+      within(buttons).getByRole("button", { name: /Update scores/ }),
+    ).toBeTruthy();
+    expect(
+      within(buttons).getByRole("link", { name: /Film page/ }),
+    ).toBeTruthy();
+    // The details keep room at their foot, and the buttons are pulled up
+    // into it, lined up with the details beside the poster.
+    const details = within(link).getByTestId("film-title").parentElement!;
+    expect(details.className).toContain("pb-10");
+    expect(buttons.className).toContain("-mt-11");
+    expect(buttons.className).toContain("ml-[6.25rem]");
+    // While the score editor is open it takes the full width instead.
+    expect(buttons.className).toContain("has-[[data-editor-open]]:mx-2");
+  });
+});

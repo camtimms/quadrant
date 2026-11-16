@@ -277,3 +277,16 @@ describe("where the editor appears", () => {
     expect(screen.queryByRole("slider")).toBeNull();
   });
 });
+
+// R65: the row lays itself out around this mark, giving the open editor
+// the full width under the film.
+describe("InlineRatingEditor marks itself open (R65)", () => {
+  it("carries the mark only while open", () => {
+    render(<InlineRatingEditor film={FILM} returnTo="/" />);
+    expect(document.querySelector("[data-editor-open]")).toBeNull();
+
+    open();
+
+    expect(document.querySelector("[data-editor-open]")).not.toBeNull();
+  });
+});

@@ -2,7 +2,7 @@
 
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
-**v9 change proposed on 2026-11-16, awaiting approval:** each film list
+**v9 change approved by the owner on 2026-11-16:** each film list
 becomes one selectable area that Down enters from anywhere on the page and
 Tab passes in one step (R64 amended), and a film's buttons sit beside it
 (new R65, section 10).
@@ -404,7 +404,7 @@ list, not only search results.
 | E32 | Focus is on a slider, a text box or a row's button, not a film | Up and Down do what they always do there (a slider moves; the page scrolls); only a focused film is affected |
 | E33 | The search box is focused and there are no results            | Down does nothing special                                                                                   |
 
-## 10. v9 change — proposed 2026-11-16, awaiting the owner's approval
+## 10. v9 change — APPROVED by the owner, 2026-11-16
 
 Requested by the owner after trying T32b: the arrow keys only worked once
 Tab had reached a list, and elsewhere they still scrolled the page. The
@@ -415,7 +415,7 @@ The owner chose both list changes below, not the arrows alone.
 ### Requirements
 
 - **R64** _(amended, v9; adds to the v8 text in section 9)_ — WHEN a page shows a film list and the member presses Down while focus is not in a text box, a slider or a film list, THE SYSTEM SHALL move focus into the film list, to its current film (the first, until the member has moved to another); WHEN a selected chart point's panel is open, its list is the one entered. Each film list SHALL be a single stop in the Tab order: Tab enters the list at its current film, the next Tab reaches that film's own buttons, and the next leaves the list. While focus is on a film, Up and Down SHALL NOT scroll the page. Clicking or tapping a film still opens its page.
-- **R65** — WHEN a film in a list has its own buttons ("Update scores", "Film page"), THE SYSTEM SHALL show them to the right of the film's details, one above the other, rather than on a line underneath. WHEN the score editor is opened, it SHALL take the full width under the film.
+- **R65** — WHEN a film in a list has its own buttons ("Update scores", "Film page"), THE SYSTEM SHALL show them in the space beside the poster, under the film's details, rather than on a line of their own under the whole row; on a screen too narrow for both side by side they wrap onto a second line there. WHEN the score editor is opened, it SHALL take the full width under the film. _(Corrected during T32c, 2026-11-16: the first version put the buttons in a column to the right of the details, which on a phone left the details about 70 pixels wide, broke words like "Enjoyment" and made rows taller, not shorter.)_
 
 ### Edge cases
 

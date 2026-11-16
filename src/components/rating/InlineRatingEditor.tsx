@@ -47,7 +47,7 @@ export function InlineRatingEditor({ film, returnTo }: Props) {
         // Several of these sit in one list. The visible text is short; the
         // label a screen reader hears says which film it is for.
         aria-label={`Update scores for ${film.title}`}
-        className="self-start rounded border border-foreground/30 px-3 py-1 text-sm hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="rounded border border-foreground/30 px-2.5 py-1 text-sm whitespace-nowrap hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2"
       >
         Update scores
       </button>
@@ -84,6 +84,9 @@ function OpenEditor({
     <form
       action={formAction}
       aria-label={`Update scores for ${film.title}`}
+      // A mark the row's layout looks for, to give the open editor the
+      // full width under the film (see rowLayout.ts, R65).
+      data-editor-open=""
       className="flex w-full flex-col gap-4 rounded border border-foreground/30 p-3"
     >
       <input type="hidden" name="tmdb_id" value={film.tmdbId} />

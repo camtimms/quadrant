@@ -230,6 +230,9 @@ export function SearchBox({ initialQuery = "" }: Props) {
 
       {state.status === "results" && state.films.length > 0 ? (
         <ArrowKeyList
+          // The page's main list: Down from elsewhere on the page comes
+          // here too.
+          kind="primary"
           ref={resultsRef}
           // Up on the first result goes back to the box (R64).
           onUpFromFirst={() => inputRef.current?.focus()}

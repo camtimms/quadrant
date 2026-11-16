@@ -5,6 +5,11 @@ import type { ChartFilm } from "@/components/chart/QuadrantChart";
 import { formatScore } from "@/components/chart/scale";
 import { FilmPageButton } from "@/components/film/FilmPageButton";
 import { PosterImage } from "@/components/film/PosterImage";
+import {
+  FILM_DETAILS,
+  FILM_LINK,
+  ROW_BUTTONS,
+} from "@/components/film/rowLayout";
 import { GroupLine, RaterLines } from "@/components/film/RaterLines";
 import { InlineRatingEditor } from "@/components/rating/InlineRatingEditor";
 import { ARROW_ITEM } from "@/lib/arrowKeys";
@@ -64,21 +69,25 @@ export function PointPanel({ films, onClose, editReturnTo }: Props) {
           Close
         </button>
       </div>
-      {/* Up and Down move between the films here too (R64). */}
-      <ArrowKeyList className="flex flex-col gap-1">
+      {/* Up and Down move between the films here too, and while this
+          panel is open, Down from elsewhere on the page comes here first
+          (R64). */}
+      <ArrowKeyList kind="panel" className="flex flex-col gap-1">
         {films.map((film) => (
+          // The film, its buttons beside the poster, then who rated it
+          // (R65; see rowLayout.ts).
           <li key={film.tmdbId} className="flex flex-col gap-1">
             <Link
               href={`/film/${film.tmdbId}`}
               {...ARROW_ITEM}
-              className="flex items-center gap-3 rounded p-1 hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2"
+              className={FILM_LINK}
             >
               <PosterImage
                 posterPath={film.posterPath}
                 title={film.title}
                 size="list"
               />
-              <span className="flex min-w-0 flex-col gap-0.5">
+              <span className={FILM_DETAILS}>
                 <span className="font-medium break-words">{film.title}</span>
                 <span className="text-sm opacity-70">
                   {film.year ?? "Year unknown"}
@@ -104,20 +113,9 @@ export function PointPanel({ films, onClose, editReturnTo }: Props) {
               <PendingMark className="ml-auto" />
             </Link>
 
-            {/* Who rated it. Outside the link above, because each name is a
-                link of its own and a link cannot sit inside another. */}
-            {film.ratedBy !== undefined && film.raters ? (
-              <RaterLines
-                raters={film.raters}
-                ratedBy={film.ratedBy}
-                tmdbId={film.tmdbId}
-                title={film.title}
-              />
-            ) : null}
-
             {/* The row's buttons, beside the link, not inside it (see
                 FilmList). */}
-            <div className="flex flex-wrap items-start gap-2 px-1 pb-1">
+            <div className={ROW_BUTTONS}>
               {editReturnTo !== undefined ? (
                 <InlineRatingEditor
                   // A new key after each save closes the editor (see FilmList).
@@ -128,6 +126,18 @@ export function PointPanel({ films, onClose, editReturnTo }: Props) {
               ) : null}
               <FilmPageButton tmdbId={film.tmdbId} title={film.title} />
             </div>
+
+            {/* Who rated it, on its own line under the film. Outside the
+                link, because each name is a link of its own and a link
+                cannot sit inside another. */}
+            {film.ratedBy !== undefined && film.raters ? (
+              <RaterLines
+                raters={film.raters}
+                ratedBy={film.ratedBy}
+                tmdbId={film.tmdbId}
+                title={film.title}
+              />
+            ) : null}
           </li>
         ))}
       </ArrowKeyList>

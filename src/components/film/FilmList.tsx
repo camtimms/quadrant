@@ -5,6 +5,11 @@ import type { ChartFilm } from "@/components/chart/QuadrantChart";
 import { formatScore } from "@/components/chart/scale";
 import { FilmPageButton } from "@/components/film/FilmPageButton";
 import { PosterImage } from "@/components/film/PosterImage";
+import {
+  FILM_DETAILS,
+  FILM_LINK,
+  ROW_BUTTONS,
+} from "@/components/film/rowLayout";
 import { GroupLine } from "@/components/film/RaterLines";
 import { InlineRatingEditor } from "@/components/rating/InlineRatingEditor";
 import { ARROW_ITEM } from "@/lib/arrowKeys";
@@ -46,23 +51,28 @@ export function FilmList({ films, editReturnTo }: Props) {
     return <p className="text-sm opacity-70">No films to show here.</p>;
   }
 
-  // ArrowKeyList: Up and Down move between the films, as Tab does (R64).
+  // ArrowKeyList makes the list one selectable area: Up and Down move
+  // between the films, Tab passes the whole list in a step or two, and Down
+  // from elsewhere on the page comes here ("primary", R64).
   return (
-    <ArrowKeyList className="flex flex-col gap-1">
+    <ArrowKeyList kind="primary" className="flex flex-col gap-1">
       {films.map((film) => (
-        <li key={film.tmdbId} className="flex flex-col gap-1">
+        // The film, then its buttons tucked under its details beside the
+        // poster (R65; see rowLayout.ts).
+        <li key={film.tmdbId} className="flex flex-col">
           <Link
             href={`/film/${film.tmdbId}`}
             {...ARROW_ITEM}
-            className="flex items-center gap-4 rounded p-2 hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2"
+            className={FILM_LINK}
           >
             <PosterImage
               posterPath={film.posterPath}
               title={film.title}
               size="list"
             />
-            {/* min-w-0 lets a long title wrap instead of widening the row. */}
-            <span className="flex min-w-0 flex-col gap-0.5">
+            {/* min-w-0 lets a long title wrap instead of widening the row;
+                the bottom padding is the space the buttons sit in. */}
+            <span className={FILM_DETAILS}>
               <span
                 data-testid="film-title"
                 className="font-medium break-words"
@@ -96,11 +106,10 @@ export function FilmList({ films, editReturnTo }: Props) {
             <PendingMark className="ml-auto" />
           </Link>
 
-          {/* The row's buttons. They sit beside the link above, never
-              inside it: a button inside a link would also follow the link
-              when pressed. flex-wrap lets the open editor take a full line
-              of its own, with "Film page" dropping below it. */}
-          <div className="flex flex-wrap items-start gap-2 px-2 pb-2">
+          {/* The row's buttons, in the space beside the poster (R65). They
+              come after the link, never inside it: a button inside a link
+              would also follow the link when pressed. See rowLayout.ts. */}
+          <div className={ROW_BUTTONS}>
             {editReturnTo !== undefined ? (
               <InlineRatingEditor
                 // The key changes whenever the rating is saved (changedAt is

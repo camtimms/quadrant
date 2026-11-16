@@ -26,7 +26,7 @@ export function FilmPageButton({
       // The visible words are short; the spoken label says which film,
       // since a list has one of these per row.
       aria-label={`Film page for ${title}`}
-      className="inline-flex items-center gap-2 self-start rounded border border-foreground/30 px-3 py-1 text-sm hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2"
+      className="inline-flex items-center justify-center gap-1 rounded border border-foreground/30 px-2.5 py-1 text-sm hover:bg-foreground/10 active:bg-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2"
     >
       Film page
       {/* Spins while the film's page is loading. */}
