@@ -2,6 +2,11 @@
 
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
+**v13 change approved by the owner on 2026-11-16:** likes on written
+reviews (N6 specified as R69 to R72, section 14; tasks T42a and T42b). The
+biggest-disagreements feed (N1, T36) is dropped: sorting Friends' films by
+disagreement (R44) covers it.
+
 **v12 change approved by the owner on 2026-11-16:**
 keep the free production database from being paused after a quiet week
 (new NFR26, section 13; nice-to-have task T40).
@@ -201,7 +206,7 @@ friends, because displaying that is the point of the app.
 
 ### H. Nice-to-haves (NOT committed for the POC — tasks only after A–G are solid)
 
-- **N1** — Biggest-disagreements feed: pairs of members and films ranked by disagreement.
+- **N1** — Biggest-disagreements feed: pairs of members and films ranked by disagreement. _**Dropped 2026-11-16 by the owner:** sorting Friends' films by disagreement (R44) is enough._
 - **N2** — Compare two members' quadrant charts side by side.
 - **N3** — Rewatch log: a "log a rewatch" action that records new scores for a film the member has already rated. The new scores become the member's current rating; every earlier entry is kept with its date; a times-watched count is shown. See NFR19 `[Q11]`.
 - **N4** — Score distributions on the film page: for each of Quality and Enjoyment, a curve showing how the group's scores are spread (a normal distribution drawn from the group's mean and standard deviation), shown only when enough members have rated the film for a spread to mean something. See NFR21.
@@ -526,4 +531,29 @@ friends is likely, so this is the free-tier limit most likely to bite
 ### Open questions, and what I will assume without an answer
 
 - **Q21 — Is "very likely to stay awake" good enough?** _Assumed: yes._ Supabase says a few requests a day typically keep a project running but does not guarantee it; the only guarantee is a paid plan.
+
+## 14. v13 change — APPROVED by the owner, 2026-11-16
+
+N6 (likes on reviews), the owner's own request from 2026-11-15, specified
+with the owner's answers to its three open questions: likes show a count and
+who liked; a member may like their own review; editing a review keeps its
+likes, removing it removes them. The owner asked for the nice-to-haves to be
+built and pushed without stopping at each spec, so these answers are the
+approval.
+
+### Requirements
+
+- **R69** — WHEN a film's page shows a rating card with a written review, THE SYSTEM SHALL show a like button on that card; WHEN a member presses it, THE SYSTEM SHALL record that the member likes that review, and WHEN they press it again, SHALL remove their like. A member can like a review once. A rating with no written review has no like button.
+- **R70** — WHEN a review has likes, THE SYSTEM SHALL show their number on its card, and SHALL let the member see the names of everyone who liked it.
+- **R71** — A member may like their own review.
+- **R72** — WHEN a member edits their rating and keeps a written review, THE SYSTEM SHALL keep its likes; WHEN they remove the review's text, or delete the rating, THE SYSTEM SHALL remove its likes.
+
+### Edge cases
+
+| #   | Situation                                                      | Proposed behaviour                                                                                   |
+| --- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| E51 | Two quick presses, or the same member liking in two tabs       | Still one like; the database refuses a second                                                        |
+| E52 | A member who liked a review is taken off the invite list       | Their like stays counted, like their ratings; their name still shows                                 |
+| E53 | The like fails to save (a lost connection)                     | The button returns to how it was and says it could not save                                          |
+| E54 | Someone who is not a member, or a forged request               | Refused by the database, which also refuses liking on someone else's behalf or a review that is gone |
 

@@ -17,6 +17,10 @@ approved by the owner on 2026-11-16.**
 **Section 19 (the design for requirements v12: keeping the database awake) was
 approved by the owner on 2026-11-16.**
 
+**Section 20 (the design for requirements v13: likes on reviews) was approved
+by the owner on 2026-11-16, through the owner's answers and instruction to
+build the nice-to-haves.**
+
 Every section lists the requirement IDs it satisfies. Section 14 is the reverse
 lookup (requirement → section). Section 15 lists facts I could **not** confirm
 from documentation and that must be checked with a real call before the code
@@ -1806,4 +1810,84 @@ Checked 2026-11-16 against the providers' own pages:
 | ----------- | ------- |
 | NFR26       | 19      |
 | E47–E50     | 19      |
+
+---
+
+## 20. v13 design: likes on reviews
+
+_Satisfies: R69–R72, E51–E54, NFR1_
+
+### 20.1 Data: one new table
+
+```sql
+review_likes (
+  rating_id  bigint      references ratings (id) on delete cascade,
+  user_id    uuid        references profiles (id) on delete cascade,
+  created_at timestamptz default now(),
+  primary key (rating_id, user_id)
+)
+```
+
+- A like belongs to a **rating row**, which holds the review. Editing a
+  rating overwrites the same row (`save_rating`), so its likes stay (R72);
+  deleting the rating deletes its likes through `on delete cascade`.
+- The primary key makes "one like per member per review" a database rule
+  (E51): a second insert is refused, whatever the app does.
+- `user_id` points at `profiles`, as `ratings.user_id` does, so a like can
+  be shown with a name through the same kind of nested query.
+- **Removing the review's text** (R72): a trigger on `ratings`, after an
+  update that leaves `review` null where it was not, deletes that rating's
+  likes. It is `security definer`, because it must remove other members'
+  likes, which the row rules (rightly) do not let the reviewer do. It only
+  ever deletes likes of the row being updated.
+
+### 20.2 Who may do what (row-level security, NFR1)
+
+- **Read:** any member reads every like (R70: names are shown).
+- **Add:** a member, only as themselves (`user_id = auth.uid()`), only on a
+  current rating that has a written review (E54). Liking your own is
+  allowed (R71). Table permissions allow inserting `rating_id` and
+  `user_id` only.
+- **Remove:** a member removes only their own like.
+- No update permission at all: a like is added or removed, never changed.
+- Proven from outside in `tests/rls/review-likes.test.ts`, written first:
+  non-members read and add nothing; a member cannot like as someone else,
+  like a review-less rating, like twice, or remove another's like; liking
+  your own works; editing keeps likes; clearing the review or deleting the
+  rating removes them.
+
+### 20.3 Loading and showing
+
+- `loadFilmPage` asks for each rating's `id` and its likes with the liker's
+  name in the same query (`review_likes (user_id, profiles (display_name))`),
+  so the page still makes one ratings request.
+- Each card with a review gets a `LikeButton` (client component): a heart
+  pill, filled and `aria-pressed="true"` when the viewer has liked it, with
+  the count beside it, and a "Liked by …" line under the review listing
+  names (the viewer shown as "you"). Its accessible name says what a press
+  does ("Like Sam's review" / "Unlike Sam's review").
+- Pressing it calls a server action, `toggleReviewLike(ratingId)`, which
+  adds or removes the viewer's like and calls `refresh()` (as deleting a
+  rating does) so the page redraws with the database's answer. The button
+  changes at once with React's `useOptimistic` and falls back if the action
+  reports a failure (E53).
+- _Rejected:_ a likes count column on `ratings` kept by a trigger (a second
+  copy of the truth, and the names are needed anyway); likes on the
+  Friends' films panel (R59 shows only the start of a review; the card on
+  the film page is where it is read).
+
+### 20.4 Rollout
+
+As T29a: the migration is applied to dev, the access-control tests pass
+there, then it is applied to prod, before any code that reads the table is
+pushed (a push deploys). Each `db push` needs the owner's go-ahead.
+
+### 20.5 Traceability
+
+| Requirement | Section    |
+| ----------- | ---------- |
+| R69, R71    | 20.2, 20.3 |
+| R70         | 20.3       |
+| R72         | 20.1       |
+| E51–E54     | 20.1–20.3  |
 
