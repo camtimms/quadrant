@@ -8,6 +8,9 @@ Implements: `01-requirements.md` (approved v2)
 **Section 16 (the design for requirements v6) was approved by the owner on
 2026-11-15.**
 
+**Section 17 (the design for requirements v10: the visual theme) is PROPOSED,
+waiting for the owner's approval.**
+
 Every section lists the requirement IDs it satisfies. Section 14 is the reverse
 lookup (requirement → section). Section 15 lists facts I could **not** confirm
 from documentation and that must be checked with a real call before the code
@@ -1477,3 +1480,184 @@ that only where its address comes from would change.
 | NFR5 personal data                        | 16.1, 16.3 |
 | NFR1 enforced in the database             | 16.1, 16.6 |
 
+---
+
+## 17. v10 design: the visual theme (PROPOSED)
+
+_Satisfies: NFR24, R66, R67, NFR14, E38–E41_
+
+### 17.1 Colours as named tokens
+
+Today every shade is a fade of the text colour (`text-foreground/70`,
+`border-foreground/30`), which only works on a plain background. Tinted
+cards, a cream page and yellow fills need real colours, so the theme becomes
+a small set of **named colours ("tokens")**, each with a light and a dark
+value:
+
+| Token             | Used for                                            | Light (Sunshine)                                                      | Dark                                                                  |
+| ----------------- | --------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `page`            | page background                                     | `#fffbe3`                                                             | `#0d0d0d`                                                             |
+| `card`            | cards, the chart, text boxes                        | `#ffffff`                                                             | `#1a1a1a`                                                             |
+| `well`            | the nav track, resting chips and secondary buttons  | `#f3ecc4`                                                             | `#262626`                                                             |
+| `ink`             | text                                                | `#1d1a0a`                                                             | `#f2f2ee`                                                             |
+| `ink-muted`       | secondary text (years, hints, counts)               | `#5f5730`                                                             | `#a3a39b`                                                             |
+| `edge`            | text-box and card edges that must be seen (3 : 1)   | `#857a45`                                                             | `#77776f`                                                             |
+| `accent`          | the yellow: current page, chosen chip, main buttons | `#f5e400`                                                             | `#f5e400`                                                             |
+| `on-accent`       | text on yellow                                      | `#1d1a0a`                                                             | `#0d0d0d`                                                             |
+| `accent-outline`  | the dark outline yellow needs on a light background | `#1d1a0a`                                                             | none                                                                  |
+| `spoke`           | spoke lines                                         | `#7a6200`                                                             | `#f5e400`                                                             |
+| `focus`           | keyboard focus ring                                 | `#1d1a0a`                                                             | `#f5e400`                                                             |
+| `danger`          | error text, "Yes, delete"                           | `#b42318`                                                             | `#ff8a80`                                                             |
+| `q-tr` … `q-bl`   | the chart's quarters (top right, top left, bottom right, bottom left) | `#e4f4e9` `#fbe9f1` `#e6eefb` `#efeee6`             | `#15261a` `#2a1720` `#141e2b` `#1c1c1e`                               |
+| `q-tr-ink` …      | corner names on each quarter                        | `#27500a` `#72243e` `#0c447c` `#444441`                               | `#97c459` `#ed93b1` `#85b7eb` `#b4b2a9`                               |
+| `friend-1` … `-7` | members' points and names on the spoke map (R67)    | `#993556` `#0f6e56` `#185fa5` `#993c1d` `#534ab7` `#3b6d11` `#5f5e5a` | `#ed93b1` `#5dcaa5` `#85b7eb` `#f0997b` `#afa9ec` `#97c459` `#b4b2a9` |
+
+Every pair above was measured before writing it down: text is 5 : 1 or
+better on every surface it sits on, edges 3.3 : 1 or better. Yellow on cream
+or white is only 1.3 : 1, which is why it is never the only thing marking
+something in light mode (`accent-outline`).
+
+- **Where they live.** The values are CSS variables in `globals.css`, light
+  under `:root` and dark under `@media (prefers-color-scheme: dark)` (as
+  today), and Tailwind's `@theme inline` turns each into classes
+  (`bg-card`, `text-ink-muted`, `border-edge`, `fill-q-tr`…). Because they
+  are plain CSS read by the browser, a device switching modes takes effect
+  at once with no reload (E40), and nothing flashes (E41).
+- **One copy for the tests.** `src/lib/theme.ts` holds the same values as
+  data. A test reads `globals.css` and fails if the two differ (the pattern
+  T32 already uses), and the contrast tests measure every pair the app uses
+  from `theme.ts`, in both modes.
+- **Opacity is no longer used on text.** A faded colour's contrast depends
+  on what is behind it, which is how T32 found two failures. The source
+  test from T32 changes accordingly: no `opacity-*` or `foreground/…` on
+  text, and no colour written in a component (only token names).
+- _Rejected:_ keeping fades (cannot express tinted surfaces or yellow fills
+  with readable text); a component library such as daisyUI or shadcn/ui (a
+  large dependency that brings its own markup for parts we already have,
+  and its own idea of focus and contrast); a switch for light and dark (Q17,
+  assumed not wanted).
+
+### 17.2 Shared styles
+
+The same look recurs: a card, a pill, the main (yellow) button, a secondary
+button, a text box. Each becomes one named class string in
+`src/components/ui/styles.ts` (for example `pill`, `pillCurrent`,
+`buttonMain`), imported where needed, the way `rowLayout.ts` already shares
+the row classes. _Rejected:_ wrapper components for each (`<Pill>`,
+`<Card>`): many of these classes go on links and `<summary>` elements that
+already exist, and a class string fits them without changing what element
+anything is.
+
+### 17.3 Type
+
+The body rule in `globals.css` sets Arial, overriding the Geist font the
+layout already loads. It is replaced with Tailwind's sans stack, which the
+layout points at Geist. Headings keep their sizes; weights stay 600 for
+headings and 400 for text.
+
+### 17.4 Shapes and spacing
+
+- Page background `page`; content in `card`s with 16 px corners and 12 px
+  inside spacing on a phone. A film list is one card with thin lines between
+  rows, rather than a card per film, so a long list does not become a stack
+  of boxes.
+- Navigation: three pills in a `well` track; the current page's pill is
+  `accent` with `on-accent` text (still marked `aria-current`).
+- Filter chips, sort links and row buttons are pills; the chosen chip is
+  `accent`.
+- Posters: 8 px corners.
+- Main buttons ("Save rating", "Update rating"): `accent` pill. "Yes,
+  delete": `danger` outline. Everything else: `well` pill.
+- Sliders: the browser's own slider with `accent-color` set to `ink` in
+  light mode and `accent` in dark mode, so the thumb can be seen on either.
+
+### 17.5 Charts
+
+- `ChartFrame` draws the chart on a `card` with 16 px corners and fills each
+  quarter with its tint, under the grid lines. Corner names take the
+  quarter's `-ink` colour. Inner-band names stay off the chart (section 8).
+- Points on My films, a member's page and Friends' films: `ink` dots on the
+  tinted quarters (shapes and counts unchanged).
+- Spoke map: the viewer is an `accent` dot with the `accent-outline`, friends
+  are dots in their own colour (17.7), the average keeps its outlined
+  diamond in `ink`. Spokes use `spoke`; the longest stays heavier (R41).
+- NFR14 still holds by shape and words: quarters are named, members are
+  named, the average is a diamond and labelled.
+
+### 17.6 Names on the spoke map (R66)
+
+- **Layers**, bottom to top: frame and tints, spokes, the average, points,
+  then every label. A label therefore can never sit under a line or a point.
+- **Each label on a solid background**: a `card` pill, text in the member's
+  colour (`ink` for "Average", `on-accent` on `accent` for "You").
+- **Placement is a pure function**, `placeLabels` in
+  `src/components/chart/labelPlacement.ts`, tested on its own (NFR17). It is
+  given each point's position and each label's text, and returns where each
+  label goes and whether it needs a joining line. It works in the chart's own
+  units for the narrowest chart (a 343 px phone); on a wider screen the
+  labels are the same size in pixels and the chart is bigger, so gaps only
+  grow.
+  - A label's size is estimated from its text (Geist at 12 px averages about
+    0.58 of its height per character, plus the pill's padding), which avoids
+    measuring in the browser and keeps the spoke map a server component.
+    Long names are cut to 16 characters with "…" on the chart; the table has
+    the full name.
+  - Labels are placed one at a time: "You" first, then friends from the
+    longest spoke to the shortest, then "Average". For each, eight places
+    around the point are tried (right, left, below, above, then the four
+    diagonals) at the normal distance, then at two and three times that
+    distance. The first place that stays inside the chart and touches no
+    placed label and no point is used. A place beyond the normal distance
+    gets a thin joining line (R66).
+  - If no place is free (E39), the label goes at the tried place that
+    overlaps least, still above everything; the table has every name.
+- _Rejected:_ hiding names until a point is tapped (the owner wants them
+  readable at a glance); a force-directed layout library (unpredictable
+  results that are hard to test, and a dependency for a few dozen labels);
+  measuring text in the browser (makes the map a client component and
+  causes a visible jump after loading).
+
+### 17.7 A colour for each member (R67)
+
+- `memberColours(viewerId, friendIds)` in `src/lib/quadrant/memberColours.ts`
+  (pure, tested) returns a colour number from 1 to 7 for each friend. A
+  member's preferred colour comes from their id (a simple sum of its
+  characters, modulo 7), so the same person is usually the same colour on
+  every film. If that colour is already taken on this map, they get the next
+  free one, going through friends in a fixed order (by id), so the result
+  never depends on the order the database returns rows in. With more than
+  seven friends, colours repeat from the preferred one (E38).
+- The viewer is never given a friend colour; they are always `accent`.
+- In the "How far each friend is from you" table each name gets a small dot
+  in the same colour (Q18), so the table and the map can be matched; the dot
+  is decoration (hidden from screen readers), since the name carries the
+  information.
+
+### 17.8 Tests
+
+- **Written first:** `theme.test.ts` (the CSS matches `theme.ts`; every text
+  pair at least 4.5 : 1, every edge pair at least 3 : 1, both modes);
+  `labelPlacement.test.ts` (no two labels overlap and none covers a point,
+  on maps of 2, 5, 10 and 20 members, including all at the same spot and all
+  along one edge; labels stay inside the chart; the order of placement; a
+  joining line only when moved beyond the normal distance; the least-bad
+  place when nothing is free); `memberColours.test.ts` (stable for the same
+  member, distinct while colours last, independent of input order, repeats
+  after seven, never the viewer).
+- **Updated:** the T32 source rules (17.1); component tests that look for
+  old class names; the spoke map's tests for the layer order and colours.
+- **Manual:** each page at 375 px in both modes on a temporary preview page
+  under `/about/`, removed before committing, then the owner's check on the
+  live site.
+
+### 17.9 Traceability
+
+| Requirement                     | Section          |
+| ------------------------------- | ---------------- |
+| NFR24 the theme                 | 17.1–17.5        |
+| R66 names never covered         | 17.6             |
+| R67 a colour for each member    | 17.7             |
+| NFR14 contrast, not colour only | 17.1, 17.5, 17.7 |
+| E38 more friends than colours   | 17.7             |
+| E39 no free place for a label   | 17.6             |
+| E40, E41 mode switch, no flash  | 17.1             |

@@ -2,6 +2,12 @@
 
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
+**v10 change PROPOSED on 2026-11-16, waiting for the owner's approval:**
+the visual design (NFR24 filled in from the owner's choice: the "Soft app"
+layout, yellow on black in dark mode, "Sunshine" in light mode), names on
+the spoke map that never sit under lines or each other (new R66), and a
+colour for each member on the spoke map (new R67). Section 11.
+
 **v9 change approved by the owner on 2026-11-16:** each film list
 becomes one selectable area that Down enters from anywhere on the page and
 Tab passes in one step (R64 amended), and a film's buttons sit beside it
@@ -216,7 +222,7 @@ friends, because displaying that is the point of the app.
 - **NFR8** — Pages showing charts or lists become usable within 2 seconds on a typical home connection.
 - **NFR9** — Search results appear within 1.5 seconds of submitting, when the external database responds normally.
 - **NFR23** — _Immediate feedback (v5, new)._ Anything a member can tap or click shows that it was pressed straight away, without relying on hover. WHEN a page or a filter takes time to load, THE SYSTEM SHALL show at once that it is loading (a placeholder for a new page, a progress mark on the thing that was tapped) instead of leaving the old screen unchanged. WHEN a chart point is selected, what it opens SHALL be brought into view.
-- **NFR24** — _Visual design (v5, new; details to be agreed)._ Before release to friends the app gets a consistent, modern visual theme, keeping every existing element and behaviour. The specifics (colour, type, spacing) are a product decision to be made with the owner from concrete options when the task starts.
+- **NFR24** — _Visual design (v5, new; details to be agreed; **filled in by v10, section 11**)._ Before release to friends the app gets a consistent, modern visual theme, keeping every existing element and behaviour. The specifics (colour, type, spacing) are a product decision to be made with the owner from concrete options when the task starts.
 - **NFR25** — _Site icon (v5, new)._ The owner's icon identifies the site: in the browser tab, when the site is saved to a phone's home screen, and beside the site's name wherever the name is shown as a title (the header of signed-in pages, the sign-in page and the About page). The icon is decoration beside the written name, never a replacement for it.
 - **NFR10** — Searching does not send a request on every keystroke in a way that could exhaust the movie database's rate limit.
 
@@ -425,3 +431,38 @@ The owner chose both list changes below, not the arrows alone.
 | E35 | A filter or a new search removes the current film from the list   | The first film becomes current                                              |
 | E36 | Down is pressed in the search box                                 | Unchanged from v8: focus goes to the first result                           |
 | E37 | A long title on a phone, with the buttons beside it               | The title wraps onto more lines; nothing runs off the screen (E15)          |
+
+## 11. v10 change — PROPOSED 2026-11-16, waiting for the owner's approval
+
+Task T32a. The owner was shown three themes as phone mock-ups (Marquee,
+Paper, Soft app), chose **Soft app**, asked for the logo's **yellow and
+black in dark mode** and a different set for light mode, and from three
+light-mode mock-ups chose **Sunshine**. The owner's note from T28 (names on
+the spoke map overlap as friends join, and sit behind lines and points) is
+covered here too, as T32a's task entry said it would be.
+
+### Requirements
+
+- **NFR24** _(filled in, v10; replaces the v5 placeholder)_ — The app has one consistent visual theme in two modes, following the device's light or dark setting, keeping every existing element and behaviour:
+  - **Layout ("Soft app"):** content sits on rounded cards on a slightly tinted page; the main navigation is a row of pills inside a rounded track, the current page's pill filled; filter chips, sort links and row buttons are pills; posters have rounded corners; the chart sits on a rounded card with its four quarters lightly tinted (top right green, top left pink, bottom right blue, bottom left grey) and its corner names in a darker shade of the same colour.
+  - **Dark mode:** near-black page, dark grey cards, off-white text. The logo's yellow fills the current page's pill, the chosen filter chip, main buttons and the viewer's own point and name on charts, always with black text on it.
+  - **Light mode ("Sunshine"):** warm cream page, white cards, near-black warm text. The same yellow fills the same things, with near-black text on it. Wherever yellow alone would mark something on a light background (the viewer's point and name label), it has a thin dark outline, because yellow on cream cannot be seen well enough.
+  - **Type:** the Geist typeface everywhere (already loaded; a leftover rule currently shows Arial).
+  - Every text and edge meets NFR14's contrast in both modes.
+- **R66** — WHEN the spoke map is shown, THE SYSTEM SHALL draw every name label above all lines and points, each on its own solid background, and SHALL place the labels so that no two overlap and no label covers another member's point; WHEN there is no free place for a label beside its point, THE SYSTEM SHALL use the free place nearest to it, joined to the point by a short line.
+- **R67** — WHEN the spoke map is shown, THE SYSTEM SHALL give each friend a colour of their own, used for their point and their name, with no two friends on the same map sharing one while there are colours left; the viewer always has the theme's yellow. A member keeps the same colour from film to film unless it is already taken on that map. Colour adds to the names and shapes; it never replaces them (NFR14).
+
+### Edge cases
+
+| #   | Situation                                                       | Proposed behaviour                                                                                                   |
+| --- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| E38 | More friends on one film than there are friend colours (seven)  | Colours repeat; every point still carries its name, and the table below the map lists everyone                       |
+| E39 | So many names that some have no free place near their point      | The furthest free place is used with a joining line; the table below the map still lists everyone (NFR13)           |
+| E40 | The device switches between light and dark while the app is open | The app follows at once; nothing is reloaded                                                                         |
+| E41 | A page shown before the theme's colours have loaded             | The colours are part of the page's own stylesheet, so there is no flash of the old look                              |
+
+### Open questions, and what I will assume without an answer
+
+- **Q17 — A switch for light or dark inside the app?** _Assumed: no._ The app follows the phone's own setting, as it does today. A switch can be added later.
+- **Q18 — Friend colours beyond the spoke map?** _Assumed: on the spoke map, plus a small dot of the same colour beside each name in the "How far each friend is from you" table under it, so the two can be matched._ Not on the lists, cards or Friends' films, where there is no chart of members to match.
+
