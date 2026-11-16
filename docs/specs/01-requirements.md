@@ -2,6 +2,10 @@
 
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
+**v8 change proposed on 2026-11-16, awaiting approval:** Up and Down move
+between films in every film list, and between the search box and its
+results (new R64, section 9).
+
 **v7 change approved by the owner on 2026-11-16**
 (after using the film page): saving a rating from a film's page keeps the
 member on that page, where the "Your rating" section folds to its one line
@@ -377,3 +381,20 @@ person.) So selecting a point on Friends' films opens that one film, and
 **Q15 — Pages you swipe through, or one list?** One list of cards, each with its placement label clearly shown and the review present. No pages, swipe or floating arrow. (The owner's words were "replace with cards with the label clearly shown and their review present"; I have read that as agreeing to one list.) If the list feels long once friends join, the next step is "show the first five" with a "Show all" button.
 
 **Q16 — When is the Google picture taken, and can a member opt out?** It is taken at sign-in, and a member can opt out when they sign up (R63), or later from the same form. Uploading your own picture is a nice-to-have (N5), not part of v6.
+
+## 9. v8 change — proposed 2026-11-16, awaiting the owner's approval
+
+Requested by the owner while checking T32 with the keyboard: Up and Down
+should move between films the way Tab does. The owner chose every film
+list, not only search results.
+
+### Requirement
+
+- **R64** — WHEN a film in a list of films has keyboard focus and the member presses Down or Up, THE SYSTEM SHALL move focus to the next or previous film in that list, and SHALL stop at the first and last film. This applies to search results, My films, Friends' films, a member's films, and the films listed for a selected chart point. WHEN focus is in the search box and the member presses Down, THE SYSTEM SHALL move focus to the first result; WHEN focus is on the first result and the member presses Up, THE SYSTEM SHALL move it back to the search box. Tab and Shift+Tab keep working as before.
+
+### Edge cases
+
+| #   | Situation                                                     | Proposed behaviour                                                                                          |
+| --- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| E32 | Focus is on a slider, a text box or a row's button, not a film | Up and Down do what they always do there (a slider moves; the page scrolls); only a focused film is affected |
+| E33 | The search box is focused and there are no results            | Down does nothing special                                                                                   |

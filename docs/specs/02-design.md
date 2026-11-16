@@ -843,6 +843,24 @@ max="10" step="1">` starting at 5, with the current number shown beside it and
   stops on the panel itself); Close or Escape closes it and puts focus back
   on the point. A point the page opens by itself (after a save) does not
   take focus.
+- _(v8, T32b, proposed.)_ **Up and Down between films** (R64). One small
+  client component, `ArrowKeyList`, wraps each film list (`FilmList`, the
+  search results, the chart panel's list). It listens for key presses on
+  the whole list (one listener, not one per film) and acts only when the
+  focused element is a film's own link, marked `data-arrow-item`; anywhere
+  else, such as a slider or a row's "Update scores" button, the key does
+  what it always does (E32). Which film comes next is a pure, tested
+  function, `nextArrowIndex(current, count, key)`: no wrap-around, so the
+  ends are felt as ends. The lists stay server-drawn; only the wrapper runs
+  in the browser.
+  - **The search box.** `SearchBox` already runs in the browser. Down in the
+    box focuses the first result; Up on the first result returns to the
+    box (`ArrowKeyList` takes an `onUpFromFirst` callback).
+  - _Rejected:_ the full ARIA "listbox" pattern, where Tab enters a list
+    once and only arrows move inside it. It changes how Tab behaves, which
+    the owner said already works, and suits pickers more than lists of
+    links. Also rejected: arrows on the chart's points, which are placed by
+    score, not in an order Up and Down would make sense of.
 - **No spokes when the viewer hasn't rated** (R40, Q12): points and average
   only, with a "rate this film" prompt.
 - **Spoke map details** _(added in T28)_. `SpokeMap` draws `ChartFrame`, a

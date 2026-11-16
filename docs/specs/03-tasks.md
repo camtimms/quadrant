@@ -3,6 +3,7 @@
 Status: **APPROVED** (amended version, 2026-11-14) — T4a added and T7, T24–T26 reworded for the thirteen-placement rule (requirements v4).
 T29a–T29d (requirements v6, design section 16) approved by the owner, 2026-11-15.
 T23a (requirements v7, design section 6) approved by the owner, 2026-11-16.
+T32b (requirements v8, design section 8) **proposed** 2026-11-16, awaiting the owner's approval.
 Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to that document.
 
 **How to read a task**
@@ -178,6 +179,8 @@ Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to tha
 - [ ] **T32: Accessibility pass** — NFR12, NFR13, NFR14, NFR15 · small fixes across `src/components/**` · manual checklist: complete search → rate → view chart with the keyboard only; contrast check; every poster has alt text; every field has a label · S
   - *Built 2026-11-16, waiting for the owner's check.* An audit, with the rules turned into tests so they stay kept. Contrast is now computed rather than judged by eye: `src/lib/contrast.ts` works out WCAG ratios for every faded shade in both themes. It found two failures, both fixed: the edges of the three text boxes (search, display name, review) were about 2 : 1 and are now 3.4 : 1 or better, and greyed-out filter chips' text was 3.4 : 1 and is now 4.7 : 1. Keyboard: opening a chart point now moves focus into its panel, and Close or Escape puts it back on the point; before, a keyboard user had to Tab past every other point to reach the panel. Two links lacked a focus ring (Cancel on `/welcome`, "sign in again" in search) and now have one. Every image already had alt text and every field a label. Not in the original file list: `src/lib/contrast.ts` + test, and `src/lib/accessibility.test.ts`, which scans the source and fails on a too-faint text shade, a faint text-box edge, an `<img>` without `alt`, or a styled link or button without a focus ring. 24 new tests, written first and seen failing. Checked with real key presses on a temporary page (since removed): Tab reaches a chart point announced in words, Enter opens its panel with focus inside, Escape closes it back on the point; arrow keys, Home and End move the sliders, the placement preview follows, and Tab reaches the review box and Save with a visible ring. That also settles the arrow-key check T23 could only test indirectly. **Not checked:** the whole search → rate → My films path with the keyboard on the signed-in site, and the look of the slightly darker text-box edges.
 
+- [ ] **T32b: Up and Down between films** — R64, E32, E33, NFR12 · `src/lib/arrowKeys.ts` + test (`nextArrowIndex`), `src/components/ArrowKeyList.tsx` + test, `src/components/film/FilmList.tsx`, `FilmCard.tsx`, `SearchBox.tsx` + test, `src/components/chart/PointPanel.tsx` · tests written first: Down and Up move to the next and previous film and stop at the ends; other keys are ignored; nothing happens when focus is on a slider, text box or row button; Down in the search box focuses the first result and Up on the first result returns to the box; Down with no results does nothing; Tab order is unchanged. Manual: with the keyboard only, move through search results, My films, Friends' films and a chart point's list with Up and Down · S
+
 - [ ] 🙋 **T32a: Visual design pass** — NFR24 · to be listed when specified · the look of the whole app: a consistent modern theme, keeping every element and behaviour. Starts with two or three concrete options for the owner to choose from; NFR24 and this task are filled in from that choice before any code is written · M
   - _You:_ choose between the options.
   - _To cover (owner, 2026-11-15, from T28):_ names on the spoke map sit on top of each other as the number of friends grows. Keep what works now: every name can be read at a glance, without selecting each point. Names also sit behind the lines and points; the owner suggests layers and colours, or another design method.
@@ -225,6 +228,7 @@ Every requirement appears in at least one task.
 | R57–R59          | T29d                      |
 | R60              | T29c                      |
 | R61–R63          | T29a, T29b, T29c, T29d    |
+| R64              | T32b                      |
 | R47              | T29                       |
 | R48              | T3, T14, T31              |
 | NFR1             | T9, T10, T20              |
@@ -234,7 +238,7 @@ Every requirement appears in at least one task.
 | NFR23, NFR24     | T26c, T32a                |
 | NFR25            | T27a                      |
 | NFR11            | T3, T34                   |
-| NFR12–NFR15      | T17, T23, T24, T28, T32   |
+| NFR12–NFR15      | T17, T23, T24, T28, T32, T32b |
 | NFR16, NFR17     | T1, T4–T7                 |
 | NFR18            | T15, T18, T34             |
 | NFR19–NFR21      | T5, T19                   |
