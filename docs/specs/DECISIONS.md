@@ -188,3 +188,4 @@ Running log: date, decision, why. Newest at the bottom.
 | 2026-11-16 | T31: error and not-found pages exist both inside `(app)` and at the root. | Inside `(app)` they keep the header so the member can move on; the root ones cover the public pages and unknown addresses. Both share one component. |
 | 2026-11-16 | T31: long words wrap through `overflow-wrap: break-word` on `body`. | Inherited by everything, so a new component cannot forget it; it only breaks a word that cannot fit otherwise. |
 | 2026-11-16 | T31: `Nav` sits inside `<Suspense>` with an unmarked fallback. | Required by Cache Components for anything that reads the address; found when the production build failed. |
+| 2026-11-16 | T31: owner confirmed navigation, error pages and phone layout on the live site. | Owner's check. |
