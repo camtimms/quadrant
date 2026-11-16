@@ -80,7 +80,7 @@ export default async function MyFilmsPage({ searchParams }: PageProps<"/">) {
         // role="status" makes screen readers announce it.
         <p
           role="status"
-          className="rounded border border-foreground/30 px-3 py-2 text-sm"
+          className="rounded border border-foreground/30 px-3 py-2 text-sm break-words"
         >
           Saved. <strong className="font-semibold">{justRated.title}</strong> is{" "}
           {justRated.point.quality} / {justRated.point.enjoyment}:{" "}

@@ -57,7 +57,9 @@ export default async function MemberPage({
         <h1 className="text-2xl font-semibold break-words">
           {name}&apos;s films
         </h1>
-        <p className="opacity-70">{name} hasn&apos;t rated anything yet.</p>
+        <p className="break-words opacity-70">
+          {name} hasn&apos;t rated anything yet.
+        </p>
       </main>
     );
   }

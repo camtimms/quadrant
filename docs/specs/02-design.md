@@ -471,6 +471,28 @@ _Satisfies: R1, R8, R9, R13, R30–R46_
 The filter and sort choices live in the URL (`?filter=guilty-pleasures`,
 `?sort=disagreement`), so they survive a refresh and can be bookmarked.
 
+_(Added in T31.)_ **Navigation and problem pages.**
+
+- The signed-in header has two rows at every width: the site name with the
+  member's name and "Sign out" on top, and `Nav` below: My films, Friends'
+  films, Search. The current page is marked with `aria-current="page"` and a
+  bold underline, not colour alone (NFR14). The list and the "is this the
+  current page" rule (an exact match, not a prefix) are in `src/lib/nav.ts`.
+- `Nav` reads the address, so with Cache Components it sits inside
+  `<Suspense>`; its fallback is the same links with nothing marked, so they
+  are usable at once.
+- `error.tsx` in `(app)` (keeps the header) and at the root (for `/login`,
+  `/welcome`, `/about`) both show `ErrorMessage`: "Something went wrong", a
+  "Try again" button calling Next.js's `retry()`, and a link to My films. The
+  error's own text is never shown; it goes to the console with its digest.
+  No `global-error.tsx`: the root layout does nothing that can fail.
+- `not-found.tsx` in `(app)` (for `notFound()` from the film and member
+  pages, keeping the header) and at the root (any unknown address, served
+  with status 404) share `ProblemPage` with the error pages.
+- E15: `overflow-wrap: break-word` on `body`, inherited everywhere, as a
+  safety net for long unbroken words, alongside `break-words` where names
+  and titles are printed.
+
 ### Server endpoints
 
 | Endpoint                                         | Type          | Does                                                                                                                        |

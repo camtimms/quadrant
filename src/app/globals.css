@@ -23,4 +23,9 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  /* A safety net for E15: a word too long for its line (a name or review
+     with no spaces) is broken onto the next line instead of running off a
+     phone screen. It only breaks a word that cannot fit any other way.
+     Inherited by everything, so a new component cannot forget it. */
+  overflow-wrap: break-word;
 }
