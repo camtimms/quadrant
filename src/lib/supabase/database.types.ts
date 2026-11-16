@@ -132,6 +132,39 @@ export type Database = {
           },
         ]
       }
+      review_likes: {
+        Row: {
+          created_at: string
+          rating_id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          rating_id: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          rating_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_likes_rating_id_fkey"
+            columns: ["rating_id"]
+            isOneToOne: false
+            referencedRelation: "ratings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       titles: {
         Row: {
           fetched_at: string

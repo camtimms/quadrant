@@ -1,5 +1,6 @@
 // Reads with the member's session, so server only.
 import "server-only";
+import { RATING_AUTHOR } from "@/lib/data/embeds";
 
 import type { RatingRow } from "@/lib/data/groupFilms";
 import { fetchAllPages } from "@/lib/data/paging";
@@ -9,7 +10,8 @@ import { createClient } from "@/lib/supabase/server";
  * The columns the Friends' films page needs from each rating: whose it is,
  * the two scores, the review, when it was first made, and nested inside it
  * the film and the member's name and picture address (see ratings.ts for
- * how "titles (...)" works; "profiles (...)" is the same idea).
+ * how "titles (...)" works; RATING_AUTHOR, in embeds.ts, is the same idea
+ * with the link to the author named).
  *
  * The member and review are for the panel that opens from a point (R57,
  * R59). Whole reviews are read here, on the server; groupFilms cuts them
@@ -18,8 +20,10 @@ import { createClient } from "@/lib/supabase/server";
  * The same text is repeated in tests/rls/all-ratings.test.ts, which runs it
  * against the real database, and must stay in step with it.
  */
+// `as const` keeps the exact text as the type, which is how the Supabase
+// client works out the shape of the rows it returns.
 const ALL_RATINGS_SELECT =
-  "user_id, quality, enjoyment, review, created_at, titles (tmdb_id, title, release_year, poster_path), profiles (display_name, avatar_url)";
+  `user_id, quality, enjoyment, review, created_at, titles (tmdb_id, title, release_year, poster_path), ${RATING_AUTHOR}` as const;
 
 /**
  * Every member's current rating of every film: the data behind Friends'

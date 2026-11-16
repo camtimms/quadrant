@@ -126,7 +126,10 @@ describe("loadAllRatings", () => {
 
     expect(mocks.select).toContain("user_id");
     expect(mocks.select).toContain("review");
-    expect(mocks.select).toContain("profiles (display_name, avatar_url)");
+    // Named link (design 20.4): ratings and profiles are linked two ways.
+    expect(mocks.select).toContain(
+      "profiles!ratings_user_id_fkey (display_name, avatar_url)",
+    );
   });
 
   it("passes on a member's picture address", async () => {

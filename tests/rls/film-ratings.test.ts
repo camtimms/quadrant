@@ -24,7 +24,7 @@ import {
  * request cookies, which a test has none of.
  */
 const SELECT =
-  "user_id, quality, enjoyment, review, updated_at, profiles (display_name, avatar_url)";
+  "user_id, quality, enjoyment, review, updated_at, profiles!ratings_user_id_fkey (display_name, avatar_url)";
 
 // The shape of a real Google account picture address (design 16.8).
 const GOOGLE_PICTURE = "https://lh3.googleusercontent.com/a/test-alice=s96-c";

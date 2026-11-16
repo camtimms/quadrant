@@ -1876,11 +1876,25 @@ review_likes (
   Friends' films panel (R59 shows only the start of a review; the card on
   the film page is where it is read).
 
-### 20.4 Rollout
+### 20.4 Rollout _(corrected during T42a)_
 
-As T29a: the migration is applied to dev, the access-control tests pass
-there, then it is applied to prod, before any code that reads the table is
-pushed (a push deploys). Each `db push` needs the owner's go-ahead.
+The access tests on dev found that the new table breaks two existing
+queries. `review_likes` links `ratings` to `profiles` a second way (through
+the likes), so a nested `profiles (...)` under ratings became ambiguous and
+Supabase refuses it ("more than one relationship was found"). Friends' films
+(`allRatings.ts`) and the film page (`filmPage.ts`) both use one. Applied to
+prod first, the migration would have broken both pages.
+
+So those queries now name their link, `profiles!ratings_user_id_fkey (...)`,
+which works with or without the likes table, and the order is:
+
+1. Push the named-link queries while prod has no likes table (T42a).
+2. Apply the migration to dev, run `test:rls`; then to prod. Each `db push`
+   needs the owner's go-ahead (given 2026-11-16: dev, then prod if the
+   tests pass).
+3. Push the code that reads and writes likes (T42b).
+
+Any future query nesting `profiles` under `ratings` must name the link too.
 
 ### 20.5 Traceability
 

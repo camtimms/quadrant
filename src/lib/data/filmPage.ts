@@ -1,6 +1,7 @@
 // Reads with the member's session and may refresh a film through the
 // secret-key store, so server only.
 import "server-only";
+import { RATING_AUTHOR } from "@/lib/data/embeds";
 
 import type { MemberRating } from "@/components/film/RatingCards";
 import { createClient } from "@/lib/supabase/server";
@@ -106,13 +107,14 @@ export async function loadFilmPage(
   // members, and a member may see every member's ratings. The viewer's own
   // rating is picked out of the same rows below, which saves a second query.
   //
-  // "profiles (display_name, avatar_url)" follows the link from
-  // ratings.user_id to the profiles table and nests the member's name and
-  // picture address inside each row, so the cards need no second query (R61).
+  // RATING_AUTHOR (embeds.ts) follows the link from ratings.user_id to the
+  // profiles table, named because likes link them a second way, and nests
+  // the member's name and picture address inside each row, so the cards
+  // need no second query (R61).
   const { data: rows, error: ratingsError } = await supabase
     .from("ratings")
     .select(
-      "user_id, quality, enjoyment, review, updated_at, profiles (display_name, avatar_url)",
+      `user_id, quality, enjoyment, review, updated_at, ${RATING_AUTHOR}` as const,
     )
     .eq("title_id", title.id)
     .eq("is_current", true);
