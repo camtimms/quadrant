@@ -416,7 +416,23 @@ export function QuadrantChart({
       block: "nearest",
       behavior: reduceMotion ? "auto" : "smooth",
     });
+    // Keyboard focus follows (NFR12). Otherwise a keyboard user would have
+    // to Tab past every other point to reach the panel, and a screen
+    // reader would not say that anything opened. preventScroll: the line
+    // above already does the scrolling, smoothly.
+    panelRef.current
+      ?.querySelector<HTMLElement>("section")
+      ?.focus({ preventScroll: true });
   }, [selectedId]);
+
+  // The point that opened the panel, so closing it can put keyboard focus
+  // back where the member was, instead of dropping it at the top of the
+  // page.
+  const opener = useRef<HTMLButtonElement | null>(null);
+  const closePanel = () => {
+    setSelectedId(null);
+    opener.current?.focus();
+  };
 
   const zoom = zoomWindow(zoomTo);
   const scale = zoomScale(zoom);
@@ -455,7 +471,8 @@ export function QuadrantChart({
                 // Tells a screen reader this button opens something, and
                 // whether it is open now.
                 aria-expanded={isOpen}
-                onClick={() => {
+                onClick={(event) => {
+                  opener.current = event.currentTarget;
                   scrollToPanel.current = !isOpen;
                   setSelectedId(isOpen ? null : cluster.items[0].tmdbId);
                 }}
@@ -494,7 +511,7 @@ export function QuadrantChart({
         {open ? (
           <PointPanel
             films={open.items}
-            onClose={() => setSelectedId(null)}
+            onClose={closePanel}
             editReturnTo={editReturnTo}
           />
         ) : null}

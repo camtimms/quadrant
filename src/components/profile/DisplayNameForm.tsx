@@ -63,7 +63,7 @@ export function DisplayNameForm({
         // These two link the error text to the field for screen readers.
         aria-invalid={state.message ? true : undefined}
         aria-describedby="display_name_help"
-        className="rounded border border-foreground/30 bg-transparent px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="rounded border border-foreground/50 bg-transparent px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2"
       />
       <p id="display_name_help" className="text-sm opacity-70">
         Shown to your friends beside your ratings. Up to{" "}

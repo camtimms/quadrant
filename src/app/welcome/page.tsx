@@ -56,7 +56,10 @@ async function WelcomeContent() {
         pictureUrl={member.googlePicture}
       />
       {isFirstVisit ? null : (
-        <Link href="/" className="text-sm underline">
+        <Link
+          href="/"
+          className="text-sm underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2"
+        >
           Cancel
         </Link>
       )}

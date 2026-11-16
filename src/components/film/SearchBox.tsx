@@ -163,7 +163,7 @@ export function SearchBox({ initialQuery = "" }: Props) {
             maxLength={SEARCH_QUERY_MAX_LENGTH}
             autoComplete="off"
             aria-describedby="film_search_help"
-            className="min-w-0 flex-1 rounded border border-foreground/30 bg-transparent px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2"
+            className="min-w-0 flex-1 rounded border border-foreground/50 bg-transparent px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2"
           />
           <button
             type="submit"
@@ -193,7 +193,10 @@ export function SearchBox({ initialQuery = "" }: Props) {
       {state.status === "signed-out" ? (
         <p role="alert" className="text-sm text-red-700 dark:text-red-400">
           You have been signed out.{" "}
-          <Link href="/login?next=/search" className="underline">
+          <Link
+            href="/login?next=/search"
+            className="underline focus-visible:outline-2 focus-visible:outline-offset-2"
+          >
             Sign in again
           </Link>{" "}
           to search.

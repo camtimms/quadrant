@@ -81,7 +81,7 @@ export function FilterChips({
                   <span
                     data-filter={placement}
                     aria-disabled="true"
-                    className={`${CHIP} border-foreground/15 opacity-50`}
+                    className={`${CHIP} border-foreground/15 opacity-60`}
                   >
                     {label}
                   </span>

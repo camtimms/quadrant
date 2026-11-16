@@ -829,6 +829,20 @@ max="10" step="1">` starting at 5, with the current number shown beside it and
   holding the same information. On the film page the spokes are also a table:
   friend, their scores, disagreement, with the largest marked "biggest
   disagreement" (R41). An identical rating reads "you agree exactly" (E13).
+- _(Added in T32.)_ **Contrast, worked out rather than eyeballed** (NFR14):
+  every shade on the site is the text colour faded over the background, so
+  `src/lib/contrast.ts` computes WCAG ratios for both themes and tests pin
+  the rules: text no fainter than `opacity-60` (4.7 : 1 in light mode,
+  where 50% was 3.4 : 1), and text boxes edged with `border-foreground/50`
+  (3.4 : 1 against WCAG 1.4.11's 3 : 1; the old /30 was 2 : 1). A
+  source-scanning test (`src/lib/accessibility.test.ts`) fails if a new
+  component breaks either rule, leaves an `<img>` without `alt`, or styles a
+  link or button without a focus ring.
+- _(Added in T32.)_ **Keyboard focus follows the chart's panel** (NFR12):
+  opening a point moves focus into its panel (`tabIndex={-1}`, so Tab never
+  stops on the panel itself); Close or Escape closes it and puts focus back
+  on the point. A point the page opens by itself (after a save) does not
+  take focus.
 - **No spokes when the viewer hasn't rated** (R40, Q12): points and average
   only, with a "rate this film" prompt.
 - **Spoke map details** _(added in T28)_. `SpokeMap` draws `ChartFrame`, a

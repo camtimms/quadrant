@@ -110,7 +110,7 @@ export function RatingForm({ tmdbId, initialRating }: Props) {
           maxLength={REVIEW_MAX_LENGTH}
           aria-describedby="review_count"
           aria-invalid={errorField === "review" ? true : undefined}
-          className="rounded border border-foreground/30 bg-transparent px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="rounded border border-foreground/50 bg-transparent px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2"
         />
         <p id="review_count" className="text-sm tabular-nums opacity-70">
           {reviewLength} / {REVIEW_MAX_LENGTH}

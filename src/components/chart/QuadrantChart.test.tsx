@@ -529,6 +529,52 @@ describe("QuadrantChart", () => {
     });
   });
 
+  // NFR12. Without this, a keyboard user who opens a point would have to
+  // Tab past every other point on the chart to reach its panel.
+  describe("keyboard focus (NFR12)", () => {
+    beforeEach(() => {
+      Element.prototype.scrollIntoView = vi.fn();
+    });
+
+    it("moves to the panel when the member opens a point", () => {
+      render(<QuadrantChart films={[commando]} />);
+
+      fireEvent.click(screen.getByRole("button", { name: /Commando/ }));
+
+      expect(document.activeElement).toBe(screen.getByRole("region"));
+    });
+
+    it("goes back to the point when the panel is closed", () => {
+      render(<QuadrantChart films={[commando]} />);
+      const point = screen.getByRole("button", { name: /Commando/ });
+      fireEvent.click(point);
+
+      fireEvent.click(screen.getByRole("button", { name: "Close" }));
+
+      expect(screen.queryByRole("region")).toBeNull();
+      expect(document.activeElement).toBe(point);
+    });
+
+    it("closes the panel with Escape, back on the point", () => {
+      render(<QuadrantChart films={[commando]} />);
+      const point = screen.getByRole("button", { name: /Commando/ });
+      fireEvent.click(point);
+
+      fireEvent.keyDown(screen.getByRole("region"), { key: "Escape" });
+
+      expect(screen.queryByRole("region")).toBeNull();
+      expect(document.activeElement).toBe(point);
+    });
+
+    // The page opening a point (after a save) must not pull focus away
+    // from the top of the page.
+    it("stays where it is for a point the page opened by itself", () => {
+      render(<QuadrantChart films={[commando]} initialSelectedId={10999} />);
+
+      expect(document.activeElement).toBe(document.body);
+    });
+  });
+
   describe("touch (NFR23)", () => {
     it("gives each point a touch area larger than its dot, and a pressed look", () => {
       render(<QuadrantChart films={[commando]} />);

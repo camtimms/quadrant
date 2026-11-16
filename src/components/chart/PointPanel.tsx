@@ -38,7 +38,16 @@ export function PointPanel({ films, onClose, editReturnTo }: Props) {
       // A labelled <section> is a "region" that screen reader users can jump
       // to; the label says what it is.
       aria-label={films.length === 1 ? "Selected film" : "Selected films"}
-      className="flex flex-col gap-2 rounded border border-foreground/20 p-3"
+      // tabIndex -1: the chart can move keyboard focus here when a point is
+      // opened, but Tab does not stop on the panel itself (NFR12).
+      tabIndex={-1}
+      // Escape closes it, as people expect of anything that opened.
+      onKeyDown={(event) => {
+        if (event.key === "Escape") onClose();
+      }}
+      // The ring shows when focus arrives from the keyboard; after a tap
+      // the browser leaves it off.
+      className="flex flex-col gap-2 rounded border border-foreground/20 p-3 focus-visible:outline-2 focus-visible:outline-offset-2"
     >
       <div className="flex items-center justify-between gap-3">
         <h3 className="font-semibold">
