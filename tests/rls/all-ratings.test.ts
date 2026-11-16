@@ -24,7 +24,7 @@ import {
  * request cookies, which a test has none of.
  */
 const SELECT =
-  "user_id, quality, enjoyment, review, created_at, titles (tmdb_id, title, release_year, poster_path), profiles!ratings_user_id_fkey (display_name, avatar_url)";
+  "id, user_id, quality, enjoyment, review, created_at, titles (tmdb_id, title, release_year, poster_path), profiles!ratings_user_id_fkey (display_name, avatar_url), review_likes (user_id, profiles!review_likes_user_id_fkey (display_name))";
 
 // The shape of a real Google account picture address (design 16.8).
 const GOOGLE_PICTURE = "https://lh3.googleusercontent.com/a/test-alice=s96-c";
@@ -115,6 +115,7 @@ describe("the Friends' films query", () => {
     // R57, R59: who made the rating, their picture and their review come in
     // the same row. The member is ONE nested object too.
     expect(heatRows.find((r) => r.user_id === alice.id)).toEqual({
+      id: expect.any(Number),
       user_id: alice.id,
       quality: 9,
       enjoyment: 8,
@@ -122,9 +123,12 @@ describe("the Friends' films query", () => {
       created_at: expect.any(String),
       titles: film,
       profiles: { display_name: "Alice", avatar_url: GOOGLE_PICTURE },
+      // R78: the likes arrive with the rating, empty when there are none.
+      review_likes: [],
     });
     // Bob wrote no review and has no picture: both arrive as null.
     expect(heatRows.find((r) => r.user_id === bob.id)).toEqual({
+      id: expect.any(Number),
       user_id: bob.id,
       quality: 2,
       enjoyment: 2,
@@ -132,6 +136,7 @@ describe("the Friends' films query", () => {
       created_at: expect.any(String),
       titles: film,
       profiles: { display_name: "Bob", avatar_url: null },
+      review_likes: [],
     });
     expect(Number.isNaN(Date.parse(heatRows[0].created_at))).toBe(false);
   });

@@ -3,12 +3,16 @@ import { QuadrantChart } from "@/components/chart/QuadrantChart";
 import { EmptyState } from "@/components/EmptyState";
 import { FilmList } from "@/components/film/FilmList";
 import { FilterChips } from "@/components/film/FilterChips";
+import { RecentRatings } from "@/components/film/RecentRatings";
 import { SortLinks } from "@/components/film/SortLinks";
 import { getCurrentMember } from "@/lib/auth/member";
 import { loadAllRatings } from "@/lib/data/allRatings";
 import {
+  FEED_STEP,
   groupFilms,
+  parseShown,
   parseSort,
+  recentFeed,
   sortGroupFilms,
   sortParams,
 } from "@/lib/data/groupFilms";
@@ -31,6 +35,8 @@ export const metadata: Metadata = { title: "Friends' films" };
  * Two settings can be in the address, both checked before use:
  *   ?filter=masterpieces   show only that placement (and zoom the chart)
  *   ?sort=disagreement     list the most argued-over films first
+ *   ?shown=100             in most-recent order, how many ratings the feed
+ *                          shows (R77, E61)
  *
  * Nothing is remembered between visits: the ratings are read afresh every
  * time, so a rating a friend saved a moment ago is included (R47).
@@ -41,13 +47,15 @@ export default async function FriendsFilmsPage({
   const params = await searchParams;
   const filter = parseFilter(params.filter);
   const sort = parseSort(params.sort);
+  const shown = parseShown(params.shown);
 
   // The layout sends anyone who is not a member elsewhere; while it does,
   // this page simply shows nothing.
   const member = await getCurrentMember();
   if (!member?.isMember) return null;
 
-  const films = sortGroupFilms(groupFilms(await loadAllRatings()), sort);
+  const rows = await loadAllRatings();
+  const films = sortGroupFilms(groupFilms(rows), sort);
 
   if (films.length === 0) {
     return (
@@ -60,7 +68,16 @@ export default async function FriendsFilmsPage({
 
   // One filtered list feeds both the chart and the list, as on My films.
   // The filter looks at each film's average (R43).
-  const shown = filterFilms(films, filter);
+  const filmsShown = filterFilms(films, filter);
+
+  // R77: in most-recent order, the list under the chart is a feed of
+  // ratings, filtered by the same group placement as the chart (E62).
+  const feed =
+    sort === "recent" ? recentFeed(rows, films, filter, shown) : null;
+  const moreParams = new URLSearchParams({
+    ...(filter ? { filter } : {}),
+    shown: String(shown + FEED_STEP),
+  });
 
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 p-6">
@@ -73,7 +90,7 @@ export default async function FriendsFilmsPage({
       </div>
 
       <QuadrantChart
-        films={shown}
+        films={filmsShown}
         // Averages have one decimal place, so two films can be almost on
         // top of each other without being at the same spot. A cell of half
         // a point merges those into one marker with a count (R31).
@@ -85,10 +102,30 @@ export default async function FriendsFilmsPage({
 
       <section aria-labelledby="film-list" className="flex flex-col gap-4">
         <h2 id="film-list" className="text-lg font-semibold">
-          {filter ? PLACEMENT_LABELS[filter] : "All films"}{" "}
-          <span className="font-normal text-ink-muted">
-            ({shown.length === 1 ? "1 film" : `${shown.length} films`})
-          </span>
+          {feed ? (
+            // A list of ratings, not films, so no film count; the filter,
+            // when there is one, is named instead.
+            <>
+              Recent ratings
+              {filter ? (
+                <span className="font-normal text-ink-muted">
+                  {" "}
+                  · {PLACEMENT_LABELS[filter]}
+                </span>
+              ) : null}
+            </>
+          ) : (
+            <>
+              {filter ? PLACEMENT_LABELS[filter] : "All films"}{" "}
+              <span className="font-normal text-ink-muted">
+                (
+                {filmsShown.length === 1
+                  ? "1 film"
+                  : `${filmsShown.length} films`}
+                )
+              </span>
+            </>
+          )}
         </h2>
         <FilterChips
           counts={countByPlacement(films.map((film) => film.point))}
@@ -98,7 +135,19 @@ export default async function FriendsFilmsPage({
           otherParams={sortParams(sort)}
         />
         <SortLinks active={sort} filter={filter} />
-        <FilmList films={shown} />
+        {feed ? (
+          <RecentRatings
+            entries={feed.entries}
+            more={feed.more}
+            moreHref={`/friends?${moreParams}`}
+            viewer={{
+              userId: member.userId,
+              displayName: member.displayName ?? "You",
+            }}
+          />
+        ) : (
+          <FilmList films={filmsShown} />
+        )}
       </section>
     </main>
   );

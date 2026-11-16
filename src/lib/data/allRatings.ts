@@ -1,6 +1,6 @@
 // Reads with the member's session, so server only.
 import "server-only";
-import { RATING_AUTHOR } from "@/lib/data/embeds";
+import { RATING_AUTHOR, REVIEW_LIKERS, toLikers } from "@/lib/data/embeds";
 
 import type { RatingRow } from "@/lib/data/groupFilms";
 import { fetchAllPages } from "@/lib/data/paging";
@@ -23,7 +23,7 @@ import { createClient } from "@/lib/supabase/server";
 // `as const` keeps the exact text as the type, which is how the Supabase
 // client works out the shape of the rows it returns.
 const ALL_RATINGS_SELECT =
-  `user_id, quality, enjoyment, review, created_at, titles (tmdb_id, title, release_year, poster_path), ${RATING_AUTHOR}` as const;
+  `id, user_id, quality, enjoyment, review, created_at, titles (tmdb_id, title, release_year, poster_path), ${RATING_AUTHOR}, ${REVIEW_LIKERS}` as const;
 
 /**
  * Every member's current rating of every film: the data behind Friends'
@@ -70,5 +70,8 @@ export async function loadAllRatings(): Promise<RatingRow[]> {
     avatarUrl: row.profiles.avatar_url,
     // "No review" is stored as null; treat empty text the same way.
     review: row.review || null,
+    // For the feed's like button (R78): the same likes as the film page.
+    ratingId: row.id,
+    likes: toLikers(row.review_likes),
   }));
 }

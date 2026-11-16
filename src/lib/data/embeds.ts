@@ -19,3 +19,26 @@ export const RATING_AUTHOR =
  */
 export const REVIEW_LIKERS =
   "review_likes (user_id, profiles!review_likes_user_id_fkey (display_name))";
+
+/** A like as REVIEW_LIKERS returns it. */
+type LikeRow = { user_id: string; profiles: { display_name: string } };
+
+/**
+ * Likes from REVIEW_LIKERS as the like button wants them: id and name,
+ * sorted by name so the "Liked by" line reads the same on every load. Used
+ * by the film page and the Friends' films feed, which show the same likes.
+ */
+export function toLikers(
+  likes: readonly LikeRow[],
+): { userId: string; displayName: string }[] {
+  return likes
+    .map((like) => ({
+      userId: like.user_id,
+      displayName: like.profiles.display_name,
+    }))
+    .sort((a, b) =>
+      a.displayName.localeCompare(b.displayName, undefined, {
+        sensitivity: "base",
+      }),
+    );
+}

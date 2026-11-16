@@ -1,7 +1,7 @@
 // Reads with the member's session and may refresh a film through the
 // secret-key store, so server only.
 import "server-only";
-import { RATING_AUTHOR, REVIEW_LIKERS } from "@/lib/data/embeds";
+import { RATING_AUTHOR, REVIEW_LIKERS, toLikers } from "@/lib/data/embeds";
 
 import type { MemberRating } from "@/components/film/RatingCards";
 import { createClient } from "@/lib/supabase/server";
@@ -134,17 +134,8 @@ export async function loadFilmPage(
       review: row.review || null,
       isViewer: row.user_id === userId,
       ratingId: row.id,
-      // By name, so the "Liked by" line reads the same on every load.
-      likes: row.review_likes
-        .map((like) => ({
-          userId: like.user_id,
-          displayName: like.profiles.display_name,
-        }))
-        .sort((a, b) =>
-          a.displayName.localeCompare(b.displayName, undefined, {
-            sensitivity: "base",
-          }),
-        ),
+      // Who liked the review, by name (embeds.ts).
+      likes: toLikers(row.review_likes),
     }))
     // The viewer's own rating first, then everyone else by name. Sorting
     // here, not in the database, keeps "whose page is this" out of the query.

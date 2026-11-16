@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  FEED_STEP,
   groupFilms,
   PANEL_RATERS,
+  parseShown,
   parseSort,
+  recentFeed,
   REVIEW_START,
   sortGroupFilms,
   sortHref,
@@ -29,6 +32,9 @@ function row(
     displayName: "Someone",
     avatarUrl: null,
     review: null,
+    // Unique per film and member, as a real rating id is.
+    ratingId: tmdbId * 1000 + (member.userId?.length ?? 0),
+    likes: [],
     ...member,
   };
 }
@@ -369,5 +375,104 @@ describe("groupFilms: who rated each film (R57, R58, R59)", () => {
       expect(startOf(null)).toBeNull();
       expect(startOf("")).toBeNull();
     });
+  });
+});
+
+// R77, E61–E64 (design 22): the recent-ratings feed on Friends' films.
+describe("recentFeed (R77)", () => {
+  const day = (n: number) =>
+    `2026-11-${String(n).padStart(2, "0")}T10:00:00+00:00`;
+
+  it("lists every rating, newest first by when it was first made", () => {
+    const rows = [
+      row(1, 5, 5, day(3), { userId: "a", ratingId: 1 }),
+      row(2, 5, 5, day(9), { userId: "b", ratingId: 2 }),
+      row(1, 5, 5, day(6), { userId: "c", ratingId: 3 }),
+    ];
+    const { entries } = recentFeed(rows, groupFilms(rows), null, FEED_STEP);
+    expect(entries.map((entry) => entry.ratingId)).toEqual([2, 3, 1]);
+  });
+
+  it("breaks a tie in time by rating id, newest id first", () => {
+    const rows = [
+      row(1, 5, 5, day(3), { userId: "a", ratingId: 10 }),
+      row(2, 5, 5, day(3), { userId: "b", ratingId: 11 }),
+    ];
+    const { entries } = recentFeed(rows, groupFilms(rows), null, FEED_STEP);
+    expect(entries.map((entry) => entry.ratingId)).toEqual([11, 10]);
+  });
+
+  // E62: a film's group placement decides, as on the chart and the chips.
+  it("keeps only films whose group average is in the chosen placement", () => {
+    const rows = [
+      // Film 1 averages 9/9 (Masterpieces), though one member gave 8/8.
+      row(1, 10, 10, day(1), { userId: "a", ratingId: 1 }),
+      row(1, 8, 8, day(2), { userId: "b", ratingId: 2 }),
+      // Film 2 averages 1/1 (Dumpster Fires).
+      row(2, 1, 1, day(3), { userId: "a", ratingId: 3 }),
+    ];
+    const films = groupFilms(rows);
+    const { entries } = recentFeed(rows, films, "masterpieces", FEED_STEP);
+    expect(entries.map((entry) => entry.ratingId)).toEqual([2, 1]);
+  });
+
+  // E61
+  it("shows as many as asked, and says whether there are more", () => {
+    const rows = Array.from({ length: 7 }, (_, i) =>
+      row(i + 1, 5, 5, day(i + 1), { userId: "a", ratingId: i + 1 }),
+    );
+    const films = groupFilms(rows);
+    const first = recentFeed(rows, films, null, 5);
+    expect(first.entries.map((entry) => entry.ratingId)).toEqual([
+      7, 6, 5, 4, 3,
+    ]);
+    expect(first.more).toBe(true);
+    expect(recentFeed(rows, films, null, 10).more).toBe(false);
+  });
+
+  // The feed is drawn in the browser's page too, so long reviews are cut
+  // on the server, as the panel's are.
+  it("gives the start of each review, cut like the panel's", () => {
+    const long = "x".repeat(REVIEW_START + 50);
+    const rows = [
+      row(1, 5, 5, day(1), { userId: "a", ratingId: 1, review: long }),
+      row(2, 5, 5, day(2), { userId: "b", ratingId: 2, review: null }),
+    ];
+    const { entries } = recentFeed(rows, groupFilms(rows), null, FEED_STEP);
+    expect([...entries[1].reviewStart!]).toHaveLength(REVIEW_START + 1);
+    expect(entries[1].reviewStart!.endsWith("…")).toBe(true);
+    expect(entries[0].reviewStart).toBeNull();
+  });
+
+  it("keeps each rating's likes, the film page's likes", () => {
+    const likes = [{ userId: "z", displayName: "Zoe" }];
+    const rows = [row(1, 5, 5, day(1), { userId: "a", ratingId: 1, likes })];
+    const { entries } = recentFeed(rows, groupFilms(rows), null, FEED_STEP);
+    expect(entries[0].likes).toEqual(likes);
+  });
+});
+
+describe("parseShown (E61)", () => {
+  it("steps in fifties", () => {
+    expect(FEED_STEP).toBe(50);
+    expect(parseShown("100")).toBe(100);
+    expect(parseShown("1000")).toBe(1000);
+  });
+
+  // Read from the address bar, so anything else falls back to the first 50.
+  it.each([
+    undefined,
+    "",
+    "abc",
+    "0",
+    "-50",
+    "75",
+    "1050",
+    "50.5",
+    ["100", "150"],
+  ])("reads %j as 50", (raw) => {
+    expect(parseShown(raw as string | string[] | undefined)).toBe(
+      Array.isArray(raw) ? 100 : 50,
+    );
   });
 });

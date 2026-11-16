@@ -62,6 +62,9 @@ vi.mock("@/lib/supabase/server", () => ({
 
 function row(overrides: Record<string, unknown> = {}) {
   return {
+    id: 7,
+    // The real query always sends this list, empty when nobody liked it.
+    review_likes: [] as unknown[],
     user_id: "00000000-0000-4000-8000-000000000002",
     quality: 3,
     enjoyment: 9,
@@ -100,6 +103,8 @@ describe("loadAllRatings", () => {
         displayName: "Bob",
         avatarUrl: null,
         review: "So bad it's good.",
+        ratingId: 7,
+        likes: [],
       },
     ]);
   });
@@ -130,6 +135,34 @@ describe("loadAllRatings", () => {
     expect(mocks.select).toContain(
       "profiles!ratings_user_id_fkey (display_name, avatar_url)",
     );
+  });
+
+  // R78 (design 22): each rating's id and who liked its review, for the
+  // feed's like button, the same likes as the film page's.
+  it("fetches each rating's id and who liked its review", async () => {
+    await loadAllRatings();
+    expect(mocks.select).toMatch(/^id, /);
+    expect(mocks.select).toContain(
+      "review_likes (user_id, profiles!review_likes_user_id_fkey (display_name))",
+    );
+  });
+
+  it("passes on the rating's id and its likers, by name", async () => {
+    mocks.rows = [
+      row({
+        id: 41,
+        review_likes: [
+          { user_id: "z", profiles: { display_name: "Zoe" } },
+          { user_id: "a", profiles: { display_name: "Ann" } },
+        ],
+      }),
+    ];
+    const [rating] = await loadAllRatings();
+    expect(rating.ratingId).toBe(41);
+    expect(rating.likes).toEqual([
+      { userId: "a", displayName: "Ann" },
+      { userId: "z", displayName: "Zoe" },
+    ]);
   });
 
   it("passes on a member's picture address", async () => {

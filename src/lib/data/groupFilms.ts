@@ -2,6 +2,7 @@ import type { ListFilm } from "@/components/film/FilmList";
 import type { FilmRater } from "@/components/film/RaterLines";
 import { filterHref, newestFirst } from "@/lib/filters";
 import {
+  classify,
   filmDisagreement,
   groupAverage,
   type Placement,
@@ -36,6 +37,10 @@ export type RatingRow = {
   avatarUrl: string | null;
   /** Their written review in full, or null when they wrote none. */
   review: string | null;
+  /** The rating's id, which its review's likes point at (R78). */
+  ratingId: number;
+  /** Who liked the review, sorted by name (R78). */
+  likes: readonly { userId: string; displayName: string }[];
 };
 
 /** How many raters the Friends' films panel lists for one film (R58). */
@@ -185,4 +190,75 @@ export function sortHref(sort: GroupSort, filter: Placement | null): string {
 /** The order as an address setting, for links that must keep it. */
 export function sortParams(sort: GroupSort): Record<string, string> {
   return sort === DEFAULT_SORT ? {} : { sort };
+}
+
+// ---------------------------------------------------------------------------
+// The recent-ratings feed (R77, R78, design 22)
+// ---------------------------------------------------------------------------
+
+/** How many feed entries are shown at a time ("Show 50 more", E61). */
+export const FEED_STEP = 50;
+
+/** The most the address may ask for: 20 steps. */
+const FEED_MAX = 1000;
+
+/**
+ * How many feed entries to show, from the address (?shown=100). Anything
+ * that is not a whole step between FEED_STEP and FEED_MAX counts as the
+ * first step, like the other settings read from the address.
+ */
+export function parseShown(raw: string | string[] | undefined): number {
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  if (!value || !/^\d+$/.test(value)) return FEED_STEP;
+  const shown = Number(value);
+  return shown >= FEED_STEP && shown <= FEED_MAX && shown % FEED_STEP === 0
+    ? shown
+    : FEED_STEP;
+}
+
+/** One entry in the feed: a rating, with its review cut short. */
+export type FeedEntry = Omit<RatingRow, "review"> & {
+  /** The start of the review, as the panel's (REVIEW_START), or null. */
+  reviewStart: string | null;
+};
+
+/**
+ * The feed under Friends' films in most-recent order: one entry per rating,
+ * newest first by when it was first made (E64: editing does not move it),
+ * ties by rating id. With a placement filter, only ratings of films whose
+ * GROUP average is in it (E62), so the feed agrees with the chart and the
+ * chips. `more` says whether "Show 50 more" is needed (E61).
+ *
+ * Reviews are cut here, on the server, for the same reason as the panel's:
+ * the page should not carry every review in full.
+ */
+export function recentFeed(
+  rows: readonly RatingRow[],
+  films: readonly GroupFilm[],
+  filter: Placement | null,
+  shown: number,
+): { entries: FeedEntry[]; more: boolean } {
+  const inFilter = filter
+    ? new Set(
+        films
+          .filter((film) => classify(film.point) === filter)
+          .map((film) => film.tmdbId),
+      )
+    : null;
+
+  const matching = rows
+    .filter((row) => !inFilter || inFilter.has(row.tmdbId))
+    .sort(
+      (a, b) =>
+        Date.parse(b.ratedAt) - Date.parse(a.ratedAt) ||
+        b.ratingId - a.ratingId,
+    );
+
+  return {
+    entries: matching.slice(0, shown).map(({ review, ...rest }) => ({
+      ...rest,
+      reviewStart: reviewStart(review),
+    })),
+    more: matching.length > shown,
+  };
 }
