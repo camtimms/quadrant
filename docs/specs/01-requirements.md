@@ -486,6 +486,7 @@ has about 110 px free at 375 px wide, so the top right fits.
 
 | #   | Situation                                                     | Proposed behaviour                                                                                      |
 | --- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| E46 | The app is opened on a device for the first time, or the switch has never been pressed there | It starts in the device's own light or dark setting (asked for by the owner on 2026-11-16) |
 | E42 | A page loads after the member chose a mode                    | It appears in the chosen mode straight away, with no flash of the other mode                             |
 | E43 | The member signs out, or another member signs in on the phone | The choice stays: it belongs to the device, not the account (Q20)                                       |
 | E44 | The browser forbids saving the choice (some private modes)    | The switch still works for the page that is open; the next page follows the device setting again        |
@@ -493,6 +494,6 @@ has about 110 px free at 375 px wide, so the top right fits.
 
 ### Open questions, and what I will assume without an answer
 
-- **Q19 — Two choices (light, dark) or three (light, dark, follow my phone)?** _Assumed: two._ One button that flips between light and dark is the simplest thing to use on a phone. A member who wants to follow the phone again would need a third option somewhere; that can be added later on the name-and-picture page.
-- **Q20 — Remember the choice per device or per account?** _Assumed: per device._ It needs no database change, works before sign-in, and someone with a laptop and a phone may want different modes on each.
+- **Q19 — Two choices (light, dark) or three (light, dark, follow my phone)?** _Assumed: two._ **Confirmed by the owner on 2026-11-16.** One button that flips between light and dark is the simplest thing to use on a phone. A member who wants to follow the phone again would need a third option somewhere; that can be added later on the name-and-picture page.
+- **Q20 — Remember the choice per device or per account?** _Assumed: per device._ **Confirmed by the owner on 2026-11-16** ("per device is better"). It needs no database change, works before sign-in, and someone with a laptop and a phone may want different modes on each.
 

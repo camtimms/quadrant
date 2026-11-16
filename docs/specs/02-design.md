@@ -1671,7 +1671,7 @@ headings and 400 for text.
 
 ## 18. v11 design: the light and dark switch (PROPOSED)
 
-_Satisfies: R68, E42–E45, NFR12, NFR24_
+_Satisfies: R68, E42–E46, NFR12, NFR24_
 
 - **Where.** An icon button at the right of the header's top row, before
   "Sign out": a moon in light mode (meaning "switch to dark"), a sun in dark
