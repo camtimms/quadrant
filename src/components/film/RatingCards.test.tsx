@@ -1,9 +1,13 @@
 // @vitest-environment jsdom
 
 import { cleanup, render, screen, within } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { RatingCards, type MemberRating } from "@/components/film/RatingCards";
 import { PLACEMENT_LABELS } from "@/lib/quadrant";
+
+// The like button inside a card talks to the server; these tests only
+// check where it appears (its behaviour is in LikeButton.test.tsx).
+vi.mock("@/app/(app)/actions/like", () => ({ setReviewLike: vi.fn() }));
 
 afterEach(cleanup);
 
@@ -226,5 +230,85 @@ describe("RatingCards (R60, R37)", () => {
 
     expect(screen.queryByRole("list")).toBeNull();
     expect(screen.getByText(/Nobody has rated this film yet/)).toBeTruthy();
+  });
+});
+
+// R69 (design 20.3): a like button on every card with a written review.
+describe("RatingCards likes", () => {
+  const VIEWER = { userId: "id-Cam", displayName: "Cam" };
+  const likeButtons = () =>
+    screen.queryAllByRole("button", { name: /like .*review/i });
+
+  it("puts a like button on a card with a review", () => {
+    render(
+      <RatingCards
+        viewer={VIEWER}
+        ratings={[
+          rating("Sam", 7, 3, { review: "Tense.", ratingId: 41, likes: [] }),
+        ]}
+      />,
+    );
+    expect(likeButtons().map((b) => b.getAttribute("aria-label"))).toEqual([
+      "Like Sam's review",
+    ]);
+  });
+
+  it("puts none on a card without a review", () => {
+    render(
+      <RatingCards
+        viewer={VIEWER}
+        ratings={[rating("Sam", 7, 3, { ratingId: 41, likes: [] })]}
+      />,
+    );
+    expect(likeButtons()).toHaveLength(0);
+  });
+
+  // R71: the viewer's own review can be liked too.
+  it("puts one on the viewer's own reviewed card", () => {
+    render(
+      <RatingCards
+        viewer={VIEWER}
+        ratings={[
+          rating("Cam", 9, 9, {
+            isViewer: true,
+            userId: "id-Cam",
+            review: "Mine.",
+            ratingId: 7,
+            likes: [],
+          }),
+        ]}
+      />,
+    );
+    expect(likeButtons()[0].getAttribute("aria-label")).toBe(
+      "Like your review",
+    );
+  });
+
+  it("shows who liked a review", () => {
+    render(
+      <RatingCards
+        viewer={VIEWER}
+        ratings={[
+          rating("Sam", 7, 3, {
+            review: "Tense.",
+            ratingId: 41,
+            likes: [{ userId: "id-Zoe", displayName: "Zoe" }],
+          }),
+        ]}
+      />,
+    );
+    expect(screen.getByText("Liked by Zoe")).toBeTruthy();
+  });
+
+  // Elsewhere (no viewer or no rating id given) cards stay as they were.
+  it("puts none on cards given without a viewer", () => {
+    render(
+      <RatingCards
+        ratings={[
+          rating("Sam", 7, 3, { review: "Tense.", ratingId: 41, likes: [] }),
+        ]}
+      />,
+    );
+    expect(likeButtons()).toHaveLength(0);
   });
 });

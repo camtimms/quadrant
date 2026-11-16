@@ -154,7 +154,11 @@ export default async function FilmPage({
         <DisagreementTable ratings={ratings} />
         {/* One card per member: who they are, where they put the film, and
             what they wrote about it (R60). */}
-        <RatingCards ratings={ratings} />
+        <RatingCards
+          ratings={ratings}
+          // Who is looking, for the like buttons (R69).
+          viewer={{ userId: member.userId, displayName: member.displayName }}
+        />
       </section>
     </main>
   );

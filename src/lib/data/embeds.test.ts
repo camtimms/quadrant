@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { RATING_AUTHOR } from "@/lib/data/embeds";
+import { RATING_AUTHOR, REVIEW_LIKERS } from "@/lib/data/embeds";
 
 // Design 20.4. Since review_likes (migration 6), ratings and profiles are
 // linked two ways: directly (the rating's author) and through the likes.
@@ -11,6 +11,16 @@ describe("RATING_AUTHOR", () => {
   it("names the rating's own link to its author", () => {
     expect(RATING_AUTHOR).toBe(
       "profiles!ratings_user_id_fkey (display_name, avatar_url)",
+    );
+  });
+});
+
+// R70: who liked a review, by name. The likes table links to profiles only
+// once, but the link is named anyway so the rule below has no exceptions.
+describe("REVIEW_LIKERS", () => {
+  it("nests each like's member name under the rating", () => {
+    expect(REVIEW_LIKERS).toBe(
+      "review_likes (user_id, profiles!review_likes_user_id_fkey (display_name))",
     );
   });
 });

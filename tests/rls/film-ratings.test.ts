@@ -24,7 +24,7 @@ import {
  * request cookies, which a test has none of.
  */
 const SELECT =
-  "user_id, quality, enjoyment, review, updated_at, profiles!ratings_user_id_fkey (display_name, avatar_url)";
+  "id, user_id, quality, enjoyment, review, updated_at, profiles!ratings_user_id_fkey (display_name, avatar_url), review_likes (user_id, profiles!review_likes_user_id_fkey (display_name))";
 
 // The shape of a real Google account picture address (design 16.8).
 const GOOGLE_PICTURE = "https://lh3.googleusercontent.com/a/test-alice=s96-c";
@@ -94,6 +94,7 @@ describe("the film page's ratings query", () => {
     // The profile is ONE nested object, not a list.
     expect(Array.isArray(mine.profiles)).toBe(false);
     expect(mine).toEqual({
+      id: expect.any(Number),
       user_id: alice.id,
       quality: 9,
       enjoyment: 8,
@@ -101,8 +102,37 @@ describe("the film page's ratings query", () => {
       // When the rating was last saved (R23, v7): a real moment in time.
       updated_at: expect.any(String),
       profiles: { display_name: "Alice", avatar_url: GOOGLE_PICTURE },
+      // Nobody has liked it yet: an empty list, never missing (R70).
+      review_likes: [],
     });
     expect(Number.isNaN(Date.parse(mine.updated_at))).toBe(false);
+  });
+
+  // R70 (design 20.3): who liked a review arrives in the same query, each
+  // like with the member's name nested as ONE object.
+  it("returns who liked each review, with their names", async () => {
+    const mine = await alice.client
+      .from("ratings")
+      .select("id")
+      .eq("title_id", heat.id)
+      .eq("user_id", alice.id)
+      .single();
+    if (mine.error) throw mine.error;
+    const liked = await bob.client
+      .from("review_likes")
+      .insert({ rating_id: mine.data.id, user_id: bob.id });
+    if (liked.error) throw liked.error;
+
+    const { data, error } = await alice.client
+      .from("ratings")
+      .select(SELECT)
+      .eq("id", mine.data.id)
+      .single();
+
+    expect(error).toBeNull();
+    expect(data!.review_likes).toEqual([
+      { user_id: bob.id, profiles: { display_name: "Bob" } },
+    ]);
   });
 
   it("returns a friend's rating, with a 0 as the number 0 and no review as null", async () => {
@@ -113,6 +143,7 @@ describe("the film page's ratings query", () => {
       .eq("is_current", true);
 
     expect(data!.find((row) => row.user_id === bob.id)).toEqual({
+      id: expect.any(Number),
       user_id: bob.id,
       quality: 0,
       enjoyment: 2,
@@ -120,6 +151,7 @@ describe("the film page's ratings query", () => {
       updated_at: expect.any(String),
       // Bob has no picture: null, which the card shows as his initial.
       profiles: { display_name: "Bob", avatar_url: null },
+      review_likes: [],
     });
   });
 

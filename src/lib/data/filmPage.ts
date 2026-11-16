@@ -1,7 +1,7 @@
 // Reads with the member's session and may refresh a film through the
 // secret-key store, so server only.
 import "server-only";
-import { RATING_AUTHOR } from "@/lib/data/embeds";
+import { RATING_AUTHOR, REVIEW_LIKERS } from "@/lib/data/embeds";
 
 import type { MemberRating } from "@/components/film/RatingCards";
 import { createClient } from "@/lib/supabase/server";
@@ -110,11 +110,12 @@ export async function loadFilmPage(
   // RATING_AUTHOR (embeds.ts) follows the link from ratings.user_id to the
   // profiles table, named because likes link them a second way, and nests
   // the member's name and picture address inside each row, so the cards
-  // need no second query (R61).
+  // need no second query (R61). REVIEW_LIKERS adds who liked each review,
+  // with their names, in the same query (R70); `id` is what a like points at.
   const { data: rows, error: ratingsError } = await supabase
     .from("ratings")
     .select(
-      `user_id, quality, enjoyment, review, updated_at, ${RATING_AUTHOR}` as const,
+      `id, user_id, quality, enjoyment, review, updated_at, ${RATING_AUTHOR}, ${REVIEW_LIKERS}` as const,
     )
     .eq("title_id", title.id)
     .eq("is_current", true);
@@ -132,6 +133,18 @@ export async function loadFilmPage(
       // "No review" is stored as null; treat empty text the same way.
       review: row.review || null,
       isViewer: row.user_id === userId,
+      ratingId: row.id,
+      // By name, so the "Liked by" line reads the same on every load.
+      likes: row.review_likes
+        .map((like) => ({
+          userId: like.user_id,
+          displayName: like.profiles.display_name,
+        }))
+        .sort((a, b) =>
+          a.displayName.localeCompare(b.displayName, undefined, {
+            sensitivity: "base",
+          }),
+        ),
     }))
     // The viewer's own rating first, then everyone else by name. Sorting
     // here, not in the database, keeps "whose page is this" out of the query.

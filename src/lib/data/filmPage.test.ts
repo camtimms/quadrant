@@ -65,12 +65,18 @@ function ratingRow(
   updatedAt = "2026-11-16T10:00:00+00:00",
 ) {
   return {
+    id: 1,
     user_id: userId,
     quality,
     enjoyment,
     review,
     updated_at: updatedAt,
     profiles: { display_name: name, avatar_url: avatarUrl },
+    // The real query always sends this list, empty when nobody liked it.
+    review_likes: [] as {
+      user_id: string;
+      profiles: { display_name: string };
+    }[],
   };
 }
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -326,6 +332,38 @@ describe("loadFilmPage", () => {
           },
         ],
       });
+    });
+
+    // R69, R70 (design 20.3): each rating's id, for its like button, and who
+    // liked its review, by name, arrive in the same query.
+    it("passes on each rating's id and who liked its review", async () => {
+      mocks.tables.ratings = {
+        data: [
+          {
+            ...ratingRow(BOB_ID, "Bob", 7, 3, "Well made, no fun."),
+            id: 41,
+            review_likes: [
+              { user_id: ZOE_ID, profiles: { display_name: "Zoe" } },
+              { user_id: USER_ID, profiles: { display_name: "Cam" } },
+            ],
+          },
+          { ...ratingRow(ZOE_ID, "Zoe", 1, 9), id: 42, review_likes: [] },
+        ],
+        error: null,
+      };
+
+      const result = await loadFilmPage(10999, USER_ID);
+      if (result.status !== "ok") throw new Error("expected a film");
+      const [bob, zoe] = result.ratings;
+
+      expect(bob.ratingId).toBe(41);
+      // By name, so the "Liked by" line reads the same on every load.
+      expect(bob.likes).toEqual([
+        { userId: USER_ID, displayName: "Cam" },
+        { userId: ZOE_ID, displayName: "Zoe" },
+      ]);
+      expect(zoe.ratingId).toBe(42);
+      expect(zoe.likes).toEqual([]);
     });
 
     // R61: the picture's address travels with the name, in the same query.

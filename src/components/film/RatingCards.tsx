@@ -1,5 +1,6 @@
 import { Avatar } from "@/components/Avatar";
 import { formatScore } from "@/components/chart/scale";
+import { LikeButton } from "@/components/film/LikeButton";
 import { MemberName } from "@/components/film/MemberName";
 import { classify, PLACEMENT_LABELS, type Point } from "@/lib/quadrant";
 
@@ -17,11 +18,26 @@ export type MemberRating = {
   review: string | null;
   /** True for the rating that belongs to whoever is looking at the page. */
   isViewer: boolean;
+  /**
+   * The rating's id, which its review's likes point at (R69). Only the film
+   * page passes it; a card without it shows no like button.
+   */
+  ratingId?: number;
+  /** Who liked the review, sorted by name (R70). */
+  likes?: readonly Liker[];
 };
+
+/** A member who liked a review. */
+export type Liker = { userId: string; displayName: string };
 
 type Props = {
   /** Shown in the order given; the page's loader decides the order. */
   ratings: readonly MemberRating[];
+  /**
+   * Whoever is looking at the page. Given on the film page, so each review
+   * gets a like button (R69); without it the cards show no buttons.
+   */
+  viewer?: Liker;
 };
 
 /**
@@ -36,9 +52,9 @@ type Props = {
  * film themselves (E12).
  *
  * This file has no "use client": it is rendered on the server. Only the
- * small Avatar inside it runs in the browser.
+ * small Avatar and the like button inside it run in the browser.
  */
-export function RatingCards({ ratings }: Props) {
+export function RatingCards({ ratings, viewer }: Props) {
   if (ratings.length === 0) {
     return (
       <p className="text-sm text-ink-muted">
@@ -102,6 +118,18 @@ export function RatingCards({ ratings }: Props) {
             >
               {rating.review}
             </p>
+          ) : null}
+
+          {/* R69: only a written review can be liked, and only where the
+              page has said who is looking. */}
+          {rating.review && rating.ratingId !== undefined && viewer ? (
+            <LikeButton
+              ratingId={rating.ratingId}
+              reviewerName={rating.displayName}
+              isOwnReview={rating.isViewer}
+              viewer={viewer}
+              likes={rating.likes ?? []}
+            />
           ) : null}
         </li>
       ))}
