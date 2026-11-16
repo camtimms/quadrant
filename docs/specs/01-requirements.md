@@ -2,6 +2,9 @@
 
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
+**v16 change approved by the owner on 2026-11-16:** uploading your own
+picture (N5 as R79–R82, section 17; tasks T41a–T41d).
+
 **v15 change approved by the owner on 2026-11-16:** Friends' films in
 most-recent order becomes a feed of ratings, each with who rated, their
 scores, the start of their review and the same like button as the film page
@@ -615,4 +618,28 @@ leave the biggest-disagreement order as it is.
 | E62 | A placement filter is chosen               | Only ratings of films whose group average is in that placement, matching the chart and the chips           |
 | E63 | The viewer's own ratings                   | Included, as everywhere on Friends' films; their name is shown as theirs ("You") and their reviews can be liked (R71) |
 | E64 | A rating is edited                         | It keeps its place: the order is when it was first made, as R36 does for films                             |
+
+## 17. v16 change — APPROVED by the owner, 2026-11-16
+
+N5, chosen by the owner to be built, with the owner's answers: three
+choices of picture (Google's, your own upload, or just your initial);
+fitting the photo into the circle by moving and zooming it; storage set up
+on dev, then on prod once its access tests pass.
+
+### Requirements
+
+- **R79** — WHEN a member changes their name and picture, THE SYSTEM SHALL offer three choices, shown with a preview of each: their Google picture (when their account has one), their own uploaded picture, or just their initial; THE SYSTEM SHALL show the chosen one beside their name everywhere a picture appears. This replaces R63's on/off switch: "on" is the Google choice, "off" the initial.
+- **R80** — WHEN a member chooses a photo to upload, THE SYSTEM SHALL let them move it and zoom it inside a circle before saving, and SHALL store only that circle's square, small (256 × 256 pixels), whatever the size of the photo chosen.
+- **R81** — WHEN a member has an uploaded picture, THE SYSTEM SHALL let them replace it or remove it; removing it, while it is the chosen picture, shows their initial.
+- **R82** — An uploaded picture is seen only by signed-in members (NFR1, NFR6): it is never at an address anyone else can open.
+
+### Edge cases
+
+| #   | Situation                                                     | Proposed behaviour                                                                     |
+| --- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| E65 | The file chosen is not a picture the browser can open         | "That file couldn't be opened as a picture." Nothing is uploaded                        |
+| E66 | The upload fails                                              | The choice is not changed and the reason is shown; the old picture stays                |
+| E67 | A member is taken off the invite list                         | Their picture, like their ratings, stays visible to members                             |
+| E68 | A friend's uploaded picture cannot be loaded                  | Their initial, as for a Google picture that fails (R61)                                 |
+| E69 | A member chooses "my own picture" but has not uploaded one    | The choice needs an upload first; until then it cannot be saved                         |
 

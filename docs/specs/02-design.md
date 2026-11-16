@@ -27,6 +27,9 @@ members) was approved by the owner on 2026-11-16, through the owner's answers.**
 **Section 22 (the design for requirements v15: the recent-ratings feed) was
 approved by the owner on 2026-11-16, through the owner's answers.**
 
+**Section 23 (the design for requirements v16: uploading your own picture) was
+approved by the owner on 2026-11-16, through the owner's answers.**
+
 Every section lists the requirement IDs it satisfies. Section 14 is the reverse
 lookup (requirement → section). Section 15 lists facts I could **not** confirm
 from documentation and that must be checked with a real call before the code
@@ -2020,4 +2023,100 @@ _Satisfies: R77, R78, E61–E64_
   more, keeping the filter); `parseShown`; the real query on dev
   (`tests/rls/all-ratings.test.ts`); an end-to-end test that likes a review
   in the feed and finds it liked on the film page.
+
+---
+
+## 23. v16 design: uploading your own picture
+
+_Satisfies: R79–R82, E65–E69, NFR1, NFR5, NFR6, NFR11_
+
+Builds on 16.9 (checked 2026-11-15) and on Supabase's "Storage access
+control" guide (read 2026-11-16): a private bucket keeps every operation,
+downloads included, behind row-level-security policies on
+`storage.objects`; uploading needs an INSERT policy; replacing a file in
+place ("upsert") also needs SELECT and UPDATE; policies can restrict a
+member to a folder named with their id via `(storage.foldername(name))[1]`.
+
+### 23.1 Data (migration 7, T41a)
+
+- **Bucket** `avatars`, private, accepting only `image/jpeg`, at most
+  200 KB a file (an uploaded square is about 20–40 KB). Created by the
+  migration; its limits are then read back from `storage.buckets` on dev
+  to confirm they took (CLAUDE.md: check, don't assume).
+- **One file per member**, `avatars/<member id>/avatar.jpg`, replaced in
+  place on each upload.
+- **Policies on `storage.objects`**, bucket `avatars` only: members read
+  every file (friends see each other's pictures); a member adds, replaces
+  and deletes only files in the folder named with their own id. Nobody
+  else, signed in or not, reads anything (R82).
+- **`profiles`** gains `picture_source` (`google`, `upload` or `initial`,
+  default `google`) and `picture_version` (a number, raised on each upload,
+  so a replaced picture is not served from a stale cache). Existing rows
+  take `google` where `show_picture` is on and `initial` where it is off. A
+  trigger keeps the old `show_picture` equal to "source is google", so the
+  sign-in code and the T29a rule that empties `avatar_url` keep working
+  unchanged.
+
+### 23.2 Showing it (T41b)
+
+- **Our own address, not signed links.** An uploaded picture is shown from
+  `/api/avatar/<member id>?v=<version>`, a route behind sign-in like every
+  page (proxy.ts), which reads the file with the viewer's own session (so
+  the storage policies decide) and returns it with `Cache-Control: private,
+  max-age=86400`. The version in the address changes on every upload, so a
+  new picture appears at once while an unchanged one is cached for a day.
+  _Rejected:_ Supabase's signed addresses (they expire, would be minted for
+  every face on every page, and the reference page does not document what
+  the batch call returns); a public bucket (NFR6).
+- **Which address a member shows** is worked out in one pure, tested
+  function, `pictureAddress(profile)`: `google` → the stored Google address
+  (or none), `upload` → our route with the version, `initial` → none. The
+  query piece `RATING_AUTHOR` (embeds.ts) gains `picture_source` and
+  `picture_version`; every loader that shows a picture uses the function.
+- **`Avatar`** already shows the initial when an address is missing or
+  fails to load (E68). Its rule for which addresses it will load (Google's
+  servers only, `src/lib/picture.ts`) gains exactly one more: our own
+  `/api/avatar/<id>` path.
+
+### 23.3 Uploading (T41c)
+
+- **Move and zoom** (`PictureCropper`, client component): the chosen file
+  is opened by the browser (E65 if it cannot be), drawn into a 256 px
+  circle; dragging (mouse or finger, pointer events) moves it, a slider
+  (and pinch, where the browser sends it as zoom) enlarges it from "whole
+  photo fits" up to 4×; it can never be moved to leave empty space in the
+  circle. "Save picture" draws the visible square to a 256 × 256 canvas and
+  turns it into a JPEG (quality 0.85). JPEG, not WebP, because Safari
+  cannot make WebP from a canvas.
+- **Saving** is a Server Action, `savePicture(formData)`: checks the member,
+  checks the file is a JPEG (its first bytes, not its name) of at most
+  200 KB, uploads it to the member's own folder with the member's session
+  (the policies decide), then sets `picture_source = 'upload'` and raises
+  `picture_version`, then `refresh()`. `removePicture()` deletes the file
+  and sets the source to `initial` if it was `upload` (R81). Failures leave
+  the choice as it was and say why (E66).
+
+### 23.4 Choosing (T41d)
+
+- The name-and-picture page's checkbox becomes three choices, each with
+  its own preview: "My Google picture" (only when the account has one),
+  "My own picture" (with "Upload", "Replace" and "Remove"), and "Just my
+  initial". "My own picture" cannot be chosen before an upload (E69). The
+  first-visit page offers the same choices, Google's preselected as today.
+
+### 23.5 Rollout and tests
+
+- As T42a: migration to dev, `test:rls`, then to prod (the owner gave the
+  go-ahead for both, prod only if dev's tests pass), before code that reads
+  the new columns is pushed. The query piece gains the two columns only in
+  T41b, after prod has them.
+- **Written first:** storage access tests in `tests/rls/avatars.test.ts`
+  (members read; owners upload, replace, delete only their own folder;
+  non-members and signed-out read nothing; only JPEG, only up to 200 KB;
+  `picture_source` limited to the three values; `show_picture` follows it);
+  `pictureAddress`; the route (member gets the file with the cache header,
+  missing file is 404); the picture rule; the cropper's maths (pure:
+  fitting, clamping, the drawn rectangle); the actions; the choice form.
+  An end-to-end test uploads a small picture as one member and finds it
+  shown to another on a film page.
 
