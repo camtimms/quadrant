@@ -1069,7 +1069,12 @@ _Satisfies: R48, NFR2, NFR4, NFR6, NFR11_
 
 ### Plan
 
-1. Code lives in a GitHub repository (private).
+1. Code lives in a GitHub repository, `camtimms/quadrant`, which is **public**
+   _(corrected 2026-11-16: this said private; the owner chose to keep it
+   public)_. Nothing secret may ever be committed (CLAUDE.md); keys live in
+   git-ignored `.env*` files and in Vercel. The site's protection does not
+   depend on the code being hidden: the database's row-level security
+   refuses anyone not on the invite list (NFR1).
 2. Vercel is connected to the repository: every push to `main` deploys to
    production; other branches get preview URLs. HTTPS is automatic (NFR4).
 3. Database changes are SQL files in `supabase/migrations/`, committed to git
