@@ -2,6 +2,10 @@
 
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
+**v17 change, DRAFT, 2026-11-16:** the rewatch log (N3 as R83–R87,
+section 18; tasks T38a–T38c), built while the owner was away at their
+request, with my product choices marked ⚑ for their review.
+
 **v16 change approved by the owner on 2026-11-16:** uploading your own
 picture (N5 as R79–R82, section 17; tasks T41a–T41d).
 
@@ -222,7 +226,7 @@ friends, because displaying that is the point of the app.
 
 - **N1** — Biggest-disagreements feed: pairs of members and films ranked by disagreement. _**Dropped 2026-11-16 by the owner:** sorting Friends' films by disagreement (R44) is enough._
 - **N2** — Compare two members' quadrant charts side by side.
-- **N3** — _(Set aside by the owner on 2026-11-16: not now.)_ Rewatch log: a "log a rewatch" action that records new scores for a film the member has already rated. The new scores become the member's current rating; every earlier entry is kept with its date; a times-watched count is shown. See NFR19 `[Q11]`.
+- **N3** — _(Set aside on 2026-11-16, then chosen by the owner the same day; specified as R83–R87, section 18.)_ Rewatch log: a "log a rewatch" action that records new scores for a film the member has already rated. The new scores become the member's current rating; every earlier entry is kept with its date; a times-watched count is shown. See NFR19 `[Q11]`.
 - **N4** — Score distributions on the film page: for each of Quality and Enjoyment, a curve showing how the group's scores are spread (a normal distribution drawn from the group's mean and standard deviation), shown only when enough members have rated the film for a spread to mean something. See NFR21.
 - **N5** — _(v6, new.)_ Upload your own profile picture, cropped to a circle, in place of the Google one. Needs image storage with members-only access, an upload and crop step, and limits on file type and size; see design section 16.9.
 - **N6** — _(Owner's request, 2026-11-15.)_ Likes on reviews: a member can like a friend's written review on that friend's card on a film's page, and each card shows how many likes its review has. To be specified before it is built: whether members see who liked a review or only the count, whether you can like your own, and what happens to likes when the review is edited or deleted.
@@ -643,3 +647,28 @@ on dev, then on prod once its access tests pass.
 | E68 | A friend's uploaded picture cannot be loaded                  | Their initial, as for a Google picture that fails (R61)                                 |
 | E69 | A member chooses "my own picture" but has not uploaded one    | The choice needs an upload first; until then it cannot be saved                         |
 
+## 18. v17 change — DRAFT, built while the owner was away (2026-11-16)
+
+N3, the rewatch log. On 2026-11-16 the owner asked for the remaining
+nice-to-haves to be built while away ("I like them all except the biggest
+disagreements page") and for the design decisions to be collected and
+shown afterwards for fine tuning. The product choices below are mine,
+marked ⚑, and are listed in `DECISIONS.md` for the owner's review. Q11's
+default stands: an edit is a correction, a rewatch is a new dated entry.
+
+### Requirements
+
+- **R83** — WHEN a member has rated a film and opens their rating on its page, THE SYSTEM SHALL offer "Log a rewatch": a form that starts from their current scores with an empty review ⚑, and whose saving adds a new entry, dated the day it is logged ⚑, that becomes their current rating. Their earlier entry is kept, unchanged, as an earlier viewing.
+- **R84** — WHEN a member has watched a film more than once, THE SYSTEM SHALL show how many times ("Watched 3 times") on their rating card on the film's page, on their own folded rating, and on their entry in the Friends' films feed ⚑.
+- **R85** — WHEN a member opens their own rating of a film they have rewatched, THE SYSTEM SHALL list their earlier viewings, newest first, each with its date, both scores, its placement and its review. Friends see the count (R84), not the earlier entries ⚑.
+- **R86** — Only current ratings count anywhere a rating is used: charts, group averages, disagreements, spread curves, comparing two members, "recently rated" orders (where a rewatch counts as rated on the day it was logged ⚑), and likes (an earlier viewing keeps the likes it had; the new entry starts with none ⚑).
+- **R87** — WHEN a member deletes their rating of a film they have rewatched, THE SYSTEM SHALL say how many earlier viewings go with it, and SHALL delete them all ⚑. Editing ("Update rating") still changes only the current entry (R20).
+
+### Edge cases
+
+| #   | Situation                                                        | Proposed behaviour                                                                                      |
+| --- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| E70 | "Log rewatch" is pressed twice quickly                           | The button is disabled while saving, so one rewatch is logged                                           |
+| E71 | The rating was deleted in another tab before the rewatch is saved | It is saved as a first rating: there is nothing earlier to keep ⚑                                       |
+| E72 | A rewatch with exactly the same scores                           | Allowed: watching it again is the point, not changing the scores                                         |
+| E73 | A non-member, or someone signed out, tries to log a rewatch      | Refused by the database, as for any rating (NFR1)                                                         |

@@ -2127,3 +2127,77 @@ member to a folder named with their id via `(storage.foldername(name))[1]`.
   An end-to-end test uploads a small picture as one member and finds it
   shown to another on a film page.
 
+## 24. v17 design: the rewatch log
+
+_Satisfies: R83–R87, E70–E73, NFR1, NFR19_
+
+NFR19 is why this is small: `ratings.is_current` and the partial unique
+index "one current rating per member per film" have been there since
+migration 3. A rewatch marks the current row not current and adds a new
+one; no existing row changes shape.
+
+### 24.1 Data (migration 8, T38a)
+
+- **`ratings.watch_number`**, a whole number from 1, default 1: which
+  viewing this entry is. "Watched 3 times" is the current entry's
+  `watch_number`, so no page has to count rows. Members cannot write it
+  (the column grants leave it out), so it cannot be faked.
+  _Rejected:_ counting the member's rows on every page. The film page and
+  the Friends' feed would each need another query over every member's
+  history, for a number that only changes on a rewatch.
+- **`log_rewatch(p_title_id, p_quality, p_enjoyment, p_review)`**, a
+  function run as its owner (`security definer`, because members are
+  rightly not allowed to write `is_current`). In one transaction it: checks
+  the caller is a member; locks their current row for the film
+  (`for update`, so two rewatches at once queue rather than both reading
+  "watch 1"); marks it not current; inserts the new entry with
+  `watch_number` one higher, under `auth.uid()`, the review tidied exactly
+  as `save_rating` does. With no current row it inserts watch 1 (E71). The
+  table's checks still apply to the scores and the review.
+  _Rejected:_ letting members update `is_current` themselves and doing
+  the two steps from the app. Two requests are not one transaction, and a
+  member could then "retire" a rating without a new one.
+- Earlier rows keep their likes (they cascade only on delete); the like
+  rules already require a current rating to add one, so likes on an
+  earlier viewing are frozen.
+- Deleting (R87) removes every row for the member and film: the action
+  drops its `is_current` filter. The existing delete policy already
+  allows only the member's own rows.
+
+### 24.2 Logging it (T38b)
+
+- `saveRating` gains a hidden field `rewatch=1`: the same checks, the same
+  film storing, the same redirect and "Saved", but `log_rewatch` instead
+  of `save_rating`. One action keeps one set of checks.
+- The open "Your rating" section shows the edit form as today and, under
+  it, "Watched it again? Log a rewatch". Pressing it swaps in the same
+  rating form in rewatch mode: a sentence saying the current rating is
+  kept as an earlier viewing, sliders starting at the current scores, an
+  empty review, a "Log rewatch" button and Cancel. The button is disabled
+  while saving (E70).
+- The delete question names the earlier viewings when there are any
+  ("…and your 2 earlier viewings").
+
+### 24.3 Showing it (T38c)
+
+- Loaders add `watch_number` to their selects: the film page (cards, own
+  summary) and all-ratings (Friends' feed). `timesWatched` travels with
+  each rating; a pure `timesWatchedLabel(n)` gives "" for 1, "Watched
+  twice" for 2 and "Watched n times" above.
+- The film page also loads the viewer's own earlier rows (a second, small
+  query: their rows for this film that are not current, newest first) and
+  lists them in the open section under "Earlier viewings": date ("12 Mar
+  2026", from `created_at`), both scores, placement and review.
+
+### 24.4 Rollout and tests
+
+- As before: migration to dev, `test:rls`; to prod only with the owner's
+  go-ahead, and the code that reads `watch_number` is pushed only after
+  prod has it. Until then the work waits on a branch.
+- **Written first:** access tests (a member logs a rewatch: old row not
+  current, new row current with watch 2, review tidied; a third makes 3;
+  scores out of range refused; non-members refused; members still cannot
+  write `watch_number` or `is_current`; deleting removes every viewing);
+  `timesWatchedLabel`; the action's rewatch path; the form's rewatch mode;
+  the earlier-viewings list; the loaders. End-to-end: rate, log a rewatch,
+  see "Watched twice" and the earlier viewing.
