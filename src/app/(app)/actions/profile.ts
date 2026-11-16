@@ -1,15 +1,17 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { PICTURE_BUCKET } from "@/lib/picture";
 import { createClient } from "@/lib/supabase/server";
 import {
   parseDisplayName,
+  pictureChoiceFrom,
   type DisplayNameFormState,
 } from "@/lib/validation/profile";
 
 /**
  * Save the member's display name and their picture choice, creating their
- * profile the first time (R7, R63).
+ * profile the first time (R7, R79).
  *
  * The first argument is whatever this action returned last time; React passes
  * it in automatically when the action is used with useActionState. We do not
@@ -24,14 +26,14 @@ export async function saveDisplayName(
 ): Promise<DisplayNameFormState> {
   const typed = formData.get("display_name");
   const value = typeof typed === "string" ? typed : "";
-  // A checkbox is in the form data only when it is ticked. So "is the field
-  // there at all?" is the member's choice (R63).
-  const showPicture = formData.has("show_picture");
+  // R79: the Google picture, their own upload, or just their initial (or
+  // the old checkbox, from a page opened before the three choices).
+  const pictureChoice = pictureChoiceFrom(formData);
 
   // 1. Check it here even though the form also limits the length: a request
   //    can be sent without using our form at all.
   const parsed = parseDisplayName(typed);
-  if (!parsed.ok) return { message: parsed.message, value, showPicture };
+  if (!parsed.ok) return { message: parsed.message, value, pictureChoice };
 
   // 2. Who is asking? The id comes from the verified session, never from the
   //    form, so nobody can save a name against someone else's account.
@@ -42,8 +44,23 @@ export async function saveDisplayName(
     return {
       message: "Your session expired. Sign in again to save.",
       value,
-      showPicture,
+      pictureChoice,
     };
+  }
+
+  // E69: "my own picture" needs one uploaded first. The member's folder in
+  // the picture bucket says whether there is one.
+  if (pictureChoice === "upload") {
+    const { data: files } = await supabase.storage
+      .from(PICTURE_BUCKET)
+      .list(userId);
+    if (!files || files.length === 0) {
+      return {
+        message: "Upload a picture first, or choose another.",
+        value,
+        pictureChoice,
+      };
+    }
   }
 
   // 3. "upsert" = insert the row, or update it if it already exists. One
@@ -54,16 +71,18 @@ export async function saveDisplayName(
   //    Only the CHOICE is sent, never a picture address. Members are not
   //    allowed to write the address column at all; the database fills it in
   //    itself in step 4 (design 16.1).
+  //    The old on/off switch (show_picture) is kept in step with the choice
+  //    by the database itself (migration 7).
   const { error } = await supabase.from("profiles").upsert({
     id: userId,
     display_name: parsed.value,
-    show_picture: showPicture,
+    picture_source: pictureChoice,
   });
   if (error) {
     return {
       message: "That couldn't be saved. Please try again.",
       value,
-      showPicture,
+      pictureChoice,
     };
   }
 

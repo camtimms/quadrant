@@ -63,11 +63,30 @@ export function suggestDisplayName(metadata: unknown): string {
  *
  * `message` is the problem to show, if any. `value` is what the member typed,
  * returned so the field can be refilled with it: a failed save must never
- * throw away someone's typing. `showPicture` is the picture choice they made,
+ * throw away someone's typing. `pictureChoice` is the picture they chose,
  * handed back for the same reason.
  */
 export type DisplayNameFormState = {
   message?: string;
   value?: string;
-  showPicture?: boolean;
+  pictureChoice?: PictureChoice;
 };
+
+/** The three pictures a member can show (R79). */
+export type PictureChoice = "google" | "upload" | "initial";
+
+/**
+ * Which picture the name-and-picture form chose (R79, design 23.4): its
+ * "picture" field. A page opened before the three choices arrived sends
+ * the old checkbox instead (R63): ticked ("show_picture=on") meant the
+ * Google picture, unticked (absent) the initial. Anything else, from a
+ * forged request, counts as the initial: the choice that shows least.
+ */
+export function pictureChoiceFrom(form: FormData): PictureChoice {
+  const picked = form.get("picture");
+  if (picked === "google" || picked === "upload" || picked === "initial") {
+    return picked;
+  }
+  if (picked === null) return form.has("show_picture") ? "google" : "initial";
+  return "initial";
+}

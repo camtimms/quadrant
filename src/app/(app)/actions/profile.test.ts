@@ -10,6 +10,8 @@ const mocks = vi.hoisted(() => ({
   claims: vi.fn(),
   upsert: vi.fn(),
   rpc: vi.fn(),
+  /** The member's files in the picture bucket (E69: is there an upload?). */
+  files: [] as { name: string }[],
   redirect: vi.fn<(url: string) => never>(),
   /** Every database call, in the order it was made. */
   calls: [] as string[],
@@ -29,6 +31,11 @@ vi.mock("@/lib/supabase/server", () => ({
       mocks.calls.push(`rpc ${name}`);
       return mocks.rpc(name);
     },
+    storage: {
+      from: () => ({
+        list: async () => ({ data: mocks.files, error: null }),
+      }),
+    },
   }),
 }));
 
@@ -40,8 +47,8 @@ function form(fields: Record<string, string>): FormData {
   return data;
 }
 
-/** A browser sends a ticked checkbox as "on" and an unticked one not at all. */
-const TICKED = { show_picture: "on" };
+/** R79: the three choices, sent as the "picture" field. */
+const GOOGLE = { picture: "google" };
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -49,27 +56,64 @@ beforeEach(() => {
   mocks.claims.mockResolvedValue({ data: { claims: { sub: USER_ID } } });
   mocks.upsert.mockResolvedValue({ error: null });
   mocks.rpc.mockResolvedValue({ error: null });
+  mocks.files = [];
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
 
 describe("saveDisplayName", () => {
   it("saves the name and the picture choice under the signed-in member's id", async () => {
-    await saveDisplayName({}, form({ display_name: "  Cam  ", ...TICKED }));
+    await saveDisplayName({}, form({ display_name: "  Cam  ", ...GOOGLE }));
 
     expect(mocks.upsert).toHaveBeenCalledWith({
       id: USER_ID,
       display_name: "Cam",
-      show_picture: true,
+      picture_source: "google",
     });
     expect(mocks.redirect).toHaveBeenCalledWith("/");
   });
 
-  // R63: an unticked box is missing from the form altogether.
-  it("saves the picture as switched off when the box is unticked", async () => {
-    await saveDisplayName({}, form({ display_name: "Cam" }));
+  // R79: the three choices.
+  it.each(["google", "initial"] as const)(
+    "saves the choice %s",
+    async (choice) => {
+      await saveDisplayName({}, form({ display_name: "Cam", picture: choice }));
+      expect(mocks.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({ picture_source: choice }),
+      );
+    },
+  );
 
+  it("saves 'my own picture' when the member has uploaded one", async () => {
+    mocks.files = [{ name: "avatar-3.jpg" }];
+    await saveDisplayName({}, form({ display_name: "Cam", picture: "upload" }));
     expect(mocks.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({ show_picture: false }),
+      expect.objectContaining({ picture_source: "upload" }),
+    );
+  });
+
+  // E69: "my own picture" needs a picture first.
+  it("refuses 'my own picture' before anything is uploaded", async () => {
+    const result = await saveDisplayName(
+      {},
+      form({ display_name: "Cam", picture: "upload" }),
+    );
+    expect(result?.message).toMatch(/upload a picture first/i);
+    expect(result).toMatchObject({ value: "Cam", pictureChoice: "upload" });
+    expect(mocks.upsert).not.toHaveBeenCalled();
+  });
+
+  // A page opened before the deploy still sends the old checkbox (R63).
+  it("still understands the old checkbox", async () => {
+    await saveDisplayName(
+      {},
+      form({ display_name: "Cam", show_picture: "on" }),
+    );
+    expect(mocks.upsert).toHaveBeenLastCalledWith(
+      expect.objectContaining({ picture_source: "google" }),
+    );
+    await saveDisplayName({}, form({ display_name: "Cam" }));
+    expect(mocks.upsert).toHaveBeenLastCalledWith(
+      expect.objectContaining({ picture_source: "initial" }),
     );
   });
 
@@ -80,7 +124,7 @@ describe("saveDisplayName", () => {
       {},
       form({
         display_name: "Cam",
-        ...TICKED,
+        ...GOOGLE,
         avatar_url: "https://evil.example/pixel.png",
       }),
     );
@@ -91,7 +135,7 @@ describe("saveDisplayName", () => {
   // R62: the choice is saved first, then the database fills in (or leaves
   // empty) the address to match it.
   it("asks the database to store the picture after saving the choice", async () => {
-    await saveDisplayName({}, form({ display_name: "Cam", ...TICKED }));
+    await saveDisplayName({}, form({ display_name: "Cam", ...GOOGLE }));
 
     expect(mocks.calls).toEqual([
       "upsert profiles",
@@ -106,7 +150,7 @@ describe("saveDisplayName", () => {
 
     const result = await saveDisplayName(
       {},
-      form({ display_name: "Cam", ...TICKED }),
+      form({ display_name: "Cam", ...GOOGLE }),
     );
 
     expect(result).toBeUndefined();
@@ -117,7 +161,7 @@ describe("saveDisplayName", () => {
     it("refuses a bad name without touching the database", async () => {
       const result = await saveDisplayName(
         {},
-        form({ display_name: "   ", ...TICKED }),
+        form({ display_name: "   ", ...GOOGLE }),
       );
 
       expect(result?.message).toMatch(/enter a name/i);
@@ -125,16 +169,19 @@ describe("saveDisplayName", () => {
       expect(mocks.redirect).not.toHaveBeenCalled();
     });
 
-    // E19: what the member typed and ticked is handed back, not lost.
-    it("hands back what was typed and ticked", async () => {
+    // E19: what the member typed and chose is handed back, not lost.
+    it("hands back what was typed and chosen", async () => {
       const long = "x".repeat(41);
 
       expect(
-        await saveDisplayName({}, form({ display_name: long, ...TICKED })),
-      ).toMatchObject({ value: long, showPicture: true });
+        await saveDisplayName({}, form({ display_name: long, ...GOOGLE })),
+      ).toMatchObject({ value: long, pictureChoice: "google" });
       expect(
-        await saveDisplayName({}, form({ display_name: long })),
-      ).toMatchObject({ value: long, showPicture: false });
+        await saveDisplayName(
+          {},
+          form({ display_name: long, picture: "initial" }),
+        ),
+      ).toMatchObject({ value: long, pictureChoice: "initial" });
     });
 
     it("says so when the session has expired", async () => {
@@ -142,11 +189,11 @@ describe("saveDisplayName", () => {
 
       const result = await saveDisplayName(
         {},
-        form({ display_name: "Cam", ...TICKED }),
+        form({ display_name: "Cam", ...GOOGLE }),
       );
 
       expect(result?.message).toMatch(/session expired/i);
-      expect(result).toMatchObject({ value: "Cam", showPicture: true });
+      expect(result).toMatchObject({ value: "Cam", pictureChoice: "google" });
       expect(mocks.calls).toEqual([]);
     });
 
@@ -155,7 +202,7 @@ describe("saveDisplayName", () => {
 
       const result = await saveDisplayName(
         {},
-        form({ display_name: "Cam", ...TICKED }),
+        form({ display_name: "Cam", ...GOOGLE }),
       );
 
       expect(result?.message).toMatch(/couldn't be saved/i);

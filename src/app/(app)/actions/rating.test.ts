@@ -77,7 +77,8 @@ const MEMBER: CurrentMember = {
   isMember: true,
   displayName: "Cam",
   suggestedName: "Cam",
-  showPicture: true,
+  pictureSource: "google",
+  pictureVersion: 0,
   googlePicture: null,
 };
 

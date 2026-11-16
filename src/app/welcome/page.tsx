@@ -4,11 +4,14 @@ import { Suspense } from "react";
 import { DisplayNameForm } from "@/components/profile/DisplayNameForm";
 import { card, mutedText, textLink } from "@/components/ui/styles";
 import { getCurrentMember } from "@/lib/auth/member";
+import { PICTURE_BUCKET, pictureAddress } from "@/lib/picture";
+import { createClient } from "@/lib/supabase/server";
+import type { PictureChoice } from "@/lib/validation/profile";
 import { SITE_NAME } from "@/lib/site";
 
 /**
- * Choose or change a display name (R7), and whether friends see your
- * Google picture (R63).
+ * Choose or change a display name (R7), and which picture friends see:
+ * your Google picture, one you upload, or just your initial (R79).
  *
  * A member lands here automatically the first time they sign in, because the
  * signed-in layout sends anyone without a profile to this page. They can
@@ -40,6 +43,29 @@ async function WelcomeContent() {
 
   const isFirstVisit = member.displayName === null;
 
+  // Is there an uploaded picture? The member's folder in the picture bucket
+  // says (design 23.4); the storage rules only let them list their own.
+  const supabase = await createClient();
+  const { data: files } = await supabase.storage
+    .from(PICTURE_BUCKET)
+    .list(member.userId);
+  const ownPicture =
+    files && files.length > 0
+      ? pictureAddress({
+          userId: member.userId,
+          source: "upload",
+          googleUrl: null,
+          version: member.pictureVersion,
+        })
+      : null;
+
+  // Start on the stored choice, unless that picture is not there any more
+  // (a Google account without one, or an upload since removed).
+  let pictureChoice: PictureChoice = member.pictureSource;
+  if (pictureChoice === "google" && !member.googlePicture)
+    pictureChoice = "initial";
+  if (pictureChoice === "upload" && !ownPicture) pictureChoice = "initial";
+
   return (
     <>
       <div className="flex flex-col gap-2">
@@ -55,8 +81,12 @@ async function WelcomeContent() {
       <DisplayNameForm
         initialName={member.displayName ?? member.suggestedName}
         submitLabel={isFirstVisit ? "Continue" : "Save"}
-        showPicture={member.showPicture}
-        pictureUrl={member.googlePicture}
+        pictureChoice={pictureChoice}
+        googlePicture={member.googlePicture}
+        ownPicture={ownPicture}
+        // A new key rebuilds the form after an upload or removal, so it
+        // starts again from what is now stored.
+        key={`${ownPicture ?? "none"}-${pictureChoice}`}
       />
       {isFirstVisit ? null : (
         <Link href="/" className={`${textLink} self-start text-sm`}>

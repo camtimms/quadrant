@@ -3,7 +3,10 @@ import "server-only";
 import { cache } from "react";
 import { googlePictureFrom } from "@/lib/picture";
 import { createClient } from "@/lib/supabase/server";
-import { suggestDisplayName } from "@/lib/validation/profile";
+import {
+  suggestDisplayName,
+  type PictureChoice,
+} from "@/lib/validation/profile";
 
 /** What the app knows about whoever is making the current request. */
 export type CurrentMember = {
@@ -15,10 +18,12 @@ export type CurrentMember = {
   /** A starting suggestion from their Google profile ("" if none). */
   suggestedName: string;
   /**
-   * Their choice to show their Google picture to friends (R63). True for a
-   * member with no profile yet: the choice is on by default.
+   * Which picture friends see (R79): "google", "upload" or "initial".
+   * "google" for a member with no profile yet: that is the default.
    */
-  showPicture: boolean;
+  pictureSource: PictureChoice;
+  /** Which of their uploaded pictures is current (design 23.1); 0 if none. */
+  pictureVersion: number;
   /**
    * Their OWN Google picture, from their session, or null if their account
    * has none. For showing a member their own picture on /welcome only; what
@@ -55,13 +60,14 @@ export const getCurrentMember = cache(
     }
 
     let displayName: string | null = null;
-    let showPicture = true;
+    let pictureSource: PictureChoice = "google";
+    let pictureVersion = 0;
     if (isMember) {
       // maybeSingle(): one row or none, and "none" is not an error. A member
       // who has just signed in for the first time has no profile yet.
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("display_name, show_picture")
+        .select("display_name, picture_source, picture_version")
         .eq("id", claims.sub)
         .maybeSingle();
       if (profileError) {
@@ -70,7 +76,12 @@ export const getCurrentMember = cache(
         });
       }
       displayName = profile?.display_name ?? null;
-      showPicture = profile?.show_picture ?? true;
+      // The database only allows the three choices (a check constraint), but
+      // its generated type is plain text, so anything else reads as "initial".
+      const source = profile?.picture_source ?? "google";
+      pictureSource =
+        source === "google" || source === "upload" ? source : "initial";
+      pictureVersion = profile?.picture_version ?? 0;
     }
 
     return {
@@ -78,7 +89,8 @@ export const getCurrentMember = cache(
       isMember: Boolean(isMember),
       displayName,
       suggestedName: suggestDisplayName(claims.user_metadata),
-      showPicture,
+      pictureSource,
+      pictureVersion,
       googlePicture: googlePictureFrom(claims.user_metadata),
     };
   },

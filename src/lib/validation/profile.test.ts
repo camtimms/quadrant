@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   DISPLAY_NAME_MAX_LENGTH,
   parseDisplayName,
+  pictureChoiceFrom,
   suggestDisplayName,
 } from "@/lib/validation/profile";
 
@@ -109,5 +110,33 @@ describe("suggestDisplayName", () => {
   it("never suggests an email address", () => {
     expect(suggestDisplayName({ full_name: "cam@example.com" })).toBe("");
     expect(suggestDisplayName({ email: "cam@example.com" })).toBe("");
+  });
+});
+
+// R79 (design 23.4): which of the three pictures the form chose.
+describe("pictureChoiceFrom", () => {
+  const form = (fields: Record<string, string>) => {
+    const data = new FormData();
+    for (const [name, value] of Object.entries(fields)) data.set(name, value);
+    return data;
+  };
+
+  it.each(["google", "upload", "initial"] as const)(
+    "reads the choice %s",
+    (choice) => {
+      expect(pictureChoiceFrom(form({ picture: choice }))).toBe(choice);
+    },
+  );
+
+  // A page opened before the deploy still sends the old checkbox (R63):
+  // ticked is the Google picture, unticked (absent) the initial.
+  it("understands the old checkbox", () => {
+    expect(pictureChoiceFrom(form({ show_picture: "on" }))).toBe("google");
+    expect(pictureChoiceFrom(form({}))).toBe("initial");
+  });
+
+  // A Server Action can be sent anything.
+  it("treats anything else as the initial", () => {
+    expect(pictureChoiceFrom(form({ picture: "banana" }))).toBe("initial");
   });
 });

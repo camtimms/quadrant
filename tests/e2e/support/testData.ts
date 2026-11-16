@@ -171,6 +171,18 @@ export async function removeAllE2eData(): Promise<void> {
     .map((user) => user.id);
 
   if (ids.length > 0) {
+    // Uploaded pictures live in storage, not in a table, so deleting the
+    // profile does not remove them (R79).
+    for (const id of ids) {
+      const files = await admin.storage.from("avatars").list(id);
+      if (files.error) throw files.error;
+      if (files.data.length > 0) {
+        const removed = await admin.storage
+          .from("avatars")
+          .remove(files.data.map((file) => `${id}/${file.name}`));
+        if (removed.error) throw removed.error;
+      }
+    }
     const ratings = await admin.from("ratings").delete().in("user_id", ids);
     if (ratings.error) throw ratings.error;
     const profiles = await admin.from("profiles").delete().in("id", ids);
