@@ -20,7 +20,11 @@
     "refresh-titles": "tsx --conditions=react-server scripts/refresh-titles.ts",
     "refresh-titles:prod": "tsx --conditions=react-server scripts/refresh-titles.ts --prod",
     "backup": "tsx scripts/backup.ts",
-    "backup:prod": "tsx scripts/backup.ts --prod"
+    "backup:prod": "tsx scripts/backup.ts --prod",
+    "demo:add": "tsx --conditions=react-server scripts/demo.ts",
+    "demo:add:prod": "tsx --conditions=react-server scripts/demo.ts --prod",
+    "demo:remove": "tsx --conditions=react-server scripts/demo.ts --remove",
+    "demo:remove:prod": "tsx --conditions=react-server scripts/demo.ts --remove --prod"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

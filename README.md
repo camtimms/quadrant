@@ -209,6 +209,25 @@ name in every production build on this machine (the end-to-end tests make
 one), which would point them at real data. The script refuses to run if the
 file's address is not the production project.
 
+### Example data for showing the app off: `npm run demo:add:prod`
+
+Adds six made-up members (Priya, Marcus, Ellie, Tom, Jess and Dan) with
+about 75 ratings of 26 real films, a few rewatches and some likes, so
+friends have something to look at on every page. It uses the same
+`.env.prod.local` as above. **`npm run demo:remove:prod` takes all of it
+away again**: the members, their ratings, earlier viewings, likes and invite
+rows. The films stay stored, as after any rating.
+
+Until removed, their ratings count like anyone's: in group averages,
+disagreements and the Friends' films chart. The demo members cannot sign
+in (their addresses end in `@quadrant.invalid`, which no real account can
+have), only like each other's reviews, and are found for removal by that
+address alone, so removal never touches a real member. Add it twice and the
+second run refuses; remove it first. The members and ratings are in
+`src/lib/demo/data.ts`. `npm run demo:add` and `demo:remove` do the same on
+`quadrant-dev` (remove it before `npm run test:e2e`, which shares some
+films).
+
 ### Back up the database: `npm run backup:prod`
 
 Supabase's free plan keeps no backups. This writes three files to
