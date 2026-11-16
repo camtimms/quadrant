@@ -4,6 +4,7 @@ Status: **APPROVED** (amended version, 2026-11-14) — T4a added and T7, T24–T
 T29a–T29d (requirements v6, design section 16) approved by the owner, 2026-11-15.
 T23a (requirements v7, design section 6) approved by the owner, 2026-11-16.
 T32b (requirements v8, design section 8) approved by the owner, 2026-11-16.
+T32c (requirements v9, design section 8) **proposed** 2026-11-16, awaiting the owner's approval.
 Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to that document.
 
 **How to read a task**
@@ -182,6 +183,8 @@ Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to tha
 - [ ] **T32b: Up and Down between films** — R64, E32, E33, NFR12 · `src/lib/arrowKeys.ts` + test (`nextArrowIndex`), `src/components/ArrowKeyList.tsx` + test, `src/components/film/FilmList.tsx`, `FilmCard.tsx`, `SearchBox.tsx` + test, `src/components/chart/PointPanel.tsx` · tests written first: Down and Up move to the next and previous film and stop at the ends; other keys are ignored; nothing happens when focus is on a slider, text box or row button; Down in the search box focuses the first result and Up on the first result returns to the box; Down with no results does nothing; Tab order is unchanged. Manual: with the keyboard only, move through search results, My films, Friends' films and a chart point's list with Up and Down · S
   - *Built 2026-11-16, waiting for the owner's check.* Up and Down now move between films in every film list: search results, My films, Friends' films, a member's films and the list under a chart point. They stop at the first and last film. In search, Down from the box goes to the first result and Up from the first result goes back to the box. Tab is unchanged, and on a slider, text box or row button the keys do what they always did. `ArrowKeyList` wraps each list with one key listener; `nextArrowIndex` in `src/lib/arrowKeys.ts` decides where focus goes. 21 new tests, written first and seen failing. Surprise: the marker that tells the list which link is the film had to live in `arrowKeys.ts`, not in the browser-side component, because a server-drawn list cannot read plain values from a "use client" file. Checked with real key presses on a local production build (temporary page, since removed). **Not checked:** search results in a real search, which needs your sign-in.
 
+- [ ] **T32c: Each film list one selectable area; buttons beside the film** — R64 (v9), R65, E34–E37, NFR12 · `src/lib/arrowKeys.ts` + test (`takesArrowKeys`), `src/components/ArrowKeyList.tsx` + test (current film, roving tabindex, `primary`, page listener), `src/components/film/FilmList.tsx` + test, `src/components/chart/PointPanel.tsx` + test, `src/components/film/SearchBox.tsx` + test, `src/components/rating/InlineRatingEditor.tsx` + test (marks itself open) · tests written first: only the current film and its own buttons are in the Tab order; arrows and clicks change the current film; a removed current film hands over to the first; Down with focus on the page, a nav link or a chip enters the primary list, or the open panel's list; Down in a text box, slider or film list does not; no page listener without a primary list; Up and Down on a film are kept from scrolling; the buttons sit in the row beside the film and the open editor takes the full width. Manual: on a phone and a laptop, Down from the top of My films enters the list, Tab passes the list in one step and reaches the current film's buttons, the rows are shorter, and opening "Update scores" gives the sliders the full width · M
+
 - [ ] 🙋 **T32a: Visual design pass** — NFR24 · to be listed when specified · the look of the whole app: a consistent modern theme, keeping every element and behaviour. Starts with two or three concrete options for the owner to choose from; NFR24 and this task are filled in from that choice before any code is written · M
   - _You:_ choose between the options.
   - _To cover (owner, 2026-11-15, from T28):_ names on the spoke map sit on top of each other as the number of friends grows. Keep what works now: every name can be read at a glance, without selecting each point. Names also sit behind the lines and points; the owner suggests layers and colours, or another design method.
@@ -229,7 +232,8 @@ Every requirement appears in at least one task.
 | R57–R59          | T29d                      |
 | R60              | T29c                      |
 | R61–R63          | T29a, T29b, T29c, T29d    |
-| R64              | T32b                      |
+| R64              | T32b, T32c                |
+| R65              | T32c                      |
 | R47              | T29                       |
 | R48              | T3, T14, T31              |
 | NFR1             | T9, T10, T20              |
@@ -239,7 +243,7 @@ Every requirement appears in at least one task.
 | NFR23, NFR24     | T26c, T32a                |
 | NFR25            | T27a                      |
 | NFR11            | T3, T34                   |
-| NFR12–NFR15      | T17, T23, T24, T28, T32, T32b |
+| NFR12–NFR15      | T17, T23, T24, T28, T32, T32b, T32c |
 | NFR16, NFR17     | T1, T4–T7                 |
 | NFR18            | T15, T18, T34             |
 | NFR19–NFR21      | T5, T19                   |

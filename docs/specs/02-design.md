@@ -861,6 +861,39 @@ max="10" step="1">` starting at 5, with the current number shown beside it and
     the owner said already works, and suits pickers more than lists of
     links. Also rejected: arrows on the chart's points, which are placed by
     score, not in an order Up and Down would make sense of.
+- _(v9, T32c, proposed; replaces the v8 rejection of "one Tab stop" above,
+  at the owner's request.)_ **Each film list is one selectable area**
+  (R64 amended). `ArrowKeyList` keeps a "current" film per list:
+  - **One Tab stop ("roving tabindex").** Only the current film's link, and
+    the buttons in its own row, can be reached with Tab; every other film's
+    link and buttons get `tabIndex={-1}`, which still lets them be clicked
+    and focused by the arrows. Moving to a film, by arrow, click or Tab,
+    makes it current. The rows are drawn on the server, so `ArrowKeyList`
+    sets these attributes on the DOM after each render and on each focus
+    change, rather than each row knowing whether it is current. If the
+    current film disappears (a filter, a new search), the first becomes
+    current (E35).
+  - **Down from anywhere.** One listener on the page (`document`), added by
+    the list marked `primary` (FilmList on My films, Friends' films and a
+    member's page; the search results). When Down is pressed and focus is
+    not in a text box, a select, a slider or any film list, it focuses the
+    current film of the open chart panel's list if there is one, otherwise
+    of the primary list. Whether focus counts as "typing somewhere" is a
+    pure, tested function, `takesArrowKeys(element)`. Pages without a list
+    add no listener, so the arrows scroll as normal (E34).
+  - `aria-keyshortcuts="ArrowUp ArrowDown"` on each film link tells screen
+    readers the keys exist.
+  - _Rejected:_ a separate "selected" highlight that differs from keyboard
+    focus. Two markers for "where am I" would confuse more than help; the
+    focus ring is the selection.
+- _(v9, T32c, proposed.)_ **Buttons beside the film** (R65). Each row is a
+  wrapping flex row: the film's link (poster, title, scores) takes the
+  remaining width, and the buttons sit in a narrow column on the right,
+  one above the other. When the score editor opens, that column takes the
+  full width and drops under the film (Tailwind's `has-[…]` variant reacts
+  to the open editor, so no extra state is needed). On a phone the title
+  column is narrower and long titles wrap onto more lines (E37); checked at
+  375 px before closing the task.
 - **No spokes when the viewer hasn't rated** (R40, Q12): points and average
   only, with a "rate this film" prompt.
 - **Spoke map details** _(added in T28)_. `SpokeMap` draws `ChartFrame`, a

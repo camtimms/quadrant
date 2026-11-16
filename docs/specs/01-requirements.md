@@ -2,6 +2,11 @@
 
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
+**v9 change proposed on 2026-11-16, awaiting approval:** each film list
+becomes one selectable area that Down enters from anywhere on the page and
+Tab passes in one step (R64 amended), and a film's buttons sit beside it
+(new R65, section 10).
+
 **v8 change approved by the owner on 2026-11-16:** Up and Down move
 between films in every film list, and between the search box and its
 results (new R64, section 9).
@@ -398,3 +403,25 @@ list, not only search results.
 | --- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | E32 | Focus is on a slider, a text box or a row's button, not a film | Up and Down do what they always do there (a slider moves; the page scrolls); only a focused film is affected |
 | E33 | The search box is focused and there are no results            | Down does nothing special                                                                                   |
+
+## 10. v9 change — proposed 2026-11-16, awaiting the owner's approval
+
+Requested by the owner after trying T32b: the arrow keys only worked once
+Tab had reached a list, and elsewhere they still scrolled the page. The
+owner asked for the film lists to act as one selectable area, still
+clickable, and for the two buttons to sit beside each film to save space.
+The owner chose both list changes below, not the arrows alone.
+
+### Requirements
+
+- **R64** _(amended, v9; adds to the v8 text in section 9)_ — WHEN a page shows a film list and the member presses Down while focus is not in a text box, a slider or a film list, THE SYSTEM SHALL move focus into the film list, to its current film (the first, until the member has moved to another); WHEN a selected chart point's panel is open, its list is the one entered. Each film list SHALL be a single stop in the Tab order: Tab enters the list at its current film, the next Tab reaches that film's own buttons, and the next leaves the list. While focus is on a film, Up and Down SHALL NOT scroll the page. Clicking or tapping a film still opens its page.
+- **R65** — WHEN a film in a list has its own buttons ("Update scores", "Film page"), THE SYSTEM SHALL show them to the right of the film's details, one above the other, rather than on a line underneath. WHEN the score editor is opened, it SHALL take the full width under the film.
+
+### Edge cases
+
+| #   | Situation                                                         | Proposed behaviour                                                         |
+| --- | ----------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| E34 | A page with no film list (the film page, the welcome page)        | Up and Down scroll the page as normal                                       |
+| E35 | A filter or a new search removes the current film from the list   | The first film becomes current                                              |
+| E36 | Down is pressed in the search box                                 | Unchanged from v8: focus goes to the first result                           |
+| E37 | A long title on a phone, with the buttons beside it               | The title wraps onto more lines; nothing runs off the screen (E15)          |
