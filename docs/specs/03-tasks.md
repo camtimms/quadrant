@@ -236,7 +236,9 @@ Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to tha
 - [ ] **T37: Compare two members side by side** — N2 · new page reusing `QuadrantChart` · M
 - [ ] **T38: Rewatch log** — N3, NFR19 · migration (`log_rewatch` function), form action, times-watched display; requirements R19/R20 need a spec update first · M
 - [ ] **T39: Score distribution curves** — N4, NFR21 · pure mean / standard-deviation functions with tests, SVG curve on the film page · M
-- [ ] **T40: Keep-alive for the free database** — NFR11 · scheduled request so the project isn't paused after a quiet week; needs a check of what the free tiers allow · S
+- [ ] **T40: Keep-alive for the free database** — NFR26, NFR11, E47–E50 (requirements v12, design section 19) · `vercel.json` + test, `src/app/api/keep-alive/route.ts` + test, `src/lib/keepAlive.ts` + test (`isScheduledCall`), `src/lib/titles/store.ts` (`countTitles`) + `tests/rls/titles-store.test.ts`, `src/lib/auth/paths.ts` + test, `.env.example`, `README.md` · tests written first: see design 19. Manual: after deploying with `CRON_SECRET` set in Vercel, three jobs listed, a manual run returns 200, a plain visit returns 401 · S
+  - **Proposed 2026-11-16, waiting for the owner's approval** of requirements v12 and design section 19.
+  - _You:_ add `CRON_SECRET` (a random string of letters and numbers, at least 16 characters) to the Vercel project's Production environment variables before or right after this deploys.
 - [ ] **T41: Upload your own profile picture** — N5 · private storage bucket with access rules and tests, upload with a circular crop and a resize in the browser, file limits (design 16.9); about three or four tasks once specified · M
 - [ ] **T42: Likes on reviews** — N6 · migration (a likes table with access rules and tests), a like button and count on the film page's rating cards (after T29c); requirements need a spec update first · M
 

@@ -2,6 +2,10 @@
 
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
+**v12 change PROPOSED on 2026-11-16, waiting for the owner's approval:**
+keep the free production database from being paused after a quiet week
+(new NFR26, section 13; nice-to-have task T40).
+
 **v11 change approved by the owner on 2026-11-16:**
 a switch between light and dark mode at the top right of the signed-in
 header (new R68, section 12). Answers Q17, which v10 had assumed "no".
@@ -496,4 +500,30 @@ has about 110 px free at 375 px wide, so the top right fits.
 
 - **Q19 — Two choices (light, dark) or three (light, dark, follow my phone)?** _Assumed: two._ **Confirmed by the owner on 2026-11-16.** One button that flips between light and dark is the simplest thing to use on a phone. A member who wants to follow the phone again would need a third option somewhere; that can be added later on the name-and-picture page.
 - **Q20 — Remember the choice per device or per account?** _Assumed: per device._ **Confirmed by the owner on 2026-11-16** ("per device is better"). It needs no database change, works before sign-in, and someone with a laptop and a phone may want different modes on each.
+
+## 13. v12 change — PROPOSED 2026-11-16, waiting for the owner's approval
+
+Task T40, the first nice-to-have the owner chose after T35. Supabase's free
+plan pauses a project that "show[s] low activity over a 7-day period"; while
+paused the site shows "Something went wrong" until the owner resumes it in
+the dashboard (README, "If the site stops working"). A quiet week among
+friends is likely, so this is the free-tier limit most likely to bite
+(design section 11).
+
+### Requirement
+
+- **NFR26** — The production database receives a small read query from the app's own server three times a day, every day, whether or not anyone uses the site, so that Supabase sees regular activity and does not pause the project. It reads nothing private, changes nothing, costs nothing on the free plans, and can only be triggered by Vercel's scheduler.
+
+### Edge cases
+
+| #   | Situation                                                                   | Proposed behaviour                                                                                                                           |
+| --- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| E47 | Vercel misses a scheduled run (it is "best effort")                         | Nothing breaks; the other runs that day and the next days still count. Supabase's warning email a week before a pause is the backstop        |
+| E48 | Someone other than Vercel calls the address                                 | Refused ("Unauthorized"), without touching the database                                                                                      |
+| E49 | The secret Vercel sends is not set up                                       | Every run is refused and shows as a 401 in Vercel's logs; the README says how to set it                                                     |
+| E50 | The database is already paused                                              | The run reports a failure in Vercel's logs. It cannot resume the project: only the dashboard's **Resume project** button can (README)        |
+
+### Open questions, and what I will assume without an answer
+
+- **Q21 — Is "very likely to stay awake" good enough?** _Assumed: yes._ Supabase says a few requests a day typically keep a project running but does not guarantee it; the only guarantee is a paid plan.
 

@@ -14,6 +14,9 @@ by the owner on 2026-11-16.**
 **Section 18 (the design for requirements v11: the light/dark switch) was
 approved by the owner on 2026-11-16.**
 
+**Section 19 (the design for requirements v12: keeping the database awake) is
+PROPOSED, waiting for the owner's approval.**
+
 Every section lists the requirement IDs it satisfies. Section 14 is the reverse
 lookup (requirement → section). Section 15 lists facts I could **not** confirm
 from documentation and that must be checked with a real call before the code
@@ -1721,4 +1724,81 @@ _Satisfies: R68, E42–E46, NFR12, NFR24_
   mode at once, a reload keeps it with no flash, and it carries over to the
   sign-in page after signing out.
 - **Traceability:** R68 and E42–E45 → this section.
+
+---
+
+## 19. v12 design: keeping the free database awake (PROPOSED)
+
+_Satisfies: NFR26, NFR11, E47–E50_
+
+Checked 2026-11-16 against the providers' own pages:
+
+- **Supabase** ("Project Pausing"): free projects that "show low activity
+  over a 7-day period" are paused; "a few user requests to the database each
+  day" typically prevent it, with no guarantee. What counts is database
+  activity, so the job must run a real query, not just load a page.
+- **Vercel** ("Usage & Pricing for Cron Jobs", "Managing Cron Jobs"): the
+  free Hobby plan allows up to 100 scheduled jobs per project, each at most
+  **once a day**, run at some point within the scheduled hour; they cost
+  only the function call, which is within the free allowance. Runs are best
+  effort and are not retried. Vercel sends a project secret, `CRON_SECRET`,
+  as `Authorization: Bearer <secret>`, so the endpoint can refuse anyone
+  else. Jobs run only on production deployments. (Vercel calls Cron Jobs a
+  legacy feature that will move to "Schedules"; existing jobs keep working.)
+
+### How it works
+
+- **Three daily jobs** in a new `vercel.json`, at 03:00, 11:00 and 19:00
+  UTC, each calling `/api/keep-alive`. Each job runs once a day, so the free
+  plan accepts them; three of them give Supabase "a few" queries a day.
+- **The endpoint** (`src/app/api/keep-alive/route.ts`, a GET route handler)
+  first checks the `Authorization` header against `CRON_SECRET` with a
+  constant-time comparison (`isScheduledCall`, a pure function with tests);
+  anything else gets 401 without touching the database (E48, E49). It then
+  asks the database one question: how many films are stored (a count, no
+  rows returned). That uses the titles store, the one file already allowed
+  the secret key (design 4.2), through a new `countTitles()`, so the rule
+  that only `store.ts` imports the admin client still holds. It answers 200
+  with the count on success and 503 if the database did not answer (E50);
+  either way Vercel's logs show the result.
+- **Public path.** `proxy.ts` sends signed-out visitors to the sign-in page
+  and answers `/api/*` with 401 before any route runs, so
+  `/api/keep-alive` joins the public list in `src/lib/auth/paths.ts`; the
+  route's own secret check is what protects it. `export const dynamic =
+  "force-dynamic"` is not needed with Cache Components (route handlers that
+  read the request are dynamic), but the handler reads the header first,
+  which makes it per-request either way.
+- **`CRON_SECRET`** goes in the Vercel project's environment variables for
+  Production (the owner sets it once: a random string of letters and
+  numbers, at least 16 characters), in `.env.example` with a dummy value,
+  and in the README, which also says where to see the job's runs.
+- _Rejected:_ a GitHub Actions schedule calling Supabase directly (a second
+  place to keep a key and look for logs; GitHub also disables schedules in
+  inactive repositories); an outside "uptime ping" service (another account
+  holding a key, and a page load alone may not count as database activity);
+  a public, unprotected endpoint (anyone could make the server query the
+  database on demand); querying with the public key as a signed-out visitor
+  (the row rules refuse it, and whether a refused query counts as activity
+  is not documented).
+
+### Tests
+
+- **Written first:** `isScheduledCall` (right secret; wrong, missing or
+  empty secret; secret not configured; `Bearer` prefix required; different
+  lengths); the route handler with the store replaced (401 without asking
+  the database, 200 with the count, 503 when the query fails);
+  `vercel.json` (three jobs, each once a day, all to `/api/keep-alive`);
+  `paths.ts` (`/api/keep-alive` is public, `/api/search` still is not).
+  `countTitles()` is checked against the dev project in
+  `tests/rls/titles-store.test.ts`.
+- **Manual:** after deploying with `CRON_SECRET` set, the Cron Jobs tab in
+  Vercel lists three jobs; "Run" on one shows 200 in its log; a plain visit
+  to the address gets 401.
+
+### Traceability
+
+| Requirement | Section |
+| ----------- | ------- |
+| NFR26       | 19      |
+| E47–E50     | 19      |
 
