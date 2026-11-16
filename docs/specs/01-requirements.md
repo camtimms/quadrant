@@ -2,6 +2,12 @@
 
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
+**v14 change approved by the owner on 2026-11-16:** score spread curves
+on the film page from five ratings (N4 as R73–R74), and comparing yourself
+with another member from their page (N2 as R75–R76), section 15. The rewatch
+log (N3) is set aside for now; uploading your own picture (N5) is to be
+specified next.
+
 **v13 change approved by the owner on 2026-11-16:** likes on written
 reviews (N6 specified as R69 to R72, section 14; tasks T42a and T42b). The
 biggest-disagreements feed (N1, T36) is dropped: sorting Friends' films by
@@ -208,7 +214,7 @@ friends, because displaying that is the point of the app.
 
 - **N1** — Biggest-disagreements feed: pairs of members and films ranked by disagreement. _**Dropped 2026-11-16 by the owner:** sorting Friends' films by disagreement (R44) is enough._
 - **N2** — Compare two members' quadrant charts side by side.
-- **N3** — Rewatch log: a "log a rewatch" action that records new scores for a film the member has already rated. The new scores become the member's current rating; every earlier entry is kept with its date; a times-watched count is shown. See NFR19 `[Q11]`.
+- **N3** — _(Set aside by the owner on 2026-11-16: not now.)_ Rewatch log: a "log a rewatch" action that records new scores for a film the member has already rated. The new scores become the member's current rating; every earlier entry is kept with its date; a times-watched count is shown. See NFR19 `[Q11]`.
 - **N4** — Score distributions on the film page: for each of Quality and Enjoyment, a curve showing how the group's scores are spread (a normal distribution drawn from the group's mean and standard deviation), shown only when enough members have rated the film for a spread to mean something. See NFR21.
 - **N5** — _(v6, new.)_ Upload your own profile picture, cropped to a circle, in place of the Google one. Needs image storage with members-only access, an upload and crop step, and limits on file type and size; see design section 16.9.
 - **N6** — _(Owner's request, 2026-11-15.)_ Likes on reviews: a member can like a friend's written review on that friend's card on a film's page, and each card shows how many likes its review has. To be specified before it is built: whether members see who liked a review or only the count, whether you can like your own, and what happens to likes when the review is edited or deleted.
@@ -556,4 +562,30 @@ approval.
 | E52 | A member who liked a review is taken off the invite list       | Their like stays counted, like their ratings; their name still shows                                 |
 | E53 | The like fails to save (a lost connection)                     | The button returns to how it was and says it could not save                                          |
 | E54 | Someone who is not a member, or a forged request               | Refused by the database, which also refuses liking on someone else's behalf or a review that is gone |
+
+## 15. v14 change — APPROVED by the owner, 2026-11-16
+
+The owner's answers on the remaining nice-to-haves: spread curves from five
+ratings, shown under the group average (N4); comparing "you versus them",
+reached from a member's page (N2); the rewatch log set aside (N3); uploading
+your own picture to be built (N5, specified separately). The owner asked
+for the nice-to-haves to be built and pushed without a stop at each spec.
+
+### Requirements
+
+- **R73** — WHEN a film's page is shown and at least five members have rated the film, THE SYSTEM SHALL show, under the group average, one curve for Quality and one for Enjoyment, each a normal distribution drawn from the group's mean and standard deviation over the 0–10 scale, with every member's score marked on it.
+- **R74** — WHEN those curves are shown, THE SYSTEM SHALL also state each one in words (for example "Quality: average 6.4, most scores between 4.6 and 8.2"), so the curve is never the only way to read it (NFR13); WHEN every member gave the same score on a scale, THE SYSTEM SHALL say so in words instead of drawing a curve for it.
+- **R75** — WHEN a member views another member's page, THE SYSTEM SHALL offer a "Compare with me" link leading to a page that shows the viewer's quadrant chart and the other member's side by side (one above the other on a phone), read-only, each labelled with whose it is.
+- **R76** — WHEN the compare page is shown, THE SYSTEM SHALL list the films both members have rated, each with both members' scores and the disagreement between them, the biggest disagreement first, and each film linking to its page.
+
+### Edge cases
+
+| #   | Situation                                                   | Proposed behaviour                                                                                   |
+| --- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| E55 | Fewer than five ratings                                     | No curves; the group average and cards are unchanged                                                  |
+| E56 | Everyone gave the same Quality (or Enjoyment)               | "Everyone gave Quality 7" in place of that curve; the other scale still gets its curve if it varies   |
+| E57 | The two members have no film in common                      | Both charts still show; the list says "No films rated by both of you yet."                            |
+| E58 | The viewer, or the other member, has rated nothing          | That chart shows its empty state; the list says there is nothing to compare yet                       |
+| E59 | A member opens the compare page for themselves              | Sent to My films, as their own member page does (T30)                                                 |
+| E60 | An unknown member id in the compare address                 | "Page not found", as for an unknown member page                                                       |
 

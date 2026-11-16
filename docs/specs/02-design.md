@@ -21,6 +21,9 @@ approved by the owner on 2026-11-16.**
 by the owner on 2026-11-16, through the owner's answers and instruction to
 build the nice-to-haves.**
 
+**Section 21 (the design for requirements v14: spread curves and comparing
+members) was approved by the owner on 2026-11-16, through the owner's answers.**
+
 Every section lists the requirement IDs it satisfies. Section 14 is the reverse
 lookup (requirement → section). Section 15 lists facts I could **not** confirm
 from documentation and that must be checked with a real call before the code
@@ -1904,4 +1907,76 @@ Any future query nesting `profiles` under `ratings` must name the link too.
 | R70         | 20.3       |
 | R72         | 20.1       |
 | E51–E54     | 20.1–20.3  |
+
+---
+
+## 21. v14 design: spread curves and comparing two members
+
+_Satisfies: R73–R76, E55–E60, NFR13, NFR17, NFR21_
+
+### 21.1 Spread curves (R73, R74)
+
+- **Maths, pure and tested** (`src/lib/quadrant/spread.ts`, NFR17):
+  `spreadOf(scores)` returns the mean and the **standard deviation over n**
+  (the population form). The curves describe how *these members* scored,
+  not an estimate for some wider audience, so dividing by n is the honest
+  choice; it also never divides by zero. `normalCurve(mean, sd)` returns
+  points of the normal density across 0–10 for drawing, scaled so the peak
+  is 1. Constant `MIN_RATINGS_FOR_SPREAD = 5` (E55).
+- **Words first** (R74, NFR13): "average 6.4, most scores between 4.6 and
+  8.2" is the mean ± one standard deviation, rounded to one decimal and
+  kept within 0–10. ("Most": about two thirds of a normal spread lies
+  within one standard deviation.) With a standard deviation of 0 the text
+  is "Everyone gave Quality 7" and no curve is drawn (E56).
+- **Drawing** (`SpreadCurves`, server component): two small SVGs one above
+  the other, each the 0–10 axis with the curve as a filled area in the
+  theme's `well` colour and an `ink` outline, a tick at the mean, and a
+  small dot for each member's score along the axis (members on the same
+  score share a dot with a count). Each SVG is decoration (`aria-hidden`);
+  the sentence beside it carries the information.
+- **Where:** in the film page's "Everyone's ratings" section, right after
+  `GroupAverage`, using the scores already loaded for the cards (no new
+  query).
+
+### 21.2 Comparing two members (R75, R76)
+
+- **Route:** `/members/[id]/compare`. It reuses the member page's checks:
+  an id that is not a member id is "not found" (E60); the viewer's own id
+  redirects to My films (E59).
+- **Data:** the viewer's ratings (the My films loader) and the member's (the
+  member page's loader), both already written; two queries, as today's two
+  pages each make. A pure, tested function `filmsInCommon(mine, theirs)`
+  pairs them by film and returns each film with both points and their
+  disagreement (the same `disagreement` as the spoke map), biggest first,
+  ties by title.
+- **Page:** a heading "You and Sam"; the two charts in a grid, one column
+  on a phone, two from the `sm` width (640 px) up, each titled "You" /
+  "Sam" and drawn with `QuadrantChart` without edit controls (as on a member
+  page). Two 170 px charts side by side on a phone would be too small to
+  read, hence stacked there. Then "Films you've both rated": one row per
+  film with poster, title, "You: 8 · 9", "Sam: 3 · 7" and "6.4 apart", the
+  biggest first, each linking to the film; E57/E58 messages when empty.
+- **Link:** "Compare with me" on the member page, under the heading, as a
+  secondary pill.
+
+### 21.3 Tests
+
+- **Written first:** `spread.test.ts` (mean and standard deviation on known
+  sets; n in the divisor; a single repeated score gives 0; the curve's
+  peak is at the mean and is 1; the words, including rounding and keeping
+  to 0–10); `filmsInCommon` (pairs only shared films; order by
+  disagreement then title; empty cases); `SpreadCurves` (hidden below five;
+  sentence per scale; "Everyone gave …" with no curve; dots per score); the
+  compare page's pieces (labels, grid classes, empty messages, link from
+  the member page). **Manual:** a film with five test ratings on dev; the
+  compare page for a test member, at 375 px and on a laptop.
+
+### 21.4 Traceability
+
+| Requirement | Section |
+| ----------- | ------- |
+| R73, R74    | 21.1    |
+| R75, R76    | 21.2    |
+| E55, E56    | 21.1    |
+| E57–E60     | 21.2    |
 

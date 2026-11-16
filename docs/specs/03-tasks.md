@@ -233,9 +233,10 @@ Implements: `02-design.md` (approved). Section numbers like "§3.5" refer to tha
 ## Nice-to-haves — not committed; each needs your go-ahead after T35
 
 - [x] ~~**T36: Biggest-disagreements feed**~~ — N1 · **dropped 2026-11-16 by the owner**: sorting Friends' films by disagreement (R44) covers it · M
-- [ ] **T37: Compare two members side by side** — N2 · new page reusing `QuadrantChart` · M
+- [ ] **T37: Compare yourself with a member** — R75, R76, E57–E60 (requirements v14, design 21.2) · `src/lib/quadrant/inCommon.ts` + test (`filmsInCommon`), `src/app/(app)/members/[id]/compare/page.tsx`, `src/components/film/CommonFilms.tsx` + test, `src/app/(app)/members/[id]/page.tsx` (link) · tests written first: see design 21.3. Manual: the compare page for a dev test member at 375 px and on a laptop · M
 - [ ] **T38: Rewatch log** — N3, NFR19 · migration (`log_rewatch` function), form action, times-watched display; requirements R19/R20 need a spec update first · M
-- [ ] **T39: Score distribution curves** — N4, NFR21 · pure mean / standard-deviation functions with tests, SVG curve on the film page · M
+  - _Set aside by the owner on 2026-11-16: not now._
+- [ ] **T39: Score spread curves** — R73, R74, E55, E56, NFR13 (requirements v14, design 21.1) · `src/lib/quadrant/spread.ts` + test, `src/components/film/SpreadCurves.tsx` + test, `src/app/(app)/film/[tmdbId]/page.tsx` · tests written first: see design 21.3. Manual: a film with five ratings on dev, both modes, 375 px · M
 - [x] **T40: Keep-alive for the free database** — NFR26, NFR11, E47–E50 (requirements v12, design section 19) · `vercel.json` + test, `src/app/api/keep-alive/route.ts` + test, `src/lib/keepAlive.ts` + test (`isScheduledCall`), `src/lib/titles/store.ts` (`countTitles`) + `tests/rls/titles-store.test.ts`, `src/lib/auth/paths.ts` + test, `.env.example`, `README.md` · tests written first: see design 19. Manual: after deploying with `CRON_SECRET` set in Vercel, three jobs listed, a manual run returns 200, a plain visit returns 401 · S
   - The owner approved requirements v12 and design section 19 the same day.
   - _You:_ add `CRON_SECRET` (a random string of letters and numbers, at least 16 characters) to the Vercel project's Production environment variables before or right after this deploys.
