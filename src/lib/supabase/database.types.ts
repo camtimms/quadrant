@@ -63,6 +63,8 @@ export type Database = {
           created_at: string
           display_name: string
           id: string
+          picture_source: string
+          picture_version: number
           show_picture: boolean
         }
         Insert: {
@@ -70,6 +72,8 @@ export type Database = {
           created_at?: string
           display_name: string
           id: string
+          picture_source?: string
+          picture_version?: number
           show_picture?: boolean
         }
         Update: {
@@ -77,6 +81,8 @@ export type Database = {
           created_at?: string
           display_name?: string
           id?: string
+          picture_source?: string
+          picture_version?: number
           show_picture?: boolean
         }
         Relationships: []

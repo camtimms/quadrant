@@ -2043,8 +2043,13 @@ member to a folder named with their id via `(storage.foldername(name))[1]`.
   200 KB a file (an uploaded square is about 20–40 KB). Created by the
   migration; its limits are then read back from `storage.buckets` on dev
   to confirm they took (CLAUDE.md: check, don't assume).
-- **One file per member**, `avatars/<member id>/avatar.jpg`, replaced in
-  place on each upload.
+- **A new file name for each upload**, `avatars/<member id>/avatar-<version>.jpg`,
+  with the member's older files removed once the new one is saved.
+  _(Corrected during T41a: the design first reused one name,
+  `avatar.jpg`, replaced in place. The access tests showed that after a
+  file is deleted or replaced, downloads keep returning the old copy for a
+  while from Supabase's cache, though the bucket's listing shows the change
+  at once. A name that has never been used cannot be served stale.)_
 - **Policies on `storage.objects`**, bucket `avatars` only: members read
   every file (friends see each other's pictures); a member adds, replaces
   and deletes only files in the folder named with their own id. Nobody
@@ -2090,9 +2095,10 @@ member to a folder named with their id via `(storage.foldername(name))[1]`.
   cannot make WebP from a canvas.
 - **Saving** is a Server Action, `savePicture(formData)`: checks the member,
   checks the file is a JPEG (its first bytes, not its name) of at most
-  200 KB, uploads it to the member's own folder with the member's session
-  (the policies decide), then sets `picture_source = 'upload'` and raises
-  `picture_version`, then `refresh()`. `removePicture()` deletes the file
+  200 KB, uploads it to the member's own folder as
+  `avatar-<next version>.jpg` with the member's session (the policies
+  decide), then sets `picture_source = 'upload'` and the new
+  `picture_version`, removes the folder's older files, then `refresh()`. `removePicture()` deletes the file
   and sets the source to `initial` if it was `upload` (R81). Failures leave
   the choice as it was and say why (E66).
 
