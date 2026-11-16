@@ -71,7 +71,12 @@ function ratingRow(
     enjoyment,
     review,
     updated_at: updatedAt,
-    profiles: { display_name: name, avatar_url: avatarUrl },
+    profiles: {
+      display_name: name,
+      avatar_url: avatarUrl,
+      picture_source: "google",
+      picture_version: 0,
+    },
     // The real query always sends this list, empty when nobody liked it.
     review_likes: [] as {
       user_id: string;
@@ -364,6 +369,33 @@ describe("loadFilmPage", () => {
       ]);
       expect(zoe.ratingId).toBe(42);
       expect(zoe.likes).toEqual([]);
+    });
+
+    // R79 (design 23.2): the address follows the member's choice.
+    it("shows an uploaded picture from our own route, and none for the initial", async () => {
+      const uploaded = ratingRow(BOB_ID, "Bob", 7, 3);
+      uploaded.profiles = {
+        ...uploaded.profiles,
+        picture_source: "upload",
+        picture_version: 4,
+      };
+      const initial = ratingRow(
+        ZOE_ID,
+        "Zoe",
+        1,
+        9,
+        null,
+        "https://lh3.googleusercontent.com/a/z=s96-c",
+      );
+      initial.profiles = { ...initial.profiles, picture_source: "initial" };
+      mocks.tables.ratings = { data: [uploaded, initial], error: null };
+
+      const result = await loadFilmPage(10999, USER_ID);
+      if (result.status !== "ok") throw new Error("expected a film");
+      expect(result.ratings.map((r) => r.avatarUrl)).toEqual([
+        `/api/avatar/${BOB_ID}?v=4`,
+        null,
+      ]);
     });
 
     // R61: the picture's address travels with the name, in the same query.

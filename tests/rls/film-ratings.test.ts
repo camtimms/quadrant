@@ -24,7 +24,7 @@ import {
  * request cookies, which a test has none of.
  */
 const SELECT =
-  "id, user_id, quality, enjoyment, review, updated_at, profiles!ratings_user_id_fkey (display_name, avatar_url), review_likes (user_id, profiles!review_likes_user_id_fkey (display_name))";
+  "id, user_id, quality, enjoyment, review, updated_at, profiles!ratings_user_id_fkey (display_name, avatar_url, picture_source, picture_version), review_likes (user_id, profiles!review_likes_user_id_fkey (display_name))";
 
 // The shape of a real Google account picture address (design 16.8).
 const GOOGLE_PICTURE = "https://lh3.googleusercontent.com/a/test-alice=s96-c";
@@ -101,7 +101,12 @@ describe("the film page's ratings query", () => {
       review: "Pacino and De Niro.",
       // When the rating was last saved (R23, v7): a real moment in time.
       updated_at: expect.any(String),
-      profiles: { display_name: "Alice", avatar_url: GOOGLE_PICTURE },
+      profiles: {
+        display_name: "Alice",
+        avatar_url: GOOGLE_PICTURE,
+        picture_source: "google",
+        picture_version: 0,
+      },
       // Nobody has liked it yet: an empty list, never missing (R70).
       review_likes: [],
     });
@@ -150,7 +155,12 @@ describe("the film page's ratings query", () => {
       review: null,
       updated_at: expect.any(String),
       // Bob has no picture: null, which the card shows as his initial.
-      profiles: { display_name: "Bob", avatar_url: null },
+      profiles: {
+        display_name: "Bob",
+        avatar_url: null,
+        picture_source: "google",
+        picture_version: 0,
+      },
       review_likes: [],
     });
   });

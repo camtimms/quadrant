@@ -4,7 +4,7 @@
 // fails to load.
 
 import { useEffect, useRef, useState } from "react";
-import { initialOf, isGooglePicture } from "@/lib/picture";
+import { initialOf, isShowablePicture } from "@/lib/picture";
 
 type Props = {
   /** The member's display name: where the fallback letter comes from. */
@@ -51,7 +51,9 @@ export function Avatar({ name, url, size = "sm" }: Props) {
     }
   }, [url]);
 
-  const showPicture = isGooglePicture(url) && failedUrl !== url;
+  // A Google picture or our own uploaded-picture route, nothing else
+  // (design 23.2); anything else, or a picture that fails, is the initial.
+  const showPicture = isShowablePicture(url) && failedUrl !== url;
 
   return (
     <span

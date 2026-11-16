@@ -70,7 +70,12 @@ function row(overrides: Record<string, unknown> = {}) {
     enjoyment: 9,
     review: "So bad it's good.",
     created_at: "2026-11-01T10:00:00+00:00",
-    profiles: { display_name: "Bob", avatar_url: null },
+    profiles: {
+      display_name: "Bob",
+      avatar_url: null,
+      picture_source: "google",
+      picture_version: 0,
+    },
     titles: {
       tmdb_id: 10999,
       title: "Commando",
@@ -133,7 +138,7 @@ describe("loadAllRatings", () => {
     expect(mocks.select).toContain("review");
     // Named link (design 20.4): ratings and profiles are linked two ways.
     expect(mocks.select).toContain(
-      "profiles!ratings_user_id_fkey (display_name, avatar_url)",
+      "profiles!ratings_user_id_fkey (display_name, avatar_url, picture_source, picture_version)",
     );
   });
 
@@ -165,10 +170,34 @@ describe("loadAllRatings", () => {
     ]);
   });
 
+  // R79 (design 23.2): an uploaded picture comes from our own route.
+  it("gives an uploaded picture's address on our own route", async () => {
+    mocks.rows = [
+      row({
+        profiles: {
+          display_name: "Bob",
+          avatar_url: null,
+          picture_source: "upload",
+          picture_version: 2,
+        },
+      }),
+    ];
+    expect((await loadAllRatings())[0].avatarUrl).toBe(
+      "/api/avatar/00000000-0000-4000-8000-000000000002?v=2",
+    );
+  });
+
   it("passes on a member's picture address", async () => {
     const picture = "https://lh3.googleusercontent.com/a/abc123=s96-c";
     mocks.rows = [
-      row({ profiles: { display_name: "Bob", avatar_url: picture } }),
+      row({
+        profiles: {
+          display_name: "Bob",
+          avatar_url: picture,
+          picture_source: "google",
+          picture_version: 0,
+        },
+      }),
     ];
 
     expect((await loadAllRatings())[0].avatarUrl).toBe(picture);

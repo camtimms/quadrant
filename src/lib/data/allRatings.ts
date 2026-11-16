@@ -1,5 +1,6 @@
 // Reads with the member's session, so server only.
 import "server-only";
+import { pictureAddress } from "@/lib/picture";
 import { RATING_AUTHOR, REVIEW_LIKERS, toLikers } from "@/lib/data/embeds";
 
 import type { RatingRow } from "@/lib/data/groupFilms";
@@ -67,7 +68,13 @@ export async function loadAllRatings(): Promise<RatingRow[]> {
     ratedAt: row.created_at,
     userId: row.user_id,
     displayName: row.profiles.display_name,
-    avatarUrl: row.profiles.avatar_url,
+    // The picture the member chose: Google's, their upload, or none (R79).
+    avatarUrl: pictureAddress({
+      userId: row.user_id,
+      source: row.profiles.picture_source,
+      googleUrl: row.profiles.avatar_url,
+      version: row.profiles.picture_version,
+    }),
     // "No review" is stored as null; treat empty text the same way.
     review: row.review || null,
     // For the feed's like button (R78): the same likes as the film page.

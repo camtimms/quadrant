@@ -10,7 +10,7 @@
  * "profiles (" in src/lib/data, so a new query cannot forget this.
  */
 export const RATING_AUTHOR =
-  "profiles!ratings_user_id_fkey (display_name, avatar_url)";
+  "profiles!ratings_user_id_fkey (display_name, avatar_url, picture_source, picture_version)";
 
 /**
  * Who liked a rating's review (R70), nested under the rating: each like's

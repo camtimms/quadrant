@@ -80,3 +80,12 @@ describe("Avatar (R61)", () => {
     expect(avatar().className).toContain("shrink-0");
   });
 });
+
+// R79 (design 23.2): an uploaded picture, served from our own route.
+describe("Avatar with an uploaded picture", () => {
+  it("shows a picture from our own picture route", () => {
+    const address = "/api/avatar/6a1f0c2e-9b7d-4e3a-8f21-0d5c4b3a2e1f?v=3";
+    const { container } = render(<Avatar name="Cam" url={address} />);
+    expect(container.querySelector("img")?.getAttribute("src")).toBe(address);
+  });
+});

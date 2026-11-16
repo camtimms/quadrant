@@ -67,3 +67,55 @@ export function initialOf(name: string): string {
   const [first] = [...name.trim()];
   return first ? first.toLocaleUpperCase() : "?";
 }
+
+/**
+ * The address of the picture a member shows (R79, design 23.2), from their
+ * choice:
+ *   google   their stored Google address (or none, if they have none)
+ *   upload   our own route, /api/avatar/<id>?v=<version>; the version
+ *            changes on every upload, so a new picture is a new address
+ *            and no cache can show the old one
+ *   initial  none: Avatar then shows their initial
+ * Anything else counts as the initial.
+ */
+export function pictureAddress(profile: {
+  userId: string;
+  source: string;
+  googleUrl: string | null;
+  version: number;
+}): string | null {
+  if (profile.source === "google") return profile.googleUrl;
+  if (profile.source === "upload") {
+    return `/api/avatar/${profile.userId}?v=${profile.version}`;
+  }
+  return null;
+}
+
+/** Exactly our own picture route: a member id and a whole-number version. */
+const OWN_PICTURE =
+  /^\/api\/avatar\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\?v=\d{1,9}$/;
+
+/**
+ * May Avatar load this address? A Google picture (isGooglePicture), or our
+ * own picture route and nothing else (design 23.2). Kept this narrow so a
+ * member can never make their friends' browsers fetch an address of the
+ * member's choosing.
+ */
+export function isShowablePicture(address: unknown): address is string {
+  return (
+    isGooglePicture(address) ||
+    (typeof address === "string" && OWN_PICTURE.test(address))
+  );
+}
+
+/** The storage bucket holding uploaded pictures (migration 7). */
+export const PICTURE_BUCKET = "avatars";
+
+/**
+ * Where a member's uploaded picture of a given version is stored: a new name
+ * for every upload, because Supabase's cache can serve a replaced or
+ * deleted file for a while (design 23.1).
+ */
+export function pictureFilePath(userId: string, version: number): string {
+  return `${userId}/avatar-${version}.jpg`;
+}

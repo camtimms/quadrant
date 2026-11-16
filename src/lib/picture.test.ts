@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { googlePictureFrom, initialOf, isGooglePicture } from "@/lib/picture";
+import {
+  googlePictureFrom,
+  initialOf,
+  isGooglePicture,
+  isShowablePicture,
+  pictureAddress,
+  pictureFilePath,
+} from "@/lib/picture";
 
 const GOOGLE = "https://lh3.googleusercontent.com/a/abc123=s96-c";
 
@@ -88,5 +95,98 @@ describe("initialOf", () => {
   it("is a question mark when there is no name to take it from", () => {
     expect(initialOf("")).toBe("?");
     expect(initialOf("   ")).toBe("?");
+  });
+});
+
+// R79, R82 (design 23.2): uploaded pictures are shown from our own route.
+const MEMBER = "6a1f0c2e-9b7d-4e3a-8f21-0d5c4b3a2e1f";
+
+describe("pictureAddress", () => {
+  it("is the stored Google address for the Google choice", () => {
+    expect(
+      pictureAddress({
+        userId: MEMBER,
+        source: "google",
+        googleUrl: GOOGLE,
+        version: 0,
+      }),
+    ).toBe(GOOGLE);
+  });
+
+  it("is nothing for the Google choice when there is no Google picture", () => {
+    expect(
+      pictureAddress({
+        userId: MEMBER,
+        source: "google",
+        googleUrl: null,
+        version: 0,
+      }),
+    ).toBeNull();
+  });
+
+  // The version makes a new upload a new address, so no cache shows the
+  // old one.
+  it("is our own route, with the version, for an upload", () => {
+    expect(
+      pictureAddress({
+        userId: MEMBER,
+        source: "upload",
+        googleUrl: GOOGLE,
+        version: 3,
+      }),
+    ).toBe(`/api/avatar/${MEMBER}?v=3`);
+  });
+
+  it("is nothing for the initial", () => {
+    expect(
+      pictureAddress({
+        userId: MEMBER,
+        source: "initial",
+        googleUrl: GOOGLE,
+        version: 3,
+      }),
+    ).toBeNull();
+  });
+
+  it("treats an unknown choice as the initial", () => {
+    expect(
+      pictureAddress({
+        userId: MEMBER,
+        source: "banana",
+        googleUrl: GOOGLE,
+        version: 3,
+      }),
+    ).toBeNull();
+  });
+});
+
+describe("isShowablePicture", () => {
+  it("accepts a Google picture and our own picture route", () => {
+    expect(isShowablePicture(GOOGLE)).toBe(true);
+    expect(isShowablePicture(`/api/avatar/${MEMBER}?v=3`)).toBe(true);
+  });
+
+  // Anything else could make friends' browsers fetch an address of a
+  // member's choosing.
+  it.each([
+    `/api/avatar/${MEMBER}`,
+    `/api/avatar/${MEMBER}?v=3&x=1`,
+    `/api/avatar/not-an-id?v=3`,
+    `/api/search?q=1`,
+    `//evil.example/api/avatar/${MEMBER}?v=3`,
+    `https://evil.example/api/avatar/${MEMBER}?v=3`,
+    `/api/avatar/${MEMBER}/../../x?v=3`,
+    null,
+    "",
+  ])("refuses %j", (address) => {
+    expect(isShowablePicture(address)).toBe(false);
+  });
+});
+
+describe("pictureFilePath", () => {
+  // A new name per upload (design 23.1), in the member's own folder, which
+  // is what the storage rules check.
+  it("is the member's folder and a name with the version", () => {
+    expect(pictureFilePath(MEMBER, 4)).toBe(`${MEMBER}/avatar-4.jpg`);
   });
 });

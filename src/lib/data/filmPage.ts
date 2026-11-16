@@ -1,6 +1,7 @@
 // Reads with the member's session and may refresh a film through the
 // secret-key store, so server only.
 import "server-only";
+import { pictureAddress } from "@/lib/picture";
 import { RATING_AUTHOR, REVIEW_LIKERS, toLikers } from "@/lib/data/embeds";
 
 import type { MemberRating } from "@/components/film/RatingCards";
@@ -127,8 +128,14 @@ export async function loadFilmPage(
     .map((row) => ({
       userId: row.user_id,
       displayName: row.profiles.display_name,
-      // null when the member has no picture or has switched it off (R63).
-      avatarUrl: row.profiles.avatar_url,
+      // The picture the member chose: Google's, their upload, or none
+      // (R79); null shows their initial.
+      avatarUrl: pictureAddress({
+        userId: row.user_id,
+        source: row.profiles.picture_source,
+        googleUrl: row.profiles.avatar_url,
+        version: row.profiles.picture_version,
+      }),
       point: { quality: row.quality, enjoyment: row.enjoyment },
       // "No review" is stored as null; treat empty text the same way.
       review: row.review || null,

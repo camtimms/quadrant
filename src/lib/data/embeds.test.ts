@@ -9,8 +9,9 @@ import { RATING_AUTHOR, REVIEW_LIKERS } from "@/lib/data/embeds";
 
 describe("RATING_AUTHOR", () => {
   it("names the rating's own link to its author", () => {
+    // The picture choice and version decide which picture is shown (R79).
     expect(RATING_AUTHOR).toBe(
-      "profiles!ratings_user_id_fkey (display_name, avatar_url)",
+      "profiles!ratings_user_id_fkey (display_name, avatar_url, picture_source, picture_version)",
     );
   });
 });

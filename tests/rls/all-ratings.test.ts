@@ -24,7 +24,7 @@ import {
  * request cookies, which a test has none of.
  */
 const SELECT =
-  "id, user_id, quality, enjoyment, review, created_at, titles (tmdb_id, title, release_year, poster_path), profiles!ratings_user_id_fkey (display_name, avatar_url), review_likes (user_id, profiles!review_likes_user_id_fkey (display_name))";
+  "id, user_id, quality, enjoyment, review, created_at, titles (tmdb_id, title, release_year, poster_path), profiles!ratings_user_id_fkey (display_name, avatar_url, picture_source, picture_version), review_likes (user_id, profiles!review_likes_user_id_fkey (display_name))";
 
 // The shape of a real Google account picture address (design 16.8).
 const GOOGLE_PICTURE = "https://lh3.googleusercontent.com/a/test-alice=s96-c";
@@ -122,7 +122,12 @@ describe("the Friends' films query", () => {
       review: "Pacino and De Niro.",
       created_at: expect.any(String),
       titles: film,
-      profiles: { display_name: "Alice", avatar_url: GOOGLE_PICTURE },
+      profiles: {
+        display_name: "Alice",
+        avatar_url: GOOGLE_PICTURE,
+        picture_source: "google",
+        picture_version: 0,
+      },
       // R78: the likes arrive with the rating, empty when there are none.
       review_likes: [],
     });
@@ -135,7 +140,12 @@ describe("the Friends' films query", () => {
       review: null,
       created_at: expect.any(String),
       titles: film,
-      profiles: { display_name: "Bob", avatar_url: null },
+      profiles: {
+        display_name: "Bob",
+        avatar_url: null,
+        picture_source: "google",
+        picture_version: 0,
+      },
       review_likes: [],
     });
     expect(Number.isNaN(Date.parse(heatRows[0].created_at))).toBe(false);
