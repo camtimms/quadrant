@@ -2209,3 +2209,56 @@ one; no existing row changes shape.
   `timesWatchedLabel`; the action's rewatch path; the form's rewatch mode;
   the earlier-viewings list; the loaders. End-to-end: rate, log a rewatch,
   see "Watched twice" and the earlier viewing.
+
+## 25. v18 design: filters grouped by quadrant
+
+_Satisfies: R88–R91, E74–E77, R34, R53, NFR12, NFR14_
+
+### 25.1 The filter
+
+- `src/lib/filters.ts` gains `Quarter` (`top-right`, `top-left`,
+  `bottom-right`, `bottom-left`) and `QUARTERS`: for each, its corner (whose
+  label names the chip) and its four placements in chip order: corner,
+  inner band, then its two line placements (R91).
+- A filter is now `FilmFilter = { quarter, placement }`, either part
+  possibly null. It lives in the address as `?quarter=top-right` and
+  `?filter=good`, so Back, refresh and bookmarks keep working (design 6).
+  `parseFilmFilter(quarter, filter)` checks both: an unknown value is
+  ignored; a placement outside the named quadrant is dropped (E75); a
+  placement with no quadrant gets its own (E74; a line placement takes the
+  upper or right-hand neighbour: Good → top right, Bad → top left,
+  Enjoyable → top right, Not enjoyable → bottom right); On the fence has
+  none.
+- `matchesFilter(point, filter)`: the placement if there is one, else the
+  quadrant's four placements, else everything. `filterFilms`, the chips'
+  counts and the Friends' feed (`recentFeed`) all use it, so a chip's number
+  always equals the length of its list.
+- `filterHref(basePath, filter, otherParams)` writes both parts.
+  _Rejected:_ one parameter with new values like `?filter=top-right/good`.
+  Two plain parameters keep every existing link working unchanged.
+
+### 25.2 Zoom
+
+- `zoomWindow` takes the filter: a quadrant zooms on its quarter (centre
+  2.5 or 7.5 on each scale, as today's corners do), whatever finer chip is
+  chosen within it; On the fence keeps the centre. Same size, same
+  animation, same reduced-motion rule (R53).
+
+### 25.3 The chips
+
+- Row one: All, the four quadrants, On the fence. Row two, only when a
+  quadrant is chosen: "Only Masterpieces" (and so on), then the band and
+  line chips. The chosen quadrant stays yellow while one of its finer chips
+  is chosen, so it reads as "you are in here"; `aria-current` goes on the
+  most specific chip chosen. Each row is a list named for screen readers
+  ("Quadrants", "Within Masterpieces"). Empty chips are greyed (E76).
+
+### 25.4 Tests
+
+- **Written first:** `parseFilmFilter` (all valid pairs, unknown values,
+  E74 for every placement, E75), `matchesFilter` (each quadrant's
+  placements, a line film in both neighbours, On the fence in none),
+  quadrant counts, `filterHref`, the zoom for each quadrant and finer chip,
+  `recentFeed` with a quadrant, and the chips (rows, names, counts, second
+  row only when a quadrant is chosen, current marking, greyed chips). The
+  end-to-end rating test that filters My films is updated.

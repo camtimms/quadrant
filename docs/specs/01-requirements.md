@@ -2,6 +2,10 @@
 
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
+**v18 change approved by the owner on 2026-11-17:** filter chips grouped
+by quadrant, each revealing its finer chips (R88–R91, section 19; task
+T44).
+
 **v17 change shipped with the owner's go-ahead on 2026-11-17** (decisions marked ⚑ still open for fine tuning): the rewatch log (N3 as R83–R87,
 section 18; tasks T38a–T38c), built while the owner was away at their
 request, with my product choices marked ⚑ for their review.
@@ -672,3 +676,29 @@ default stands: an edit is a correction, a rewatch is a new dated entry.
 | E71 | The rating was deleted in another tab before the rewatch is saved | It is saved as a first rating: there is nothing earlier to keep ⚑                                       |
 | E72 | A rewatch with exactly the same scores                           | Allowed: watching it again is the point, not changing the scores                                         |
 | E73 | A non-member, or someone signed out, tries to log a rewatch      | Refused by the database, as for any rating (NFR1)                                                         |
+
+## 19. v18 change — APPROVED by the owner, 2026-11-17
+
+The owner found the thirteen filter chips too many, grouped by how extreme
+a placement is rather than by where it is, with every filter in a quarter
+zooming to the same view. Their answers: the top chips are the four
+quadrants, named after their corners, and choosing one shows the whole
+quarter and reveals its finer chips; films on a dividing line belong to
+both neighbouring quadrants; On the fence keeps a chip of its own ("a lot
+of films might be placed in the middle for a lazy rater").
+
+### Requirements
+
+- **R88** — WHEN filter chips are shown, THE SYSTEM SHALL show one row: All, the four quadrants named after their corners (Masterpieces for top right, Guilty Pleasures for top left, Serious Watches for bottom right, Dumpster Fires for bottom left), and On the fence, each with its number of films. A quadrant holds its corner, its inner band and the two "on a line" placements along its edges. This replaces R34's three rows; R34's other rules (list and chart alike, counts per chip) stand, but the quadrants' numbers can add up to more than the total, because a film on a line is in two quadrants.
+- **R89** — WHEN a member chooses a quadrant, THE SYSTEM SHALL show every film in it, zoom the chart in on it (R53), and reveal a second row of its finer chips: "Only <corner>", its inner band, and its two line placements, each with its number. Choosing one narrows the list and chart to it while the chart stays on that quadrant; choosing the quadrant again shows the whole quadrant.
+- **R90** — WHEN On the fence is chosen, THE SYSTEM SHALL show the films at exactly 5 / 5 and zoom on the centre of the chart, with no second row.
+- **R91** — Good, Bad, Enjoyable and Not enjoyable SHALL appear among the finer chips of both quadrants they border (Good under Masterpieces and Serious Watches; Bad under Guilty Pleasures and Dumpster Fires; Enjoyable under Masterpieces and Guilty Pleasures; Not enjoyable under Serious Watches and Dumpster Fires), and SHALL be counted in both.
+
+### Edge cases
+
+| #   | Situation                                                         | Proposed behaviour                                                                                         |
+| --- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| E74 | An address from before this change (`?filter=worth-watching`)     | Works: opens the quadrant that placement is in, with that finer chip chosen. A line placement opens its upper (or right-hand) quadrant |
+| E75 | An address naming a quadrant and a placement not in it            | The placement is ignored: the whole quadrant is shown                                                      |
+| E76 | A quadrant or finer chip with no films                            | Drawn greyed out with its 0, not a link, as today                                                          |
+| E77 | A filter chosen while in most-recent order on Friends' films      | The feed follows it, as R77 (E62) says for placements                                                      |
