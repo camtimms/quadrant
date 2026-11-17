@@ -2,6 +2,7 @@
 
 // "use client" because the chart remembers which point is selected.
 
+import type { FilmFilter } from "@/lib/filters";
 import { useEffect, useRef, useState } from "react";
 import { PointPanel } from "@/components/chart/PointPanel";
 import type { FilmRater } from "@/components/film/RaterLines";
@@ -396,7 +397,7 @@ type Props = {
    * Zoom in on the part of the chart where this placement lies (R53). Null
    * or left out shows the whole chart.
    */
-  zoomTo?: Placement | null;
+  zoomTo?: FilmFilter | null;
   /**
    * A film whose point should start off selected, with its panel open. Used
    * to point out a film that has just been rated (R23).

@@ -49,6 +49,10 @@ function film(
 
 /** Text of an element with all whitespace removed, for comparing labels
  *  that the chart splits over several lines. */
+
+/** The top-right quadrant chosen, as its chip sets it (R89). */
+const TOP_RIGHT = { quarter: "top-right", placement: null } as const;
+
 const squash = (text: string | null | undefined) =>
   (text ?? "").replace(/\s/g, "");
 
@@ -425,10 +429,10 @@ describe("QuadrantChart", () => {
 
     it("moves and enlarges the chart to the chosen placement", () => {
       const { container } = render(
-        <QuadrantChart films={[heat]} zoomTo="masterpieces" />,
+        <QuadrantChart films={[heat]} zoomTo={TOP_RIGHT} />,
       );
       expect(layer(container).style.transform).toBe(
-        zoomTransform(zoomWindow("masterpieces")),
+        zoomTransform(zoomWindow(TOP_RIGHT)),
       );
       expect(layer(container).style.transform).toMatch(
         /^scale\(.+\) translate/,
@@ -438,7 +442,7 @@ describe("QuadrantChart", () => {
     // The frame and the points are in the one layer, so they move together.
     it("zooms the frame and the points together", () => {
       const { container } = render(
-        <QuadrantChart films={[heat]} zoomTo="masterpieces" />,
+        <QuadrantChart films={[heat]} zoomTo={TOP_RIGHT} />,
       );
       expect(layer(container).querySelector("svg")).not.toBeNull();
       expect(
@@ -447,17 +451,17 @@ describe("QuadrantChart", () => {
     });
 
     it("keeps the points the same size on screen", () => {
-      render(<QuadrantChart films={[heat]} zoomTo="masterpieces" />);
+      render(<QuadrantChart films={[heat]} zoomTo={TOP_RIGHT} />);
       const point = screen.getByRole("button", { name: /Heat/ });
       // Shrunk by exactly as much as the layer is enlarged.
       expect(Number(point.style.scale)).toBeCloseTo(
-        1 / zoomScale(zoomWindow("masterpieces")),
+        1 / zoomScale(zoomWindow(TOP_RIGHT)),
       );
     });
 
     it("zooms back out when the filter is cleared", () => {
       const { container, rerender } = render(
-        <QuadrantChart films={[heat]} zoomTo="masterpieces" />,
+        <QuadrantChart films={[heat]} zoomTo={TOP_RIGHT} />,
       );
       // The same component, given new props: what following a filter link
       // does. This is why the change can animate.
@@ -470,7 +474,7 @@ describe("QuadrantChart", () => {
     // has asked their device to reduce motion.
     it("animates, except for members who have asked for reduced motion", () => {
       const { container } = render(
-        <QuadrantChart films={[heat]} zoomTo="masterpieces" />,
+        <QuadrantChart films={[heat]} zoomTo={TOP_RIGHT} />,
       );
       for (const element of [
         layer(container),
@@ -485,7 +489,7 @@ describe("QuadrantChart", () => {
 
     it("clips what the zoom pushes out of view", () => {
       const { container } = render(
-        <QuadrantChart films={[heat]} zoomTo="masterpieces" />,
+        <QuadrantChart films={[heat]} zoomTo={TOP_RIGHT} />,
       );
       expect(
         layer(container).parentElement!.classList.contains("overflow-hidden"),
@@ -530,7 +534,7 @@ describe("QuadrantChart", () => {
       const { rerender } = render(
         <QuadrantChart films={[commando, heat]} initialSelectedId={10999} />,
       );
-      rerender(<QuadrantChart films={[heat]} zoomTo="masterpieces" />);
+      rerender(<QuadrantChart films={[heat]} zoomTo={TOP_RIGHT} />);
       expect(screen.queryByRole("region")).toBeNull();
     });
   });

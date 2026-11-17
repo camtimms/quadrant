@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PendingMark } from "@/components/PendingMark";
 import { ACTIVE_CHIP, LINK_CHIP } from "@/components/film/FilterChips";
 import { sortHref, type GroupSort } from "@/lib/data/groupFilms";
-import type { Placement } from "@/lib/quadrant";
+import type { FilmFilter } from "@/lib/filters";
 
 /** The two orders, in the order they are offered, with their wording. */
 const SORTS: readonly { sort: GroupSort; label: string }[] = [
@@ -14,7 +14,7 @@ type Props = {
   /** The order the list is in now. */
   active: GroupSort;
   /** The filter chosen in the address, which the links must keep. */
-  filter: Placement | null;
+  filter: FilmFilter;
 };
 
 /**

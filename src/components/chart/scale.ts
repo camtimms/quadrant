@@ -1,3 +1,4 @@
+import type { FilmFilter, Quarter } from "@/lib/filters";
 import type { Placement, Point } from "@/lib/quadrant";
 
 /**
@@ -97,13 +98,31 @@ const ZOOM_CENTRES: Record<Placement, Point> = {
 /** The square part of the drawing that is in view, in chart units. */
 export type ZoomWindow = { left: number; top: number; size: number };
 
+/** The middle of each quadrant (R89): the centres its corner uses. */
+const QUARTER_CENTRES: Record<Quarter, Point> = {
+  "top-right": ZOOM_CENTRES.masterpieces,
+  "top-left": ZOOM_CENTRES["guilty-pleasures"],
+  "bottom-right": ZOOM_CENTRES["serious-watches"],
+  "bottom-left": ZOOM_CENTRES["dumpster-fires"],
+};
+
 /**
  * Which part of the chart to show for a chosen filter, or null (the whole
  * chart) when there is none.
+ *
+ * A quadrant decides the view, whichever of its finer chips is chosen, so
+ * moving between them does not move the chart (R89): Good chosen in the top
+ * right stays on the top right, and in the bottom right on the bottom right.
+ * Only a placement with no quadrant (On the fence) uses its own centre.
  */
-export function zoomWindow(placement: Placement | null): ZoomWindow | null {
-  if (placement === null) return null;
-  const centre = ZOOM_CENTRES[placement];
+export function zoomWindow(filter: FilmFilter | null): ZoomWindow | null {
+  if (filter === null) return null;
+  const centre = filter.quarter
+    ? QUARTER_CENTRES[filter.quarter]
+    : filter.placement
+      ? ZOOM_CENTRES[filter.placement]
+      : null;
+  if (centre === null) return null;
   const half = ZOOM_SPAN / 2;
   return {
     left: chartX(centre.quality - half),

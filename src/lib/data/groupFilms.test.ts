@@ -1,3 +1,4 @@
+import { NO_FILTER } from "@/lib/filters";
 import { describe, expect, it } from "vitest";
 import {
   FEED_STEP,
@@ -238,19 +239,22 @@ describe("sortGroupFilms (R44)", () => {
 
 describe("sortHref", () => {
   it("leaves the default order out of the address", () => {
-    expect(sortHref("recent", null)).toBe("/friends");
+    expect(sortHref("recent", NO_FILTER)).toBe("/friends");
   });
 
   it("names the other order", () => {
-    expect(sortHref("disagreement", null)).toBe("/friends?sort=disagreement");
+    expect(sortHref("disagreement", NO_FILTER)).toBe(
+      "/friends?sort=disagreement",
+    );
   });
 
   it("keeps the chosen filter", () => {
-    expect(sortHref("recent", "masterpieces")).toBe(
-      "/friends?filter=masterpieces",
+    const good = { quarter: "bottom-right", placement: "good" } as const;
+    expect(sortHref("recent", good)).toBe(
+      "/friends?quarter=bottom-right&filter=good",
     );
-    expect(sortHref("disagreement", "masterpieces")).toBe(
-      "/friends?sort=disagreement&filter=masterpieces",
+    expect(sortHref("disagreement", good)).toBe(
+      "/friends?sort=disagreement&quarter=bottom-right&filter=good",
     );
   });
 });
@@ -389,7 +393,12 @@ describe("recentFeed (R77)", () => {
       row(2, 5, 5, day(9), { userId: "b", ratingId: 2 }),
       row(1, 5, 5, day(6), { userId: "c", ratingId: 3 }),
     ];
-    const { entries } = recentFeed(rows, groupFilms(rows), null, FEED_STEP);
+    const { entries } = recentFeed(
+      rows,
+      groupFilms(rows),
+      NO_FILTER,
+      FEED_STEP,
+    );
     expect(entries.map((entry) => entry.ratingId)).toEqual([2, 3, 1]);
   });
 
@@ -398,7 +407,12 @@ describe("recentFeed (R77)", () => {
       row(1, 5, 5, day(3), { userId: "a", ratingId: 10 }),
       row(2, 5, 5, day(3), { userId: "b", ratingId: 11 }),
     ];
-    const { entries } = recentFeed(rows, groupFilms(rows), null, FEED_STEP);
+    const { entries } = recentFeed(
+      rows,
+      groupFilms(rows),
+      NO_FILTER,
+      FEED_STEP,
+    );
     expect(entries.map((entry) => entry.ratingId)).toEqual([11, 10]);
   });
 
@@ -412,7 +426,30 @@ describe("recentFeed (R77)", () => {
       row(2, 1, 1, day(3), { userId: "a", ratingId: 3 }),
     ];
     const films = groupFilms(rows);
-    const { entries } = recentFeed(rows, films, "masterpieces", FEED_STEP);
+    const { entries } = recentFeed(
+      rows,
+      films,
+      { quarter: "top-right", placement: "masterpieces" },
+      FEED_STEP,
+    );
+    expect(entries.map((entry) => entry.ratingId)).toEqual([2, 1]);
+  });
+
+  // R89, E77: a whole quadrant, a line film included.
+  it("keeps the films in a chosen quadrant", () => {
+    const rows = [
+      row(1, 9, 9, day(1), { userId: "a", ratingId: 1 }), // Masterpieces
+      row(2, 8, 5, day(2), { userId: "a", ratingId: 2 }), // Good: top right too
+      row(3, 1, 1, day(3), { userId: "a", ratingId: 3 }), // Dumpster Fires
+      row(4, 5, 5, day(4), { userId: "a", ratingId: 4 }), // On the fence
+    ];
+    const { entries } = recentFeed(
+      rows,
+      groupFilms(rows),
+      { quarter: "top-right", placement: null },
+      FEED_STEP,
+    );
+    // Newest first: day(2) is the later day.
     expect(entries.map((entry) => entry.ratingId)).toEqual([2, 1]);
   });
 
@@ -422,12 +459,12 @@ describe("recentFeed (R77)", () => {
       row(i + 1, 5, 5, day(i + 1), { userId: "a", ratingId: i + 1 }),
     );
     const films = groupFilms(rows);
-    const first = recentFeed(rows, films, null, 5);
+    const first = recentFeed(rows, films, NO_FILTER, 5);
     expect(first.entries.map((entry) => entry.ratingId)).toEqual([
       7, 6, 5, 4, 3,
     ]);
     expect(first.more).toBe(true);
-    expect(recentFeed(rows, films, null, 10).more).toBe(false);
+    expect(recentFeed(rows, films, NO_FILTER, 10).more).toBe(false);
   });
 
   // The feed is drawn in the browser's page too, so long reviews are cut
@@ -438,7 +475,12 @@ describe("recentFeed (R77)", () => {
       row(1, 5, 5, day(1), { userId: "a", ratingId: 1, review: long }),
       row(2, 5, 5, day(2), { userId: "b", ratingId: 2, review: null }),
     ];
-    const { entries } = recentFeed(rows, groupFilms(rows), null, FEED_STEP);
+    const { entries } = recentFeed(
+      rows,
+      groupFilms(rows),
+      NO_FILTER,
+      FEED_STEP,
+    );
     expect([...entries[1].reviewStart!]).toHaveLength(REVIEW_START + 1);
     expect(entries[1].reviewStart!.endsWith("…")).toBe(true);
     expect(entries[0].reviewStart).toBeNull();
@@ -447,7 +489,12 @@ describe("recentFeed (R77)", () => {
   it("keeps each rating's likes, the film page's likes", () => {
     const likes = [{ userId: "z", displayName: "Zoe" }];
     const rows = [row(1, 5, 5, day(1), { userId: "a", ratingId: 1, likes })];
-    const { entries } = recentFeed(rows, groupFilms(rows), null, FEED_STEP);
+    const { entries } = recentFeed(
+      rows,
+      groupFilms(rows),
+      NO_FILTER,
+      FEED_STEP,
+    );
     expect(entries[0].likes).toEqual(likes);
   });
 });

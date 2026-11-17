@@ -1,13 +1,12 @@
 import type { ListFilm } from "@/components/film/FilmList";
 import type { FilmRater } from "@/components/film/RaterLines";
-import { filterHref, newestFirst } from "@/lib/filters";
 import {
-  classify,
-  filmDisagreement,
-  groupAverage,
-  type Placement,
-  type Point,
-} from "@/lib/quadrant";
+  filterHref,
+  matchesFilter,
+  newestFirst,
+  type FilmFilter,
+} from "@/lib/filters";
+import { filmDisagreement, groupAverage, type Point } from "@/lib/quadrant";
 
 /**
  * Turning every member's ratings into one entry per film, for the Friends'
@@ -185,7 +184,7 @@ export function sortGroupFilms(
  * chosen filter. The default order is left out, so the plain address
  * "/friends" stays the default view.
  */
-export function sortHref(sort: GroupSort, filter: Placement | null): string {
+export function sortHref(sort: GroupSort, filter: FilmFilter): string {
   return filterHref("/friends", filter, sortParams(sort));
 }
 
@@ -237,19 +236,19 @@ export type FeedEntry = Omit<RatingRow, "review"> & {
 export function recentFeed(
   rows: readonly RatingRow[],
   films: readonly GroupFilm[],
-  filter: Placement | null,
+  filter: FilmFilter,
   shown: number,
 ): { entries: FeedEntry[]; more: boolean } {
-  const inFilter = filter
-    ? new Set(
-        films
-          .filter((film) => classify(film.point) === filter)
-          .map((film) => film.tmdbId),
-      )
-    : null;
+  // The films whose GROUP average the filter matches (E62, E77): the same
+  // rule as the chart, the chips and the list.
+  const inFilter = new Set(
+    films
+      .filter((film) => matchesFilter(film.point, filter))
+      .map((film) => film.tmdbId),
+  );
 
   const matching = rows
-    .filter((row) => !inFilter || inFilter.has(row.tmdbId))
+    .filter((row) => inFilter.has(row.tmdbId))
     .sort(
       (a, b) =>
         Date.parse(b.ratedAt) - Date.parse(a.ratedAt) ||

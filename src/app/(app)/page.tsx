@@ -8,8 +8,9 @@ import { loadMemberFilms } from "@/lib/data/ratings";
 import {
   filterFilms,
   filterHref,
+  filterTitle,
   newestFirst,
-  parseFilter,
+  parseFilmFilter,
 } from "@/lib/filters";
 import { classify, countByPlacement, PLACEMENT_LABELS } from "@/lib/quadrant";
 import { parseTmdbId } from "@/lib/validation/rating";
@@ -35,7 +36,8 @@ export const metadata: Metadata = { title: "My films" };
  */
 export default async function MyFilmsPage({ searchParams }: PageProps<"/">) {
   const params = await searchParams;
-  const filter = parseFilter(params.filter);
+  // ?quarter= and ?filter= (design 25.1).
+  const filter = parseFilmFilter(params.quarter, params.filter);
   const ratedId =
     typeof params.rated === "string" ? parseTmdbId(params.rated) : null;
 
@@ -103,7 +105,7 @@ export default async function MyFilmsPage({ searchParams }: PageProps<"/">) {
 
       <section aria-labelledby="film-list" className="flex flex-col gap-4">
         <h2 id="film-list" className="text-lg font-semibold">
-          {filter ? PLACEMENT_LABELS[filter] : "All films"}{" "}
+          {filterTitle(filter)}{" "}
           <span className="font-normal text-ink-muted">
             ({shown.length === 1 ? "1 film" : `${shown.length} films`})
           </span>

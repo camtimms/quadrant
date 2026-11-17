@@ -1,3 +1,10 @@
+import {
+  matchesFilter,
+  NO_FILTER,
+  parseFilmFilter,
+  QUARTERS,
+  type FilmFilter,
+} from "@/lib/filters";
 import { describe, expect, it } from "vitest";
 import { PLACEMENTS } from "@/lib/quadrant";
 import {
@@ -80,7 +87,11 @@ describe("chart scale", () => {
   });
 });
 
-describe("zoomWindow (R53)", () => {
+/** The filter an old ?filter= link or a finer chip gives (E74). */
+const chosen = (placement: (typeof PLACEMENTS)[number]) =>
+  parseFilmFilter(undefined, placement);
+
+describe("zoomWindow (R53, R89)", () => {
   it("is the whole chart (no window) when no filter is chosen", () => {
     expect(zoomWindow(null)).toBeNull();
     expect(zoomScale(null)).toBe(1);
@@ -88,7 +99,7 @@ describe("zoomWindow (R53)", () => {
   });
 
   it.each(PLACEMENTS)("gives %s a window inside the drawing", (placement) => {
-    const window = zoomWindow(placement)!;
+    const window = zoomWindow(chosen(placement))!;
     expect(window.left).toBeGreaterThanOrEqual(0);
     expect(window.top).toBeGreaterThanOrEqual(0);
     expect(window.left + window.size).toBeLessThanOrEqual(CHART_SIZE);
@@ -97,21 +108,27 @@ describe("zoomWindow (R53)", () => {
 
   // One zoom level for every filter keeps text and spacing predictable.
   it("makes every window the same size", () => {
-    const sizes = new Set(PLACEMENTS.map((p) => zoomWindow(p)!.size));
+    const sizes = new Set(PLACEMENTS.map((p) => zoomWindow(chosen(p))!.size));
     expect(sizes.size).toBe(1);
     expect([...sizes][0]).toBe(chartX(ZOOM_SPAN) - chartX(0));
   });
 
   it("zooms by a little under two times", () => {
-    const scale = zoomScale(zoomWindow("masterpieces"));
+    const scale = zoomScale(zoomWindow(chosen("masterpieces")));
     expect(scale).toBeCloseTo(CHART_SIZE / 65);
     expect(scale).toBeGreaterThan(1.5);
     expect(scale).toBeLessThan(2);
   });
 
   /** Is a score position inside the window? */
-  function shows(placement: (typeof PLACEMENTS)[number], q: number, e: number) {
-    const window = zoomWindow(placement)!;
+  function shows(
+    filter: (typeof PLACEMENTS)[number] | FilmFilter,
+    q: number,
+    e: number,
+  ) {
+    const window = zoomWindow(
+      typeof filter === "string" ? chosen(filter) : filter,
+    )!;
     const x = chartX(q);
     const y = chartY(e);
     return (
@@ -135,28 +152,72 @@ describe("zoomWindow (R53)", () => {
   });
 
   it("shows the top-right quarter for Masterpieces and for Worth Watching", () => {
-    expect(zoomWindow("masterpieces")).toEqual(zoomWindow("worth-watching"));
+    expect(zoomWindow(chosen("masterpieces"))).toEqual(
+      zoomWindow(chosen("worth-watching")),
+    );
     expect(shows("masterpieces", 10, 10)).toBe(true);
     expect(shows("masterpieces", 5, 5)).toBe(true);
     // The opposite corner is out of view.
     expect(shows("masterpieces", 0, 0)).toBe(false);
   });
 
+  // R89: the quadrant decides the view, whatever is chosen inside it.
+  it("keeps a quadrant's view for every finer chip in it", () => {
+    for (const { quarter, placements } of QUARTERS) {
+      const view = zoomWindow({ quarter, placement: null });
+      for (const placement of placements) {
+        expect(zoomWindow({ quarter, placement })).toEqual(view);
+      }
+    }
+  });
+
+  it("zooms Good on whichever quadrant it was chosen from", () => {
+    expect(zoomWindow({ quarter: "bottom-right", placement: "good" })).toEqual(
+      zoomWindow({ quarter: "bottom-right", placement: null }),
+    );
+    expect(zoomWindow({ quarter: "top-right", placement: "good" })).not.toEqual(
+      zoomWindow({ quarter: "bottom-right", placement: "good" }),
+    );
+  });
+
+  // Every film a quadrant holds, edges included, must be in its view.
+  it("keeps every film of a quadrant in view", () => {
+    for (const quarter of QUARTERS) {
+      for (let q = 0; q <= 10; q++) {
+        for (let e = 0; e <= 10; e++) {
+          const point = { quality: q, enjoyment: e };
+          if (
+            !matchesFilter(point, { quarter: quarter.quarter, placement: null })
+          )
+            continue;
+          expect(
+            shows({ quarter: quarter.quarter, placement: null }, q, e),
+            `${q}/${e} in ${quarter.quarter}`,
+          ).toBe(true);
+        }
+      }
+    }
+  });
+
+  it("is the whole chart for All", () => {
+    expect(zoomWindow(NO_FILTER)).toBeNull();
+  });
+
   it("centres On the fence on the crossing", () => {
-    const window = zoomWindow("on-the-fence")!;
+    const window = zoomWindow(chosen("on-the-fence"))!;
     expect(window.left + window.size / 2).toBe(chartX(5));
     expect(window.top + window.size / 2).toBe(chartY(5));
   });
 
   // The names beside the window are written 5 units into the margin.
   it("keeps the margin names beside the window in view", () => {
-    const window = zoomWindow("masterpieces")!;
+    const window = zoomWindow(chosen("masterpieces"))!;
     expect(window.top).toBeLessThan(chartY(10) - 5);
     expect(window.left + window.size).toBeGreaterThan(chartX(10) + 5);
   });
 
   it("builds a CSS transform that slides, then enlarges", () => {
-    const window = zoomWindow("masterpieces")!;
+    const window = zoomWindow(chosen("masterpieces"))!;
     expect(zoomTransform(window)).toBe(
       `scale(${CHART_SIZE / 65}) translate(-${(window.left / CHART_SIZE) * 100}%, -${(window.top / CHART_SIZE) * 100}%)`,
     );

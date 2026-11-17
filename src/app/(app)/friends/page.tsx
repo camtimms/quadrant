@@ -16,8 +16,8 @@ import {
   sortGroupFilms,
   sortParams,
 } from "@/lib/data/groupFilms";
-import { filterFilms, parseFilter } from "@/lib/filters";
-import { countByPlacement, PLACEMENT_LABELS } from "@/lib/quadrant";
+import { filterFilms, filterTitle, parseFilmFilter } from "@/lib/filters";
+import { countByPlacement } from "@/lib/quadrant";
 
 export const metadata: Metadata = { title: "Friends' films" };
 
@@ -45,7 +45,8 @@ export default async function FriendsFilmsPage({
   searchParams,
 }: PageProps<"/friends">) {
   const params = await searchParams;
-  const filter = parseFilter(params.filter);
+  // ?quarter= and ?filter= (design 25.1).
+  const filter = parseFilmFilter(params.quarter, params.filter);
   const sort = parseSort(params.sort);
   const shown = parseShown(params.shown);
 
@@ -75,7 +76,8 @@ export default async function FriendsFilmsPage({
   const feed =
     sort === "recent" ? recentFeed(rows, films, filter, shown) : null;
   const moreParams = new URLSearchParams({
-    ...(filter ? { filter } : {}),
+    ...(filter.quarter ? { quarter: filter.quarter } : {}),
+    ...(filter.placement ? { filter: filter.placement } : {}),
     shown: String(shown + FEED_STEP),
   });
 
@@ -92,8 +94,8 @@ export default async function FriendsFilmsPage({
       <QuadrantChart
         films={filmsShown}
         // Averages have one decimal place, so two films can be almost on
-        // top of each other without being at the same spot. A cell of half
-        // a point merges those into one marker with a count (R31).
+        // top of each other without being at the same spot. Merging within
+        // half a point joins those into one marker with a count (R31).
         mergeWithin={0.5}
         zoomTo={filter}
         initialSelectedId={null}
@@ -107,16 +109,16 @@ export default async function FriendsFilmsPage({
             // when there is one, is named instead.
             <>
               Recent ratings
-              {filter ? (
+              {filter.quarter || filter.placement ? (
                 <span className="font-normal text-ink-muted">
                   {" "}
-                  · {PLACEMENT_LABELS[filter]}
+                  · {filterTitle(filter)}
                 </span>
               ) : null}
             </>
           ) : (
             <>
-              {filter ? PLACEMENT_LABELS[filter] : "All films"}{" "}
+              {filterTitle(filter)}{" "}
               <span className="font-normal text-ink-muted">
                 (
                 {filmsShown.length === 1

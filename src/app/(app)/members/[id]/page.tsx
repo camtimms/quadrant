@@ -8,8 +8,13 @@ import { buttonSecondary } from "@/components/ui/styles";
 import { getCurrentMember } from "@/lib/auth/member";
 import { loadMemberName } from "@/lib/data/member";
 import { loadMemberFilms } from "@/lib/data/ratings";
-import { filterFilms, newestFirst, parseFilter } from "@/lib/filters";
-import { countByPlacement, PLACEMENT_LABELS } from "@/lib/quadrant";
+import {
+  filterFilms,
+  filterTitle,
+  newestFirst,
+  parseFilmFilter,
+} from "@/lib/filters";
+import { countByPlacement } from "@/lib/quadrant";
 import { parseMemberId } from "@/lib/validation/memberId";
 
 export const metadata: Metadata = { title: "Member" };
@@ -49,7 +54,8 @@ export default async function MemberPage({
   // A well-formed id that belongs to nobody.
   if (name === null) notFound();
 
-  const filter = parseFilter(query.filter);
+  // ?quarter= and ?filter= (design 25.1).
+  const filter = parseFilmFilter(query.quarter, query.filter);
   const films = newestFirst(await loadMemberFilms(memberId));
   const basePath = `/members/${memberId}`;
 
@@ -83,7 +89,7 @@ export default async function MemberPage({
 
       <section aria-labelledby="film-list" className="flex flex-col gap-4">
         <h2 id="film-list" className="text-lg font-semibold">
-          {filter ? PLACEMENT_LABELS[filter] : "All films"}{" "}
+          {filterTitle(filter)}{" "}
           <span className="font-normal text-ink-muted">
             ({shown.length === 1 ? "1 film" : `${shown.length} films`})
           </span>
