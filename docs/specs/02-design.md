@@ -2302,3 +2302,29 @@ _Satisfies: R92, R93, E22, E78–E80, NFR12, NFR15_
   send and naming the missing score, keeping the review, then sending once
   both are set; edit and rewatch forms starting from current scores; the
   end-to-end tests that rate films set both sliders (they already do).
+
+## 27. v20 design: the group average as the hub
+
+_Satisfies: R94–R96, E81–E83, NFR13, NFR14_
+
+- `SpokeMap` draws its spokes with the existing `spokesFrom(hub, places)`,
+  with the hub now the group average (`groupAverage`, already drawn as the
+  diamond) and the places every member's marker, the viewer's included. A
+  spoke of length 0 (E81) is not drawn. With one rating there is no
+  average marker and so no spokes (E11).
+- The viewer keeps their solid, ringed yellow dot, so "you" is still easy
+  to find; it is no longer the hub. Names still choose their places in
+  order of importance: "You", then "Average", then members from the
+  furthest from the group.
+- The caption says what the lines measure: "Each line runs from the group
+  average to a member's rating. The longer the line, the further they are
+  from the group." With the viewer unrated it adds the prompt to rate the
+  film (R95).
+- `DisagreementTable` is unchanged (R96): the viewer against each friend,
+  shown only when the viewer has rated.
+- _Rejected:_ a switch between "from the average" and "from me"; the owner
+  chose the average only, to try it.
+- **Tests (written first):** spokes run from the average to every other
+  place, the viewer's included; none to a place at the average; the
+  longest is marked; spokes drawn when the viewer has not rated, with the
+  prompt; no spokes for a single rating; the caption's words.
