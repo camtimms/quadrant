@@ -757,6 +757,10 @@ clusterPoints<T extends { point: Point }>(items: T[], mergeWithin: number): Clus
   apart drawn on top of each other, because they fell either side of a
   cell edge at 0.75; any fixed grid has such edges. 0.5 is a dot's width
   on a phone: a dot is 16 px and one point of score about 29 px.)_
+  _(T29g, 2026-11-17, the owner's request: zoomed in on a quadrant, the
+  scores are drawn about 1.85 times larger but the dots keep their size,
+  so the chart divides the distance by the zoom, rounded to a tenth: 0.3
+  on Friends' films when zoomed. Members' charts stay at 0.)_
 
 ### Boundary tests this implies (NFR17)
 

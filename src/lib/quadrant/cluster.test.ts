@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clusterPoints } from "@/lib/quadrant/cluster";
+import { clusterPoints, zoomedMergeDistance } from "@/lib/quadrant/cluster";
 import type { Point } from "@/lib/quadrant/types";
 
 /** A film on a chart: something with a position plus whatever else it carries. */
@@ -161,5 +161,23 @@ describe("clusterPoints", () => {
   it("rejects a negative or missing distance", () => {
     expect(() => clusterPoints([film("A", 1, 1)], -0.1)).toThrow();
     expect(() => clusterPoints([film("A", 1, 1)], Number.NaN)).toThrow();
+  });
+});
+
+// T29g: zoomed in, scores are drawn larger but dots keep their size.
+describe("zoomedMergeDistance", () => {
+  it("is unchanged on the whole chart", () => {
+    expect(zoomedMergeDistance(0.5, 1)).toBe(0.5);
+  });
+
+  it("shrinks by the zoom, to the nearest tenth", () => {
+    // The quadrant zoom: 120 / 65, about 1.85 times.
+    expect(zoomedMergeDistance(0.5, 120 / 65)).toBe(0.3);
+    expect(zoomedMergeDistance(0.5, 2)).toBe(0.3);
+    expect(zoomedMergeDistance(0.5, 5)).toBe(0.1);
+  });
+
+  it("keeps 0 (identical scores only) at any zoom", () => {
+    expect(zoomedMergeDistance(0, 120 / 65)).toBe(0);
   });
 });

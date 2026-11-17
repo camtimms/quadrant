@@ -19,6 +19,7 @@ import {
 import {
   classify,
   clusterPoints,
+  zoomedMergeDistance,
   EXTREME_HIGH,
   EXTREME_LOW,
   MIDPOINT,
@@ -443,7 +444,14 @@ export function QuadrantChart({
     initialSelectedId,
   );
 
-  const clusters = clusterPoints(films, mergeWithin);
+  const zoom = zoomWindow(zoomTo);
+  const scale = zoomScale(zoom);
+  // Zoomed in, the scores are drawn larger but the dots keep their size,
+  // so films need to be closer before their dots overlap (T29g).
+  const clusters = clusterPoints(
+    films,
+    zoomedMergeDistance(mergeWithin, scale),
+  );
   const holdsSelected = (cluster: Cluster<ChartFilm>) =>
     cluster.items.some((film) => film.tmdbId === selectedId);
   const open = selectedId === null ? undefined : clusters.find(holdsSelected);
@@ -485,9 +493,6 @@ export function QuadrantChart({
     setSelectedId(null);
     opener.current?.focus();
   };
-
-  const zoom = zoomWindow(zoomTo);
-  const scale = zoomScale(zoom);
 
   // Both the layer and the points animate over the same time, in step. The
   // "motion-reduce" part switches the animation off for anyone whose device

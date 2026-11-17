@@ -85,6 +85,21 @@ export function clusterPoints<T extends { point: Point }>(
   }));
 }
 
+/**
+ * The merge distance to use when the chart is drawn `scale` times larger
+ * (zoomed in on a quadrant, R53). The dots stay the same size on screen
+ * while the scores spread out, so two films need to be `scale` times closer
+ * before their dots overlap. Rounded to the nearest tenth, because chart
+ * positions have one decimal place: 0.5 on the whole chart is 0.3 at the
+ * quadrant zoom (about 1.85 times). 0 (identical scores only) stays 0.
+ */
+export function zoomedMergeDistance(
+  mergeWithin: number,
+  scale: number,
+): number {
+  return Math.round((mergeWithin / scale) * 10) / 10;
+}
+
 /** The middle of a group of items: the mean of each coordinate. */
 function meanPosition(items: readonly { point: Point }[]): Point {
   let quality = 0;

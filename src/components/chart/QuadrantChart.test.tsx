@@ -328,6 +328,24 @@ describe("QuadrantChart", () => {
     });
   });
 
+  // T29g: zoomed in, the scores are drawn larger, so closer films get a
+  // dot each.
+  describe("merging when zoomed in (R31, R53)", () => {
+    const pair = [film(1, "A", 7.0, 7.0), film(2, "B", 7.4, 7.0)];
+
+    it("shares a dot on the whole chart", () => {
+      render(<QuadrantChart films={pair} mergeWithin={0.5} />);
+      expect(screen.getAllByRole("button")).toHaveLength(1);
+    });
+
+    it("gives each its own dot when zoomed in on the quadrant", () => {
+      render(
+        <QuadrantChart films={pair} mergeWithin={0.5} zoomTo={TOP_RIGHT} />,
+      );
+      expect(screen.getAllByRole("button")).toHaveLength(2);
+    });
+  });
+
   describe("selecting a point (R32)", () => {
     it("shows nothing selected to begin with", () => {
       render(<QuadrantChart films={[commando]} />);
