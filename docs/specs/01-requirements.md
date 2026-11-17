@@ -2,6 +2,10 @@
 
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
+**v21 change approved by the owner on 2026-11-17:** the film page in three
+parts with links beside the poster; curves folded under the averages; the
+table follows the map's switch (R98–R101, section 22; task T48).
+
 **v20 change approved by the owner on 2026-11-17:** the spoke map's hub
 is the group average by default, with a switch to "From me" (R94–R97,
 section 21; task T46).
@@ -755,3 +759,28 @@ a switch between the two, starting on the average.
 | E81 | A member's rating is exactly the group average                  | No line to draw for them (length 0); their point sits on the diamond                |
 | E82 | Two members are equally furthest from the average               | Both spokes drawn heavier, as for ties today                                        |
 | E83 | Several members share a spot                                    | One spoke to the shared marker, as today (R31)                                      |
+
+## 22. v21 change — APPROVED by the owner, 2026-11-17
+
+The owner found the reviews buried at the bottom of a long film page and
+asked for it in three parts with a table of contents near the top, in the
+space beside the poster. Their answers set the order inside "Everyone's
+ratings": the map, then the group's numbers, then the spread curves folded
+away behind the two averages, then a table that follows the map's switch.
+This supersedes T47's placement of the curves.
+
+### Requirements
+
+- **R98** — WHEN a film's page is shown, THE SYSTEM SHALL show it in three parts: the film (poster, title, year, "About this film", the member's own rating), "Everyone's ratings", and "Reviews" (every member's card, R60). Beside the poster, under the title and year, it SHALL show links to the two later parts, the second with the number of cards ("Reviews (4)"), once anyone has rated the film. The Reviews part SHALL end with a link back to the top.
+- **R99** — WHEN "Everyone's ratings" is shown, THE SYSTEM SHALL show, in order: the switch (R97), the spoke map, the group's numbers (R42: both averages, how many rated, the placement, the biggest disagreement), then the table (R100).
+- **R100** — The table under the map SHALL follow the map's switch: "From the average" lists every member, the viewer included as "You", with their scores and how far they are from the group average, the furthest marked "Furthest from the group", and is shown once two members have rated, whether or not the viewer has; "From me" is R41's table, the viewer against each friend. This replaces R96's "only once the viewer has rated".
+- **R101** — WHEN a film has spread curves (R73: five or more ratings), THE SYSTEM SHALL fold them away under the two averages, closed when the page opens, and open them when the averages are pressed. This replaces R73's always-open curves and T47's placement.
+
+### Edge cases
+
+| #   | Situation                                                     | Proposed behaviour                                                                             |
+| --- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| E84 | Nobody has rated the film                                      | No links beside the poster and no Everyone's ratings or Reviews parts; the rating form invites the first rating |
+| E85 | Fewer than five ratings                                       | The averages are plain numbers, not something to press: there are no curves to show           |
+| E86 | A member is exactly at the group average                      | "Exactly the average" in words, as "You agree exactly" today (E13)                              |
+| E87 | One rating                                                    | No table: there is nobody to be far from (E11)                                                 |

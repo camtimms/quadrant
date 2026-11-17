@@ -2339,3 +2339,35 @@ _Satisfies: R94–R96, E81–E83, NFR13, NFR14_
   drawing spokes from the viewer to each friend with the old caption; the
   switch starting on the average, offered only to a viewer who has rated,
   and redrawing when pressed.
+
+## 28. v21 design: the film page in three parts
+
+_Satisfies: R98–R101, E84–E87, NFR12–NFR15_
+
+- **Page** (`film/[tmdbId]/page.tsx`): a header (poster; title, year and,
+  once rated by anyone, the jump links), "About this film", the member's
+  rating, then `<section id="everyone">` "Everyone's ratings" and
+  `<section id="reviews">` "Reviews (n)" holding `RatingCards` and a "Back
+  to top" link to the page's `<h1>`. The jump links are ordinary `#everyone`
+  and `#reviews` links: no JavaScript, and the browser scrolls (smoothly
+  where motion is allowed, by the existing `scroll-behavior` rule if any;
+  otherwise at once).
+- **`SpokeMapSwitch`** grows into the whole "Everyone's ratings" body: the
+  switch, the map, a `between` slot (the group's numbers, rendered on the
+  server and passed in), and the table, all reading the one `hub` state.
+- **`GroupAverage`** takes an optional `spread` (the curves). Given one,
+  the two averages become the `<summary>` of a closed `<details>` ("Show
+  how the scores spread" with the arrow, as the rating section does), and
+  the curves are inside; the other numbers stay in the plain list beneath.
+  Without one (under five ratings, E85) it is unchanged.
+- **`DisagreementTable`** takes `hub`. "me" is today's table. "average"
+  lists every member, the viewer as "You", from `spokesFrom(average, ...)`,
+  in the given order, the furthest marked "Furthest from the group", 0 as
+  "Exactly the average", with the caption "How far each member is from the
+  group average". Shown with two or more ratings (E87).
+- **Tests (written first):** the table from the average (rows, "You",
+  distances, marking, words for 0, shown before the viewer rates, hidden
+  with one rating); the averages folding the curves (closed, opened by the
+  summary, plain under five); the switch also switching the table and
+  showing what it is given between; the end-to-end disagreement test
+  pressing "From me" and finding the jump links.
