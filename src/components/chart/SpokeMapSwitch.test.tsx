@@ -69,3 +69,29 @@ describe("SpokeMapSwitch (R97)", () => {
     expect(screen.queryByRole("button")).toBeNull();
   });
 });
+
+// R99, R100: the table follows the switch, and the group's numbers sit
+// between the map and the table.
+describe("SpokeMapSwitch: the table and the numbers (R99, R100)", () => {
+  it("shows what it is given between the map and the table", () => {
+    render(<SpokeMapSwitch ratings={RATED} between={<p>group numbers</p>} />);
+    const text = document.body.textContent!;
+    const map = text.indexOf("Each line runs");
+    const numbers = text.indexOf("group numbers");
+    const table = text.indexOf("How far each member");
+    expect(map).toBeGreaterThan(-1);
+    expect(numbers).toBeGreaterThan(map);
+    expect(table).toBeGreaterThan(numbers);
+  });
+
+  it("switches the table with the map", () => {
+    render(<SpokeMapSwitch ratings={RATED} />);
+    expect(
+      screen.getByRole("table", { name: /from the group average/ }),
+    ).toBeTruthy();
+    fireEvent.click(button("From me"));
+    expect(
+      screen.getByRole("table", { name: /How far each friend is from you/ }),
+    ).toBeTruthy();
+  });
+});

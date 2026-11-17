@@ -172,3 +172,62 @@ describe("DisagreementTable colour dots (R67)", () => {
     expect(container.innerHTML).not.toMatch(/foreground|background/);
   });
 });
+
+// R100: "From the average", matching the map.
+describe("DisagreementTable from the group average (R100)", () => {
+  // Cam 5/5, Bob 1/9, Zoe 9/7: the average is 5/7.
+  const three = [me, rating("Bob", 1, 9), rating("Zoe", 9, 7)];
+
+  it("lists every member, the viewer as You, with their distance from the average", () => {
+    render(<DisagreementTable ratings={three} hub="average" />);
+    expect(
+      screen.getByRole("table", {
+        name: /How far each member is from the group average/,
+      }),
+    ).toBeTruthy();
+    expect(cellsOf("You")).toEqual(["5", "5", "2"]);
+    expect(cellsOf("Bob")[2]).toMatch(/^4\.5/);
+    expect(cellsOf("Zoe")).toEqual(["9", "7", "4"]);
+  });
+
+  it("marks the member furthest from the group, in words", () => {
+    render(<DisagreementTable ratings={three} hub="average" />);
+    expect(rowOf("Bob").textContent).toContain("Furthest from the group");
+    expect(rowOf("Zoe").textContent).not.toContain("Furthest");
+    expect(rowOf("You").textContent).not.toContain("Furthest");
+  });
+
+  // E86
+  it('reads "Exactly the average" for a member at the average', () => {
+    render(
+      <DisagreementTable
+        ratings={[
+          rating("Cam", 4, 4, { isViewer: true }),
+          rating("Bob", 6, 6),
+          rating("Al", 5, 5),
+        ]}
+        hub="average"
+      />,
+    );
+    expect(cellsOf("Al")[2]).toBe("Exactly the average");
+  });
+
+  it("is shown before the viewer has rated the film", () => {
+    render(
+      <DisagreementTable
+        ratings={[rating("Bob", 1, 9), rating("Zoe", 9, 7)]}
+        hub="average"
+      />,
+    );
+    expect(screen.getByRole("table")).toBeTruthy();
+    expect(screen.queryByRole("rowheader", { name: /You/ })).toBeNull();
+  });
+
+  // E87
+  it("shows nothing for a single rating", () => {
+    const { container } = render(
+      <DisagreementTable ratings={[me]} hub="average" />,
+    );
+    expect(container.innerHTML).toBe("");
+  });
+});

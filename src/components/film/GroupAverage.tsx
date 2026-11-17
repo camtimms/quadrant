@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { formatScore } from "@/components/chart/scale";
 import {
   classify,
@@ -11,6 +12,11 @@ import {
 type Props = {
   /** Every member's current rating of one film. */
   points: readonly Point[];
+  /**
+   * The spread curves (R73), when the film has them. Given, they fold away
+   * under the two averages, and pressing the averages opens them (R101).
+   */
+  spread?: ReactNode;
 };
 
 /**
@@ -26,7 +32,7 @@ type Props = {
  * It renders nothing for a film nobody has rated: such a film has no
  * average, and "0" would be a lie because 0 is a real score.
  */
-export function GroupAverage({ points }: Props) {
+export function GroupAverage({ points, spread }: Props) {
   const average = groupAverage(points);
   if (average === null) return null;
 
@@ -35,10 +41,10 @@ export function GroupAverage({ points }: Props) {
   // as 0, because 0 means "they agree exactly" (R45).
   const disagreement = filmDisagreement(points);
 
-  return (
-    // A <dl> is a list of label/value pairs: each <dt> names a value and the
-    // <dd> after it gives the value. Screen readers announce them as pairs.
-    <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3">
+  // The two averages. Plain list items without curves; with them, the
+  // pressable line that opens the curves (R101).
+  const averages = (
+    <>
       <div>
         <dt className="text-ink-muted">Quality</dt>
         <dd className="text-lg font-semibold">
@@ -51,6 +57,14 @@ export function GroupAverage({ points }: Props) {
           {formatScore(average.enjoyment)}
         </dd>
       </div>
+    </>
+  );
+
+  const rest = (
+    // A <dl> is a list of label/value pairs: each <dt> names a value and the
+    // <dd> after it gives the value. Screen readers announce them as pairs.
+    <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3">
+      {spread ? null : averages}
       <div>
         <dt className="text-ink-muted">Rated by</dt>
         <dd className="text-lg font-semibold">
@@ -82,5 +96,50 @@ export function GroupAverage({ points }: Props) {
         </dd>
       </div>
     </dl>
+  );
+
+  if (!spread) return rest;
+
+  return (
+    <div className="flex flex-col gap-3">
+      {/* The browser's own <details>, as for "Your rating": opens and closes
+          with a tap, Enter or Space, and tells screen readers whether it is
+          open, with no JavaScript. Closed when the page opens (R101). A
+          <summary> may only hold text-like content, not a list, so the two
+          averages are written as text here. */}
+      <details className="group rounded-xl bg-well">
+        <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-4 gap-y-1 rounded-xl p-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus [&::-webkit-details-marker]:hidden">
+          <span>
+            <span className="text-ink-muted">Quality</span>{" "}
+            <span className="text-lg font-semibold">
+              {formatScore(average.quality)}
+            </span>
+          </span>
+          <span>
+            <span className="text-ink-muted">Enjoyment</span>{" "}
+            <span className="text-lg font-semibold">
+              {formatScore(average.enjoyment)}
+            </span>
+          </span>
+          <span className="ml-auto flex items-center gap-2">
+            {/* Says what a press will do; the words change with CSS alone. */}
+            <span className="underline underline-offset-4">
+              <span className="group-open:hidden">
+                Show how the scores spread
+              </span>
+              <span className="hidden group-open:inline">Hide the spread</span>
+            </span>
+            <span
+              aria-hidden="true"
+              className="transition-transform group-open:rotate-90 motion-reduce:transition-none"
+            >
+              ▸
+            </span>
+          </span>
+        </summary>
+        <div className="px-3 pb-3">{spread}</div>
+      </details>
+      {rest}
+    </div>
   );
 }

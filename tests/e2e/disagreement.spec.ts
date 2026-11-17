@@ -5,8 +5,8 @@ import { submitScores } from "./support/rating";
 /** Jaws (1975). */
 const JAWS = 578;
 
-// R38–R41: when two members have rated a film, each sees how far the other
-// is from them, as a line on the chart and as a number in a table.
+// R38–R41, R97–R100: when two members have rated a film, each sees how far
+// the other is from them, as a line on the chart and as a number in a table.
 test("a film two members rated shows the disagreement table", async ({
   page,
   browser,
@@ -24,6 +24,21 @@ test("a film two members rated shows the disagreement table", async ({
   // (9, 3): 3 across and 4 down, so the line between them is exactly 5.
   await page.goto(`/film/${JAWS}`);
   await submitScores(page, { quality: 6, enjoyment: 7 }, "Save rating");
+
+  // R98: the links beside the poster lead to both parts.
+  const contents = page.getByRole("navigation", { name: "On this page" });
+  await expect(
+    contents.getByRole("link", { name: "Reviews (2)" }),
+  ).toBeVisible();
+  await contents.getByRole("link", { name: "Everyone's ratings" }).click();
+  await expect(page).toHaveURL(/#everyone$/);
+
+  // R100: the table starts from the group average, like the map...
+  await expect(
+    page.getByRole("table", { name: /from the group average/ }),
+  ).toBeVisible();
+  // ...and "From me" switches both to the viewer.
+  await page.getByRole("button", { name: "From me" }).click();
 
   const table = page.getByRole("table", {
     name: /How far each friend is from you/,

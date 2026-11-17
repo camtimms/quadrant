@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { GroupAverage } from "@/components/film/GroupAverage";
 import { PLACEMENT_LABELS } from "@/lib/quadrant";
@@ -110,5 +110,45 @@ describe("GroupAverage (R42)", () => {
   it("shows nothing at all for a film nobody has rated", () => {
     const { container } = render(<GroupAverage points={[]} />);
     expect(container.innerHTML).toBe("");
+  });
+});
+
+// R101: the curves fold away under the two averages.
+describe("GroupAverage with spread curves (R101)", () => {
+  const five = [
+    { quality: 9, enjoyment: 8 },
+    { quality: 8, enjoyment: 10 },
+    { quality: 10, enjoyment: 9 },
+    { quality: 7, enjoyment: 6 },
+    { quality: 6, enjoyment: 7 },
+  ];
+  const fold = () => document.querySelector("details")!;
+
+  it("puts the curves inside a section that starts closed", () => {
+    render(<GroupAverage points={five} spread={<p>the curves</p>} />);
+    expect(fold().open).toBe(false);
+    expect(fold().textContent).toContain("the curves");
+  });
+
+  it("opens it by pressing the two averages", () => {
+    render(<GroupAverage points={five} spread={<p>the curves</p>} />);
+    const summary = fold().querySelector("summary")!;
+    expect(summary.textContent).toMatch(/Quality\s*8/);
+    expect(summary.textContent).toMatch(/Enjoyment\s*8/);
+    expect(summary.textContent).toMatch(/spread/i);
+    fireEvent.click(summary);
+    expect(fold().open).toBe(true);
+  });
+
+  it("still states the other numbers in the list", () => {
+    render(<GroupAverage points={five} spread={<p>the curves</p>} />);
+    expect(valueOf("Rated by")).toBe("5 members");
+    expect(valueOf("Placement")).toBeTruthy();
+  });
+
+  // E85
+  it("has nothing to press without curves", () => {
+    render(<GroupAverage points={five.slice(0, 3)} />);
+    expect(document.querySelector("details")).toBeNull();
   });
 });

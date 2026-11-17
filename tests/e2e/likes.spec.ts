@@ -19,6 +19,16 @@ async function pressLike(like: Locator, unlike: Locator) {
       timeout: 1_000,
     });
   }).toPass();
+  await saved(unlike);
+}
+
+/**
+ * Wait until a like or unlike has reached the server. The button shows the
+ * change at once and marks itself busy (aria-disabled) until the save is
+ * done; reloading before then would cut the save off (seen 2026-11-17).
+ */
+async function saved(button: Locator) {
+  await expect(button).not.toHaveAttribute("aria-disabled", "true");
 }
 
 /** Clue (1985). */
@@ -68,6 +78,7 @@ test("like a friend's review, then take the like back", async ({
   // And taken back.
   await unlike.click();
   await expect(like).toHaveAttribute("aria-pressed", "false");
+  await saved(like);
   await expect(page.getByText(/Liked by/)).toHaveCount(0);
   await page.reload();
   await expect(like).toHaveAttribute("aria-pressed", "false");

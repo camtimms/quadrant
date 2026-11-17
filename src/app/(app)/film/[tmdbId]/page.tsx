@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SpokeMapSwitch } from "@/components/chart/SpokeMapSwitch";
-import { DisagreementTable } from "@/components/film/DisagreementTable";
 import { GroupAverage } from "@/components/film/GroupAverage";
 import { PosterImage } from "@/components/film/PosterImage";
 import { RatingCards } from "@/components/film/RatingCards";
@@ -14,6 +13,8 @@ import { RatingForm } from "@/components/rating/RatingForm";
 import { RewatchSwitch } from "@/components/rating/RewatchSwitch";
 import { getCurrentMember } from "@/lib/auth/member";
 import { loadFilmPage } from "@/lib/data/filmPage";
+import { MIN_RATINGS_FOR_SPREAD } from "@/lib/quadrant/spread";
+import { textLink } from "@/components/ui/styles";
 import { parseTmdbId } from "@/lib/validation/rating";
 
 export const metadata: Metadata = { title: "Film" };
@@ -95,8 +96,34 @@ export default async function FilmPage({
           size="page"
         />
         <div className="flex min-w-0 flex-col gap-1">
-          <h1 className="text-2xl font-semibold break-words">{film.title}</h1>
+          {/* id="top": where "Back to top" at the end of the page leads. */}
+          <h1
+            id="top"
+            className="scroll-mt-6 text-2xl font-semibold break-words"
+          >
+            {film.title}
+          </h1>
           <p className="text-ink-muted">{film.year ?? "Year unknown"}</p>
+          {/* R98: a short table of contents in the room beside the poster.
+              Plain links to the sections' ids: the browser does the
+              scrolling, no JavaScript needed. Only once someone has rated
+              the film, as the sections are empty until then (E84). */}
+          {ratings.length > 0 ? (
+            <nav aria-label="On this page" className="mt-2 text-sm">
+              <ul className="flex flex-col gap-1">
+                <li>
+                  <a href="#everyone" className={textLink}>
+                    Everyone&apos;s ratings
+                  </a>
+                </li>
+                <li>
+                  <a href="#reviews" className={textLink}>
+                    Reviews ({ratings.length})
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          ) : null}
         </div>
       </div>
 
@@ -148,33 +175,68 @@ export default async function FilmPage({
         )}
       </MyRatingSection>
 
-      {/* Shown whether or not the viewer has rated the film (E12). The
-          group's numbers come first in words, then the spoke map and the
-          spread curves, then the same information as a table and cards, so
-          the chart is never the only way to read it (NFR13). */}
-      <section aria-labelledby="everyone" className="flex flex-col gap-4">
-        <h2 id="everyone" className="text-lg font-semibold">
-          Everyone&apos;s ratings
-        </h2>
-        <GroupAverage points={ratings.map((rating) => rating.point)} />
-        {/* Where each member put this film, with a line from the group
-            average to each member, or from the viewer to each friend at the
-            press of a button (R38, R94–R97); under it how far the viewer is
-            from each friend, as numbers (R41, R96). Both show nothing when
-            they have nothing to show. */}
-        <SpokeMapSwitch ratings={ratings} />
-        {/* How spread out the scores are, from five ratings (R73, R74):
-            under the map, at the owner's request (T47). */}
-        <SpreadCurves points={ratings.map((rating) => rating.point)} />
-        <DisagreementTable ratings={ratings} />
-        {/* One card per member: who they are, where they put the film, and
-            what they wrote about it (R60). */}
-        <RatingCards
-          ratings={ratings}
-          // Who is looking, for the like buttons (R69).
-          viewer={{ userId: member.userId, displayName: member.displayName }}
-        />
-      </section>
+      {/* R98: the two parts about everyone's ratings, once there are any
+          (E84). Shown whether or not the viewer has rated the film (E12). */}
+      {ratings.length > 0 ? (
+        <>
+          {/* R99: the switch, the map, the group's numbers (with the curves
+              folded under the two averages, R101), then the table, which
+              follows the map's switch (R100). The chart is never the only
+              way to read it: the numbers and the table say it in words
+              (NFR13). scroll-mt keeps the heading clear of the top edge
+              when a jump link brings it into view. */}
+          <section
+            id="everyone"
+            aria-labelledby="everyone-heading"
+            className="flex scroll-mt-6 flex-col gap-4"
+          >
+            <h2 id="everyone-heading" className="text-lg font-semibold">
+              Everyone&apos;s ratings
+            </h2>
+            <SpokeMapSwitch
+              ratings={ratings}
+              between={
+                <GroupAverage
+                  points={ratings.map((rating) => rating.point)}
+                  spread={
+                    ratings.length >= MIN_RATINGS_FOR_SPREAD ? (
+                      <SpreadCurves
+                        points={ratings.map((rating) => rating.point)}
+                      />
+                    ) : undefined
+                  }
+                />
+              }
+            />
+          </section>
+
+          {/* One card per member: who they are, where they put the film,
+              and what they wrote about it (R60), with likes (R69). */}
+          <section
+            id="reviews"
+            aria-labelledby="reviews-heading"
+            className="flex scroll-mt-6 flex-col gap-4"
+          >
+            <h2 id="reviews-heading" className="text-lg font-semibold">
+              Reviews{" "}
+              <span className="font-normal text-ink-muted">
+                ({ratings.length})
+              </span>
+            </h2>
+            <RatingCards
+              ratings={ratings}
+              // Who is looking, for the like buttons (R69).
+              viewer={{
+                userId: member.userId,
+                displayName: member.displayName,
+              }}
+            />
+            <a href="#top" className={`${textLink} self-start text-sm`}>
+              Back to top
+            </a>
+          </section>
+        </>
+      ) : null}
     </main>
   );
 }
