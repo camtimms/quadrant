@@ -8,21 +8,22 @@ export type Cluster<T> = {
   items: T[];
 };
 
+/** A value in whole tenths: chart positions never have more decimals. */
+function tenths(value: number): number {
+  return Math.round(value * 10);
+}
+
 /**
- * Which cell of the grid a value falls in, as a whole number.
+ * Are two points within `limitTenths` of each other, in a straight line?
  *
- * Cells are centred on multiples of cellSize: with a cell size of 0.5 the
- * values 6.1 and 6.2 both belong to the cell centred on 6.0, and 6.3 belongs
- * to the one centred on 6.5.
- *
- * The value is converted to whole tenths first. Chart positions never have
- * more than one decimal place, and working in whole numbers avoids the
- * floating-point surprises described in average.ts.
+ * Worked in whole tenths and compared squared, so there is no square root
+ * and no floating-point surprise (see average.ts): 0.5 apart is exactly
+ * 25 = 5², never 0.5000000001.
  */
-function cellIndex(value: number, cellSize: number): number {
-  const tenths = Math.round(value * 10);
-  const cellTenths = Math.round(cellSize * 10);
-  return Math.round(tenths / cellTenths);
+function isWithin(a: Point, b: Point, limitTenths: number): boolean {
+  const across = tenths(a.quality) - tenths(b.quality);
+  const up = tenths(a.enjoyment) - tenths(b.enjoyment);
+  return across * across + up * up <= limitTenths * limitTenths;
 }
 
 /**
@@ -30,14 +31,24 @@ function cellIndex(value: number, cellSize: number): number {
  *
  * There are only 121 possible whole-number ratings, so a member with a long
  * log will often have several films at exactly the same spot. Rather than let
- * one dot hide another, each occupied cell becomes a single cluster: the chart
- * draws one marker with a count, and selecting it lists every film inside.
+ * one dot hide another, each group becomes a single marker with a count, and
+ * selecting it lists every film inside.
  *
- * cellSize is how close two points must be to merge:
- *  - 1 on a member's own chart, where scores are whole numbers, so only
+ * mergeWithin is how close (straight-line distance) two points must be to
+ * merge:
+ *  - 0 on a member's own chart, where scores are whole numbers, so only
  *    identical scores merge;
- *  - 0.5 on the group-average chart, where positions have one decimal place
- *    and near-identical averages would otherwise overlap.
+ *  - 0.5 on the group-average chart, where positions have one decimal
+ *    place. A dot is about that wide on a phone, so closer dots overlap.
+ *
+ * Each item joins the first group in which it is within mergeWithin of
+ * EVERY item, or starts a new one. Asking for every item, not just the
+ * nearest, stops a row of films each 0.4 from the next from chaining into
+ * one marker stretched across the chart.
+ *
+ * (It used to drop items into the cells of a fixed grid. That split close
+ * pairs lying either side of a cell edge, which is what the owner saw:
+ * T29f, design 7.)
  *
  * Clustering is only about what is drawn where. It does not decide a film's
  * placement: each item keeps its own point, and classify() is still applied
@@ -49,25 +60,28 @@ function cellIndex(value: number, cellSize: number): number {
  */
 export function clusterPoints<T extends { point: Point }>(
   items: readonly T[],
-  cellSize: number,
+  mergeWithin: number,
 ): Cluster<T>[] {
-  if (!(cellSize > 0)) {
-    throw new Error(`cellSize must be greater than 0, got ${cellSize}`);
+  if (!(mergeWithin >= 0)) {
+    throw new Error(`mergeWithin must be 0 or more, got ${mergeWithin}`);
   }
+  const limit = tenths(mergeWithin);
 
-  // A Map remembers the order keys were first added, which is what keeps the
-  // clusters in the order their first item appeared.
-  const itemsByCell = new Map<string, T[]>();
+  // Groups in the order their first item appeared, items in the order given.
+  // A few hundred films at most, so checking each against every group is
+  // quick.
+  const groups: T[][] = [];
   for (const item of items) {
-    const key = `${cellIndex(item.point.quality, cellSize)}:${cellIndex(item.point.enjoyment, cellSize)}`;
-    const cell = itemsByCell.get(key);
-    if (cell) cell.push(item);
-    else itemsByCell.set(key, [item]);
+    const group = groups.find((members) =>
+      members.every((member) => isWithin(member.point, item.point, limit)),
+    );
+    if (group) group.push(item);
+    else groups.push([item]);
   }
 
-  return Array.from(itemsByCell.values(), (cellItems) => ({
-    point: meanPosition(cellItems),
-    items: cellItems,
+  return groups.map((groupItems) => ({
+    point: meanPosition(groupItems),
+    items: groupItems,
   }));
 }
 

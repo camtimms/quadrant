@@ -305,14 +305,14 @@ describe("QuadrantChart", () => {
       );
     });
 
-    it("merges nearby group averages when given a smaller cell size", () => {
-      // 6.1 and 6.2 round to the same half-point cell; 6.9 does not.
+    it("merges nearby group averages when told to merge within 0.5", () => {
+      // 6.1 and 6.2 are about 0.14 apart; 6.9 is over 0.5 from both.
       const films = [
         film(1, "A", 6.1, 6.1),
         film(2, "B", 6.2, 6.2),
         film(3, "C", 6.9, 6.9),
       ];
-      render(<QuadrantChart films={films} cellSize={0.5} />);
+      render(<QuadrantChart films={films} mergeWithin={0.5} />);
 
       expect(screen.getAllByRole("button")).toHaveLength(2);
       // Drawn at the mean position, shown to one decimal place.

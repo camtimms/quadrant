@@ -85,8 +85,8 @@ export function SpokeMap({ ratings }: Props) {
 
   // Members who gave identical scores would be drawn exactly on top of each
   // other, so they share one marker with a count, as films do on My films
-  // (R31). A cell size of 1 merges only identical whole-number scores.
-  const places = clusterPoints(ratings, 1);
+  // (R31). A distance of 0 merges only identical whole-number scores.
+  const places = clusterPoints(ratings, 0);
 
   // R67: a colour of their own for each friend, the same one from film to
   // film where possible (design 17.7). The viewer stays yellow.

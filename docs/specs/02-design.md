@@ -742,13 +742,21 @@ countByPlacement(points: Point[]): Record<Placement, number>
   doesn’t jump.
 
 ```ts
-clusterPoints<T extends { point: Point }>(items: T[], cellSize: number): Cluster<T>[]
+clusterPoints<T extends { point: Point }>(items: T[], mergeWithin: number): Cluster<T>[]
 ```
 
-- Groups items whose points fall in the same `cellSize × cellSize` cell of the
-  chart, so overlapping dots become one marker with a count (R31). `cellSize`
-  is 1 on a member's own chart (whole-number scores) and 0.5 on the group
-  average chart. A cluster is drawn at the mean position of its members.
+- Groups items whose points are within `mergeWithin` of each other
+  (straight-line distance), so overlapping dots become one marker with a
+  count (R31). `mergeWithin` is 0 on a member's own chart (only identical
+  whole-number scores merge) and 0.5 on the group-average chart. An item
+  joins the first group whose every item is within that distance, so a
+  group never spreads wider than 0.5, however many films line up in a row.
+  A cluster is drawn at the mean position of its members.
+  _(Changed in T29f, 2026-11-17: it first merged items in the same
+  `cellSize × cellSize` cell of a fixed grid. The owner saw two films 0.1
+  apart drawn on top of each other, because they fell either side of a
+  cell edge at 0.75; any fixed grid has such edges. 0.5 is a dot's width
+  on a phone: a dot is 16 px and one point of score about 29 px.)_
 
 ### Boundary tests this implies (NFR17)
 

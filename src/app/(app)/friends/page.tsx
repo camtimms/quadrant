@@ -94,7 +94,7 @@ export default async function FriendsFilmsPage({
         // Averages have one decimal place, so two films can be almost on
         // top of each other without being at the same spot. A cell of half
         // a point merges those into one marker with a count (R31).
-        cellSize={0.5}
+        mergeWithin={0.5}
         zoomTo={filter}
         initialSelectedId={null}
         // No editReturnTo: an average is nobody's rating to edit.

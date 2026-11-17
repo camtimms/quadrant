@@ -387,11 +387,11 @@ function describePoint(cluster: Cluster<ChartFilm>): string {
 type Props = {
   films: ChartFilm[];
   /**
-   * How close two films must be to share a point: 1 for a member's own
+   * How close two films must be to share a point: 0 for a member's own
    * whole-number scores (only identical scores merge), 0.5 for group
    * averages. See clusterPoints.
    */
-  cellSize?: number;
+  mergeWithin?: number;
   /**
    * Zoom in on the part of the chart where this placement lies (R53). Null
    * or left out shows the whole chart.
@@ -429,7 +429,7 @@ type Props = {
  */
 export function QuadrantChart({
   films,
-  cellSize = 1,
+  mergeWithin = 0,
   zoomTo = null,
   initialSelectedId = null,
   editReturnTo,
@@ -442,7 +442,7 @@ export function QuadrantChart({
     initialSelectedId,
   );
 
-  const clusters = clusterPoints(films, cellSize);
+  const clusters = clusterPoints(films, mergeWithin);
   const holdsSelected = (cluster: Cluster<ChartFilm>) =>
     cluster.items.some((film) => film.tmdbId === selectedId);
   const open = selectedId === null ? undefined : clusters.find(holdsSelected);
