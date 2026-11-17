@@ -149,22 +149,23 @@ export default async function FilmPage({
       </MyRatingSection>
 
       {/* Shown whether or not the viewer has rated the film (E12). The
-          group's numbers come first in words, then the spoke map, then
-          the same information as a table and cards, so the chart is never the only
-          way to read it (NFR13). */}
+          group's numbers come first in words, then the spoke map and the
+          spread curves, then the same information as a table and cards, so
+          the chart is never the only way to read it (NFR13). */}
       <section aria-labelledby="everyone" className="flex flex-col gap-4">
         <h2 id="everyone" className="text-lg font-semibold">
           Everyone&apos;s ratings
         </h2>
         <GroupAverage points={ratings.map((rating) => rating.point)} />
-        {/* How spread out the scores are, from five ratings (R73, R74). */}
-        <SpreadCurves points={ratings.map((rating) => rating.point)} />
         {/* Where each member put this film, with a line from the group
             average to each member, or from the viewer to each friend at the
             press of a button (R38, R94–R97); under it how far the viewer is
             from each friend, as numbers (R41, R96). Both show nothing when
             they have nothing to show. */}
         <SpokeMapSwitch ratings={ratings} />
+        {/* How spread out the scores are, from five ratings (R73, R74):
+            under the map, at the owner's request (T47). */}
+        <SpreadCurves points={ratings.map((rating) => rating.point)} />
         <DisagreementTable ratings={ratings} />
         {/* One card per member: who they are, where they put the film, and
             what they wrote about it (R60). */}

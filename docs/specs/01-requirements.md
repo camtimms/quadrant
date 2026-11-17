@@ -597,7 +597,7 @@ for the nice-to-haves to be built and pushed without a stop at each spec.
 
 ### Requirements
 
-- **R73** — WHEN a film's page is shown and at least five members have rated the film, THE SYSTEM SHALL show, under the group average, one curve for Quality and one for Enjoyment, each a normal distribution drawn from the group's mean and standard deviation over the 0–10 scale, with every member's score marked on it.
+- **R73** — WHEN a film's page is shown and at least five members have rated the film, THE SYSTEM SHALL show, under the group average _(v20, T47: under the spoke map, at the owner's request)_, one curve for Quality and one for Enjoyment, each a normal distribution drawn from the group's mean and standard deviation over the 0–10 scale, with every member's score marked on it.
 - **R74** — WHEN those curves are shown, THE SYSTEM SHALL also state each one in words (for example "Quality: average 6.4, most scores between 4.6 and 8.2"), so the curve is never the only way to read it (NFR13); WHEN every member gave the same score on a scale, THE SYSTEM SHALL say so in words instead of drawing a curve for it.
 - **R75** — WHEN a member views another member's page, THE SYSTEM SHALL offer a "Compare with me" link leading to a page that shows the viewer's quadrant chart and the other member's side by side (one above the other on a phone), read-only, each labelled with whose it is.
 - **R76** — WHEN the compare page is shown, THE SYSTEM SHALL list the films both members have rated, each with both members' scores and the disagreement between them, the biggest disagreement first, and each film linking to its page.
