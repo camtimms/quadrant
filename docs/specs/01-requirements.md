@@ -2,6 +2,10 @@
 
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
+**v19 change approved by the owner on 2026-11-17:** new ratings start with
+both sliders unset and must have both chosen (R92, R93, section 20; task
+T45).
+
 **v18 change approved by the owner on 2026-11-17:** filter chips grouped
 by quadrant, each revealing its finer chips (R88–R91, section 19; task
 T44).
@@ -165,7 +169,7 @@ Tags like `[Q10]` point to the question (sections 6–7) that settled that requi
 **Story:** As a member, I want to give a film two scores and maybe a few words.
 
 - **R15** — WHEN a member submits a rating with a Quality score and an Enjoyment score that are both integers from 0 to 10, THE SYSTEM SHALL save it against that member and that film.
-- **R49** — WHEN a member opens the rating form for a film they have not rated, THE SYSTEM SHALL show a slider for each score, running from 0 to 10 in whole steps, both starting at 5, each showing its current number and labelled at its ends (Bad → Good for Quality, Not Enjoyable → Enjoyable for Enjoyment). A slider left at 5 is saved as a real score of 5.
+- **R49** — WHEN a member opens the rating form for a film they have not rated, THE SYSTEM SHALL show a slider for each score, running from 0 to 10 in whole steps, both starting at 5 _(v19: unset instead, R92)_, each showing its current number and labelled at its ends (Bad → Good for Quality, Not Enjoyable → Enjoyable for Enjoyment). A slider left at 5 is saved as a real score of 5.
 - **R16** — WHEN a submitted rating is missing either score, or either score is not an integer from 0 to 10, THE SYSTEM SHALL reject it with a message naming the problem at the server/database layer. (The sliders make this impossible through the form; the check guards against requests that bypass it.)
 - **R17** — WHEN a member includes a review, THE SYSTEM SHALL accept up to 500 characters of plain text and reject anything longer with a message stating the limit.
 - **R18** — WHEN review text is displayed, THE SYSTEM SHALL display it as plain text only (any HTML or script in it is shown as literal characters, never executed).
@@ -702,3 +706,25 @@ of films might be placed in the middle for a lazy rater").
 | E75 | An address naming a quadrant and a placement not in it            | The placement is ignored: the whole quadrant is shown                                                      |
 | E76 | A quadrant or finer chip with no films                            | Drawn greyed out with its 0, not a link, as today                                                          |
 | E77 | A filter chosen while in most-recent order on Friends' films      | The feed follows it, as R77 (E62) says for placements                                                      |
+
+## 20. v19 change — APPROVED by the owner, 2026-11-17
+
+The owner wants a little friction so that people choose both scores rather
+than leaving them at 5: untouched 5/5 ratings pull a small group's
+averages towards the middle and make placements less interesting. Ratings
+without scores are still not allowed (E22's reason stands): every rating
+has two real scores.
+
+### Requirements
+
+- **R92** — WHEN a member opens the rating form for a film they have not rated, THE SYSTEM SHALL show both sliders unset: no handle on the scale and "–" in place of a number. Touching a slider (a tap, a drag or a key) sets it, a tap on the middle included. This replaces R49's "both starting at 5"; the rest of R49 stands.
+- **R93** — WHEN a member saves a new rating with a slider still unset, THE SYSTEM SHALL not save it, SHALL say which score is missing, and SHALL keep the review they typed. Choosing 5 on purpose is still a real 5. Editing a rating, logging a rewatch (R83) and the quick editor on My films (R51) still start from the member's current scores.
+
+### Edge cases
+
+| #   | Situation                                                         | Proposed behaviour                                                                                         |
+| --- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| E22 | _(changed)_ A member saves without touching a slider              | Not saved: "Choose a Quality score" (or Enjoyment, or both). Replaces "saved as 5/5"                       |
+| E78 | A member taps exactly the middle of an unset slider               | It is set to 5, though the slider's value did not change                                                   |
+| E79 | A request without a score, sent without using our form            | Refused by the save action as today ("Choose a Quality score from 0 to 10.")                               |
+| E80 | Ratings already saved at 5/5                                      | Unchanged: the On the fence chip finds them                                                                |

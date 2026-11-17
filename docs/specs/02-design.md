@@ -821,7 +821,8 @@ contents:
   Not Enjoyable ↓ ↑ Enjoyable along the vertical), so a point on a line reads
   correctly without a legend. A 5/5 sits on the centre crossing.
 - **Rating form (R49).** Each score is a native `<input type="range" min="0"
-max="10" step="1">` starting at 5, with the current number shown beside it and
+max="10" step="1">` starting at 5 (_v19: unset for a new rating, design
+26_), with the current number shown beside it and
   the end labels beneath. A native slider is used rather than a custom one
   because browsers already give it arrow-key, Home/End and touch support
   (NFR12). A small live preview under the sliders shows the placement the
@@ -2266,3 +2267,33 @@ _Satisfies: R88–R91, E74–E77, R34, R53, NFR12, NFR14_
   `recentFeed` with a quadrant, and the chips (rows, names, counts, second
   row only when a quadrant is chosen, current marking, greyed chips). The
   end-to-end rating test that filters My films is updated.
+
+## 26. v19 design: choosing both scores
+
+_Satisfies: R92, R93, E22, E78–E80, NFR12, NFR15_
+
+- **An unset slider** is still the browser's own slider (design 8), so
+  touch, keys and screen readers keep working. While unset: the handle is
+  hidden (made transparent with the browser's slider-handle styles), the
+  number shows "–", the screen reader hears "Not set", and the slider has
+  **no `name`**, so a form sent with it unset carries no score at all and
+  the save action refuses it as it already refuses a missing field (E79).
+  _Rejected:_ a separate "unset" value sent to the server, or buttons in
+  place of a slider. The first teaches the database about a state that must
+  never be stored; the second loses the slider members already know.
+- **Setting it:** the slider's change event covers drags and keys. A tap
+  where the value would not change (the middle, E78) fires no change
+  event, so a click or pointer-up on an unset slider also reads its value.
+- **Saving:** the form checks before sending. With a slider unset it does
+  not send, shows "Choose a Quality score." (or Enjoyment, or "Choose both
+  scores.") in its alert, marks the slider invalid and moves focus to the
+  first unset one. Nothing typed is lost (E19).
+- **The placement preview** says "Choose both scores to see where it lands"
+  until both are set.
+- **Only new ratings** start unset. An edit, a rewatch and the quick editor
+  pass the current scores, as now.
+- **Tests (written first):** the slider unset and set (no name, "–", "Not
+  set", set by change and by a click on the middle); the form refusing to
+  send and naming the missing score, keeping the review, then sending once
+  both are set; edit and rewatch forms starting from current scores; the
+  end-to-end tests that rate films set both sliders (they already do).
