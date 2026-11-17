@@ -2322,9 +2322,20 @@ _Satisfies: R94–R96, E81–E83, NFR13, NFR14_
   film (R95).
 - `DisagreementTable` is unchanged (R96): the viewer against each friend,
   shown only when the viewer has rated.
-- _Rejected:_ a switch between "from the average" and "from me"; the owner
-  chose the average only, to try it.
+- **The switch (R97):** `SpokeMap` takes `hub: "average" | "me"`
+  (default the average; "me" without a rating of the viewer's falls back
+  to the average). A small client component, `SpokeMapSwitch`, holds the
+  choice in React state and shows two buttons, "From the average" and
+  "From me", marked with `aria-pressed`, only when the viewer has rated.
+  Not kept in the address or the browser: it starts on the average every
+  time, as the owner asked. "From me" draws exactly the pre-v20 map, its
+  caption included.
+  _Rejected:_ a `?hub=` link like the filters; a reload to move one line
+  is heavier than a button, and the choice is not worth bookmarking.
 - **Tests (written first):** spokes run from the average to every other
   place, the viewer's included; none to a place at the average; the
   longest is marked; spokes drawn when the viewer has not rated, with the
-  prompt; no spokes for a single rating; the caption's words.
+  prompt; no spokes for a single rating; the caption's words; "From me"
+  drawing spokes from the viewer to each friend with the old caption; the
+  switch starting on the average, offered only to a viewer who has rated,
+  and redrawing when pressed.

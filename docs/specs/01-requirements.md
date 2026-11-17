@@ -3,7 +3,8 @@
 Status: **APPROVED** (v4, 2026-11-14), with **v5 changes requested by the owner on 2026-11-14** (below)
 
 **v20 change approved by the owner on 2026-11-17:** the spoke map's hub
-is the group average (R94–R96, section 21; task T46).
+is the group average by default, with a switch to "From me" (R94–R97,
+section 21; task T46).
 
 **v19 change approved by the owner on 2026-11-17:** new ratings start with
 both sliders unset and must have both chosen (R92, R93, section 20; task
@@ -219,7 +220,7 @@ friends, because displaying that is the point of the app.
 
 - **R37** — WHEN a member opens a film's page, THE SYSTEM SHALL show every member's rating of that film (display name, both scores, quadrant, review), whether or not the viewer has rated it.
 - **R38** — WHEN a film's page is shown and at least one member has rated it, THE SYSTEM SHALL show a spoke map: every member's rating as a labelled point on a quadrant chart, plus the group average as a visually distinct point.
-- **R39** — _(v20: replaced by R94.)_ WHEN the spoke map is shown and the viewing member has rated the film, THE SYSTEM SHALL draw a spoke from the viewer's point to each other member's point, with the viewer's point visually distinct as the hub.
+- **R39** — _(v20: the "From me" choice of R97; R94 is the default.)_ WHEN the spoke map is shown and the viewing member has rated the film, THE SYSTEM SHALL draw a spoke from the viewer's point to each other member's point, with the viewer's point visually distinct as the hub.
 - **R40** — _(v20: spokes now show, R95.)_ WHEN the spoke map is shown and the viewing member has not rated the film, THE SYSTEM SHALL show the points and the group average without spokes, and prompt the viewer to rate it `[Q12]`.
 - **R41** — WHEN spokes are shown, THE SYSTEM SHALL state the disagreement (spoke length) for each friend in text as well, and highlight the friend the viewer disagrees with most.
 - **R42** — WHEN a film's page is shown, THE SYSTEM SHALL state the group average for Quality and for Enjoyment, the number of members who rated it, and the quadrant the group average falls in.
@@ -735,14 +736,16 @@ has two real scores.
 ## 21. v20 change — APPROVED by the owner, 2026-11-17
 
 The owner wants to try the group average as the spoke map's hub instead of
-the viewer. Their answers: the average only (no switch between the two);
-the table under the map keeps comparing the viewer with each friend; the
-spokes show even before the viewer has rated the film.
+the viewer. Their answers: the table under the map keeps comparing the
+viewer with each friend; the spokes show even before the viewer has rated
+the film. They first chose the average only, then (the same day) asked for
+a switch between the two, starting on the average.
 
 ### Requirements
 
 - **R94** — WHEN the spoke map is shown and at least two members have rated the film, THE SYSTEM SHALL draw a spoke from the group average (the hub) to each member's point, the viewer's included, and SHALL draw the longest spoke heavier, marking the member furthest from the group. This replaces R39. With one rating there is no spoke: the average is that rating (E11).
 - **R95** — WHEN the viewer has not rated the film, THE SYSTEM SHALL still draw the spokes, and SHALL prompt the viewer to rate it to see how far they are from each friend. This replaces R40's "without spokes".
+- **R97** — WHEN the viewer has rated the film, THE SYSTEM SHALL offer a switch above the spoke map between "From the average" and "From me" (R39's spokes from the viewer to each friend). It SHALL start on "From the average" every time the page is opened, and SHALL not be offered before the viewer has rated.
 - **R96** — The disagreement table (R41) SHALL still compare the viewer with each friend, and is shown only once the viewer has rated the film. The map SHALL say in words what its lines measure (distance from the group), since its lines and the table measure different things.
 
 ### Edge cases

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { SpokeMap } from "@/components/chart/SpokeMap";
+import { SpokeMapSwitch } from "@/components/chart/SpokeMapSwitch";
 import { DisagreementTable } from "@/components/film/DisagreementTable";
 import { GroupAverage } from "@/components/film/GroupAverage";
 import { PosterImage } from "@/components/film/PosterImage";
@@ -159,11 +159,12 @@ export default async function FilmPage({
         <GroupAverage points={ratings.map((rating) => rating.point)} />
         {/* How spread out the scores are, from five ratings (R73, R74). */}
         <SpreadCurves points={ratings.map((rating) => rating.point)} />
-        {/* Where each member put this film, with a line from the viewer's
-            rating to each friend's (R38–R40), and under it the length of
-            each line as a number (R41). Both show nothing when they have
-            nothing to show. */}
-        <SpokeMap ratings={ratings} />
+        {/* Where each member put this film, with a line from the group
+            average to each member, or from the viewer to each friend at the
+            press of a button (R38, R94–R97); under it how far the viewer is
+            from each friend, as numbers (R41, R96). Both show nothing when
+            they have nothing to show. */}
+        <SpokeMapSwitch ratings={ratings} />
         <DisagreementTable ratings={ratings} />
         {/* One card per member: who they are, where they put the film, and
             what they wrote about it (R60). */}

@@ -169,12 +169,87 @@ describe("SpokeMap", () => {
     });
   });
 
-  describe("spokes (R39)", () => {
+  describe("spokes from the group average (R94)", () => {
+    /** Where each spoke starts and ends, in chart units. */
+    const endsOf = (container: HTMLElement) =>
+      spokesIn(container).map((line) => ({
+        x1: Number(line.getAttribute("x1")),
+        y1: Number(line.getAttribute("y1")),
+        x2: Number(line.getAttribute("x2")),
+        y2: Number(line.getAttribute("y2")),
+      }));
+
+    // Cam 5/5, Bob 1/9, Zoe 9/7: the average is 5/7.
+    const three = [me, rating("Bob", 1, 9), rating("Zoe", 9, 7)];
+
+    it("draws a spoke from the average to every member, the viewer included", () => {
+      const { container } = render(<SpokeMap ratings={three} />);
+      const from = { x1: chartX(5), y1: chartY(7) };
+      expect(endsOf(container)).toEqual([
+        { ...from, x2: chartX(5), y2: chartY(5) },
+        { ...from, x2: chartX(1), y2: chartY(9) },
+        { ...from, x2: chartX(9), y2: chartY(7) },
+      ]);
+    });
+
+    // Bob is about 4.5 from the average, Zoe 4 and Cam 2.
+    it("marks the spoke of the member furthest from the group", () => {
+      const { container } = render(<SpokeMap ratings={three} />);
+      expect(spokesIn(container).map((line) => line.dataset.spoke)).toEqual([
+        "other",
+        "largest",
+        "other",
+      ]);
+    });
+
+    // E81: Al is exactly at the average, so there is no line to draw.
+    it("draws no spoke to a member at the average", () => {
+      const { container } = render(
+        <SpokeMap
+          ratings={[
+            rating("Cam", 4, 4, { isViewer: true }),
+            rating("Bob", 6, 6),
+            rating("Al", 5, 5),
+          ]}
+        />,
+      );
+      expect(spokesIn(container)).toHaveLength(2);
+    });
+
+    // E11: one rating is its own average.
+    it("draws no spokes for a single rating", () => {
+      const { container } = render(<SpokeMap ratings={[me]} />);
+      expect(spokesIn(container)).toHaveLength(0);
+      expect(pointsIn(container, "viewer")).toHaveLength(1);
+    });
+
+    // R96: the lines and the table measure different things, so say which.
+    it("says in words what the lines measure", () => {
+      render(<SpokeMap ratings={three} />);
+      expect(
+        screen.getByText(
+          /Each line runs from the group average to a member's rating/,
+        ),
+      ).toBeTruthy();
+    });
+
+    it("still shows the viewer's point as their own", () => {
+      const { container } = render(<SpokeMap ratings={three} />);
+      const [you] = pointsIn(container, "viewer");
+      expect(you.className).toContain("bg-accent");
+      expect(positionOf(you)).toEqual(at(5, 5));
+    });
+  });
+
+  // R97: "From me", the map as it was before v20.
+  describe("spokes from the viewer (R39, R97)", () => {
     it("draws one spoke per friend, from the viewer's point to theirs", () => {
       const { container } = render(
-        <SpokeMap ratings={[me, rating("Bob", 2, 9), rating("Zoe", 9, 8)]} />,
+        <SpokeMap
+          hub="me"
+          ratings={[me, rating("Bob", 2, 9), rating("Zoe", 9, 8)]}
+        />,
       );
-
       const ends = spokesIn(container).map((line) => ({
         x1: Number(line.getAttribute("x1")),
         y1: Number(line.getAttribute("y1")),
@@ -186,52 +261,56 @@ describe("SpokeMap", () => {
         { ...from, x2: chartX(2), y2: chartY(9) },
         { ...from, x2: chartX(9), y2: chartY(8) },
       ]);
-    });
-
-    it("draws no spoke to the group average", () => {
-      const { container } = render(
-        <SpokeMap ratings={[me, rating("Bob", 2, 9)]} />,
-      );
-
-      expect(spokesIn(container)).toHaveLength(1);
+      expect(
+        screen.getByText(/Each line runs from your rating to a friend's/),
+      ).toBeTruthy();
     });
 
     it("marks the longest spoke", () => {
       const { container } = render(
-        <SpokeMap ratings={[me, rating("Bob", 2, 9), rating("Zoe", 6, 5)]} />,
+        <SpokeMap
+          hub="me"
+          ratings={[me, rating("Bob", 2, 9), rating("Zoe", 6, 5)]}
+        />,
       );
-
       expect(spokesIn(container).map((line) => line.dataset.spoke)).toEqual([
         "largest",
         "other",
       ]);
     });
 
-    it("draws no spokes when only the viewer has rated the film", () => {
-      const { container } = render(<SpokeMap ratings={[me]} />);
-
-      expect(spokesIn(container)).toHaveLength(0);
-      expect(pointsIn(container, "viewer")).toHaveLength(1);
+    // Without a rating of the viewer's there is nothing to draw from.
+    it("falls back to the average when the viewer has not rated", () => {
+      const { container } = render(
+        <SpokeMap
+          hub="me"
+          ratings={[rating("Bob", 2, 9), rating("Zoe", 9, 8)]}
+        />,
+      );
+      expect(spokesIn(container)).toHaveLength(2);
+      expect(
+        screen.getByText(/Each line runs from the group average/),
+      ).toBeTruthy();
     });
   });
 
-  describe("when the viewer has not rated the film (R40, E12)", () => {
+  describe("when the viewer has not rated the film (R95, E12)", () => {
     const friendsOnly = [rating("Bob", 2, 9), rating("Zoe", 9, 8)];
 
-    it("shows the points and the average with no spokes and no hub", () => {
+    it("still draws the spokes from the average, with no viewer's point", () => {
       const { container } = render(<SpokeMap ratings={friendsOnly} />);
 
       expect(pointsIn(container, "friend")).toHaveLength(2);
       expect(pointsIn(container, "average")).toHaveLength(1);
       expect(pointsIn(container, "viewer")).toHaveLength(0);
-      expect(spokesIn(container)).toHaveLength(0);
+      expect(spokesIn(container)).toHaveLength(2);
     });
 
     it("prompts the viewer to rate it", () => {
       render(<SpokeMap ratings={friendsOnly} />);
 
       expect(screen.getByText(/Rate this film to see/)).toBeTruthy();
-      // No hub on the chart, so no hub in the key either.
+      // No point of their own on the chart, so none in the key either.
       expect(screen.getByTestId("spoke-map-key").textContent).not.toContain(
         "You",
       );
@@ -267,11 +346,12 @@ describe("SpokeMap", () => {
       );
       expect(names).toEqual(["You", "Bob, Zoe", "Al"]);
 
-      // One spoke per place, not two lines drawn on top of each other.
-      expect(spokesIn(container)).toHaveLength(2);
+      // One spoke per place, not two lines drawn on top of each other:
+      // the average (4 / 7.5) is at none of the three places.
+      expect(spokesIn(container)).toHaveLength(3);
     });
 
-    // E13: a spoke of length 0. The friend shares the hub.
+    // E13: a friend who agrees exactly shares the viewer's marker.
     it("puts a friend who agrees exactly on the viewer's own point", () => {
       const { container } = render(
         <SpokeMap ratings={[me, rating("Bob", 5, 5), rating("Zoe", 9, 8)]} />,
@@ -284,8 +364,8 @@ describe("SpokeMap", () => {
       expect(
         all(container, "[data-point-label]").map((label) => label.textContent),
       ).toEqual(["You, Bob", "Zoe"]);
-      // Only Zoe is somewhere else to draw a line to.
-      expect(spokesIn(container)).toHaveLength(1);
+      // One line to the shared marker and one to Zoe (E83).
+      expect(spokesIn(container)).toHaveLength(2);
     });
   });
 

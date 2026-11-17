@@ -25,6 +25,12 @@ import {
 type Props = {
   /** Every member's current rating of the film, the viewer's included. */
   ratings: readonly MemberRating[];
+  /**
+   * Where the spokes start (R94, R97): the group average (the default), or
+   * the viewer's own rating. "me" without a rating of the viewer's falls
+   * back to the average, as there is nothing to draw from.
+   */
+  hub?: "average" | "me";
 };
 
 /** The id the group average's label is placed under. */
@@ -67,19 +73,21 @@ const FRIEND_MARKER = "rounded-full border-2 bg-card text-ink";
 
 /**
  * The spoke map on a film's page: where every member put this one film, and
- * how far each friend is from the viewer (R38–R40).
+ * how far each one is from the group, or from the viewer (R38, R94–R97).
  *
  * It is the same frame as the chart on My films with different things on
  * top. There, each point is a film; here, each point is a PERSON, and all
- * the points are the same film. Lines (spokes) run from the viewer's own
- * point, the hub, to each friend's. The longer the line, the more the two of
- * them disagree: its length is exactly the number in the disagreement table.
+ * the points are the same film. Lines (spokes) run from the hub to each
+ * member's point. The hub is the group average (the diamond) by default:
+ * the longer a line, the further that member is from the group. Switched to
+ * "From me", the hub is the viewer's own point and each line's length is
+ * exactly the number in the disagreement table.
  *
  * Unlike the films chart, nothing here can be selected, so there is no
  * state and no "use client": the names are written beside the points, and
  * the tables under the chart hold every number (NFR13).
  */
-export function SpokeMap({ ratings }: Props) {
+export function SpokeMap({ ratings, hub: hubChoice = "average" }: Props) {
   // R38: there is only a map once somebody has rated the film.
   if (ratings.length === 0) return null;
 
@@ -98,23 +106,34 @@ export function SpokeMap({ ratings }: Props) {
   const colourOf = (userId: string) =>
     friendColourClasses(colours.get(userId) ?? 1);
   type Place = (typeof places)[number];
-  const isHub = (place: Place) => place.items.some((rating) => rating.isViewer);
-  const hub = places.find(isHub);
-
-  // One spoke to each OTHER place. A friend who agrees exactly is on the hub
-  // itself, a spoke of length 0, so there is no line to draw for them (E13).
-  // With no rating from the viewer there is no hub and so no spokes (R40).
-  const spokes = hub
-    ? spokesFrom(
-        hub.point,
-        places.filter((place) => !isHub(place)),
-      )
-    : [];
+  // The place holding the viewer's own rating, if they have rated it. It is
+  // always drawn as theirs (solid, ringed, yellow), whatever the hub is.
+  const isYours = (place: Place) =>
+    place.items.some((rating) => rating.isViewer);
+  const yours = places.find(isYours);
 
   // With one rating the average IS that rating (R45). A second marker on the
   // same spot would only cover the first, so it is left out (E11).
   const average =
     ratings.length > 1 ? groupAverage(ratings.map((r) => r.point)) : null;
+
+  // R97: spokes from the viewer only when asked for and possible.
+  const fromMe = hubChoice === "me" && yours !== undefined;
+  const hubPoint = fromMe ? yours.point : average;
+
+  // From the viewer: one spoke to each OTHER place; a friend who agrees
+  // exactly shares the viewer's marker (E13). From the average: one spoke
+  // to every place, the viewer's included, leaving out any place that is
+  // exactly at the average, which has no line to draw (E81). With a single
+  // rating there is no average and so no spokes (E11).
+  const spokes = fromMe
+    ? spokesFrom(
+        yours.point,
+        places.filter((place) => !isYours(place)),
+      )
+    : average
+      ? spokesFrom(average, places).filter((spoke) => spoke.disagreement > 0)
+      : [];
 
   // ---- Where every name goes (R66, design 17.6) ----------------------
   // placeLabels works in pixels on the narrowest chart; these turn the
@@ -130,7 +149,7 @@ export function SpokeMap({ ratings }: Props) {
     const half = place.items.length > 1 ? 12 : 8;
     return {
       ...pixelPoint(place.point.quality, place.point.enjoyment),
-      radius: isHub(place) ? half + 4 : half,
+      radius: isYours(place) ? half + 4 : half,
     };
   };
   // The diamond is a 20 px square turned on its corner: about 14 px out.
@@ -148,17 +167,18 @@ export function SpokeMap({ ratings }: Props) {
       rating.isViewer ? "You" : chartName(rating.displayName),
     );
 
-  // The most important names choose first: "You", then friends from the
-  // furthest away (the longest spokes are what the map is about), then
-  // anyone else, then "Average".
+  // The most important names choose first: "You", then "Average" when it
+  // is the hub, then members from the furthest away (the longest spokes are
+  // what the map is about), then anyone else, then "Average" otherwise.
   const furthestFirst = [...spokes]
     .sort((a, b) => b.disagreement - a.disagreement)
-    .map(({ item }) => item);
+    .map(({ item }) => item)
+    .filter((place) => !isYours(place));
   const ordered = [
-    ...(hub ? [hub] : []),
+    ...(yours ? [yours] : []),
     ...furthestFirst,
     ...places.filter(
-      (place) => !isHub(place) && !furthestFirst.includes(place),
+      (place) => !isYours(place) && !furthestFirst.includes(place),
     ),
   ];
   const requests: LabelRequest[] = ordered.map((place) => ({
@@ -167,7 +187,13 @@ export function SpokeMap({ ratings }: Props) {
     point: markerOf(place),
   }));
   if (averageMarker) {
-    requests.push({ id: AVERAGE_ID, text: "Average", point: averageMarker });
+    const averageRequest = {
+      id: AVERAGE_ID,
+      text: "Average",
+      point: averageMarker,
+    };
+    if (fromMe) requests.push(averageRequest);
+    else requests.splice(yours ? 1 : 0, 0, averageRequest);
   }
   const placement = new Map(
     placeLabels(requests, markers).map((label) => [label.id, label]),
@@ -199,15 +225,15 @@ export function SpokeMap({ ratings }: Props) {
           aria-hidden="true"
           className="absolute inset-0 h-full w-full"
         >
-          {hub
+          {hubPoint
             ? spokes.map(({ item: place, isLargest }) => (
                 <line
                   key={place.items[0].userId}
                   // The longest spoke is drawn heavier: thickness, not
                   // colour, picks it out (NFR14).
                   data-spoke={isLargest ? "largest" : "other"}
-                  x1={chartX(hub.point.quality)}
-                  y1={chartY(hub.point.enjoyment)}
+                  x1={chartX(hubPoint.quality)}
+                  y1={chartY(hubPoint.enjoyment)}
                   x2={chartX(place.point.quality)}
                   y2={chartY(place.point.enjoyment)}
                   className={"stroke-spoke"}
@@ -256,7 +282,7 @@ export function SpokeMap({ ratings }: Props) {
 
         {places.map((place) => {
           const count = place.items.length;
-          const kind = isHub(place) ? "viewer" : "friend";
+          const kind = isYours(place) ? "viewer" : "friend";
           const position = {
             left: toPercent(chartX(place.point.quality)),
             top: toPercent(chartY(place.point.enjoyment)),
@@ -295,7 +321,7 @@ export function SpokeMap({ ratings }: Props) {
             order of importance (above). */}
         {places.map((place) => {
           const label = placement.get(place.items[0].userId)!;
-          const youAlone = place.items.length === 1 && isHub(place);
+          const youAlone = place.items.length === 1 && isYours(place);
           return (
             <span
               key={place.items[0].userId}
@@ -347,22 +373,24 @@ export function SpokeMap({ ratings }: Props) {
           data-testid="spoke-map-key"
           className="flex flex-wrap gap-x-5 gap-y-2"
         >
-          {hub ? <KeyItem shape="viewer">You</KeyItem> : null}
-          {places.some((place) => !isHub(place)) ? (
+          {yours ? <KeyItem shape="viewer">You</KeyItem> : null}
+          {places.some((place) => !isYours(place)) ? (
             <KeyItem shape="friend">A friend</KeyItem>
           ) : null}
           {average ? <KeyItem shape="average">Group average</KeyItem> : null}
         </ul>
-        {hub ? (
-          spokes.length > 0 ? (
-            <p className="text-ink-muted">
-              Each line runs from your rating to a friend&apos;s. The longer the
-              line, the more you disagree.
-            </p>
-          ) : null
-        ) : (
-          // R40: no spokes without a rating of the viewer's own to draw
-          // them from. The rating form is further up this page.
+        {/* R96: say what the lines measure, since the table under the map
+            measures something else unless the hub is the viewer. */}
+        {spokes.length > 0 ? (
+          <p className="text-ink-muted">
+            {fromMe
+              ? "Each line runs from your rating to a friend's. The longer the line, the more you disagree."
+              : "Each line runs from the group average to a member's rating. The longer the line, the further they are from the group."}
+          </p>
+        ) : null}
+        {yours ? null : (
+          // R95: the spokes show anyway; the comparison with the viewer
+          // needs their rating. The rating form is further up this page.
           <p>
             Rate this film to see how far your rating is from each
             friend&apos;s.
