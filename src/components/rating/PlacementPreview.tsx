@@ -11,9 +11,21 @@ export function PlacementPreview({
   quality,
   enjoyment,
 }: {
-  quality: number;
-  enjoyment: number;
+  /** null while that score is not chosen yet (R92). */
+  quality: number | null;
+  enjoyment: number | null;
 }) {
+  if (quality === null || enjoyment === null) {
+    return (
+      <p
+        data-testid="placement-preview"
+        aria-live="polite"
+        className="rounded-xl bg-well px-3 py-2 text-sm text-ink-muted"
+      >
+        Choose both scores to see where it lands.
+      </p>
+    );
+  }
   const placement = classify({ quality, enjoyment });
 
   return (

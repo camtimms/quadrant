@@ -69,12 +69,41 @@ afterEach(() => {
 });
 
 describe("RatingForm", () => {
-  describe("for a film the member has not rated (R49)", () => {
-    it("starts both sliders at 5", () => {
+  describe("for a film the member has not rated (R49, R92)", () => {
+    // R92: nothing is chosen for them.
+    it("starts both sliders unset", () => {
       render(<RatingForm tmdbId={10999} initialRating={null} />);
-      expect(quality().value).toBe("5");
-      expect(enjoyment().value).toBe("5");
+      expect(screen.getByTestId("quality-value").textContent).toBe("–");
+      expect(screen.getByTestId("enjoyment-value").textContent).toBe("–");
+      expect(quality().getAttribute("aria-valuetext")).toBe("Not set");
+      // No name: an unset score is not sent at all (design 26).
+      expect(quality().getAttribute("name")).toBeNull();
       expect(review().value).toBe("");
+    });
+
+    it("sets a slider when it is moved", () => {
+      render(<RatingForm tmdbId={10999} initialRating={null} />);
+      setSlider(quality(), 8);
+      expect(screen.getByTestId("quality-value").textContent).toBe("8");
+      expect(quality().getAttribute("name")).toBe("quality");
+      expect(quality().getAttribute("aria-valuetext")).toBe("8 out of 10");
+    });
+
+    // E78: a tap on the middle changes nothing, so no change event fires.
+    it("sets a slider to 5 when its middle is tapped", () => {
+      render(<RatingForm tmdbId={10999} initialRating={null} />);
+      fireEvent.click(quality());
+      expect(screen.getByTestId("quality-value").textContent).toBe("5");
+    });
+
+    it("says where the film lands only once both are chosen", () => {
+      render(<RatingForm tmdbId={10999} initialRating={null} />);
+      const preview = () => screen.getByTestId("placement-preview");
+      expect(preview().textContent).toMatch(/Choose both scores/);
+      setSlider(quality(), 9);
+      expect(preview().textContent).toMatch(/Choose both scores/);
+      setSlider(enjoyment(), 9);
+      expect(preview().textContent).toContain(PLACEMENT_LABELS.masterpieces);
     });
 
     it("runs each slider from 0 to 10 in whole steps", () => {
@@ -110,14 +139,40 @@ describe("RatingForm", () => {
       }
     });
 
-    // E22: no "unscored" state. Untouched sliders are a real 5/5.
-    it("sends 5/5 when saved without touching the sliders", async () => {
+    // E22 (v19), R93: nothing is saved until both scores are chosen.
+    it("does not send with both sliders unset, and asks for both", async () => {
       render(<RatingForm tmdbId={10999} initialRating={null} />);
+      fireEvent.change(review(), { target: { value: "Loved it." } });
+      await save();
+      expect(actions.saveRating).not.toHaveBeenCalled();
+      expect(screen.getByRole("alert").textContent).toBe("Choose both scores.");
+      expect(quality().getAttribute("aria-invalid")).toBe("true");
+      // Focus goes to the first one to choose.
+      expect(document.activeElement).toBe(quality());
+      // E19: what was typed is kept.
+      expect(review().value).toBe("Loved it.");
+    });
+
+    it("names the one score still to choose", async () => {
+      render(<RatingForm tmdbId={10999} initialRating={null} />);
+      setSlider(quality(), 3);
+      await save();
+      expect(actions.saveRating).not.toHaveBeenCalled();
+      expect(screen.getByRole("alert").textContent).toBe(
+        "Choose an Enjoyment score.",
+      );
+      expect(document.activeElement).toBe(enjoyment());
+    });
+
+    it("sends once both are chosen, a deliberate 5 included", async () => {
+      render(<RatingForm tmdbId={10999} initialRating={null} />);
+      fireEvent.click(quality());
+      setSlider(enjoyment(), 9);
       await save();
       expect(sent()).toEqual({
         tmdb_id: "10999",
         quality: "5",
-        enjoyment: "5",
+        enjoyment: "9",
         review: "",
         return_to: "/film/10999",
       });
@@ -126,6 +181,8 @@ describe("RatingForm", () => {
     // R23 (v7): after saving, the member comes back to this film's page.
     it("asks to come back to this film's page after saving", async () => {
       render(<RatingForm tmdbId={603} initialRating={null} />);
+      setSlider(quality(), 6);
+      setSlider(enjoyment(), 6);
       await save();
       expect(sent().return_to).toBe("/film/603");
     });
@@ -167,6 +224,9 @@ describe("RatingForm", () => {
       render(<RatingForm tmdbId={10999} initialRating={null} />);
       const preview = () => screen.getByTestId("placement-preview").textContent;
 
+      // A tap on the middle chooses 5 (E78).
+      fireEvent.click(quality());
+      fireEvent.click(enjoyment());
       expect(preview()).toContain(PLACEMENT_LABELS["on-the-fence"]); // 5/5
 
       setSlider(quality(), 8); // 8/5: one score on the line
@@ -264,6 +324,9 @@ describe("RatingForm", () => {
         values: { quality: "5", enjoyment: "5", review: "x" },
       });
       render(<RatingForm tmdbId={10999} initialRating={null} />);
+      // A tap on the middle chooses 5 (E78).
+      fireEvent.click(quality());
+      fireEvent.click(enjoyment());
 
       await save();
 

@@ -4,7 +4,7 @@
 // character count all react to the member's input in the browser. The saving
 // itself is a Server Action and still happens on the server.
 
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState, type FormEvent } from "react";
 import { saveRating } from "@/app/(app)/actions/rating";
 import { PlacementPreview } from "@/components/rating/PlacementPreview";
 import { ScoreSlider } from "@/components/rating/ScoreSlider";
@@ -30,9 +30,6 @@ type Props = {
   rewatch?: boolean;
 };
 
-/** R49: both sliders start in the middle. A 5 left alone is a real 5. */
-const DEFAULT_SCORE = 5;
-
 /**
  * The rating form: two sliders, an optional review, and a Save button.
  *
@@ -50,12 +47,50 @@ const DEFAULT_SCORE = 5;
  * accident on a phone, so moving one never saves by itself.
  */
 export function RatingForm({ tmdbId, initialRating, rewatch = false }: Props) {
-  const [quality, setQuality] = useState<number>(
-    initialRating?.quality ?? DEFAULT_SCORE,
+  // R92: a new rating starts with nothing chosen (null). An edit or a
+  // rewatch starts from the member's current scores.
+  const [quality, setQualityValue] = useState<number | null>(
+    initialRating?.quality ?? null,
   );
-  const [enjoyment, setEnjoyment] = useState<number>(
-    initialRating?.enjoyment ?? DEFAULT_SCORE,
+  const [enjoyment, setEnjoymentValue] = useState<number | null>(
+    initialRating?.enjoyment ?? null,
   );
+  // R93: which scores the member tried to save without choosing, and the
+  // message saying so. Cleared as soon as a score is chosen.
+  const [missing, setMissing] = useState<{
+    quality: boolean;
+    enjoyment: boolean;
+  } | null>(null);
+  const qualityInput = useRef<HTMLInputElement>(null);
+  const enjoymentInput = useRef<HTMLInputElement>(null);
+  const setQuality = (value: number) => {
+    setQualityValue(value);
+    setMissing(null);
+  };
+  const setEnjoyment = (value: number) => {
+    setEnjoymentValue(value);
+    setMissing(null);
+  };
+
+  /**
+   * Stop a save with a score not chosen (R93). Calling preventDefault()
+   * keeps the form from being sent at all; the server would refuse it
+   * anyway (the score is missing), but this way the member is told at once,
+   * and which one, without a round trip.
+   */
+  const checkScores = (event: FormEvent<HTMLFormElement>) => {
+    if (quality !== null && enjoyment !== null) return;
+    event.preventDefault();
+    setMissing({ quality: quality === null, enjoyment: enjoyment === null });
+    (quality === null ? qualityInput : enjoymentInput).current?.focus();
+  };
+  const missingMessage = missing
+    ? missing.quality && missing.enjoyment
+      ? "Choose both scores."
+      : missing.quality
+        ? "Choose a Quality score."
+        : "Choose an Enjoyment score."
+    : null;
   const [review, setReview] = useState(
     rewatch ? "" : (initialRating?.review ?? ""),
   );
@@ -76,7 +111,11 @@ export function RatingForm({ tmdbId, initialRating, rewatch = false }: Props) {
   const reviewLength = characterCount(review);
 
   return (
-    <form action={formAction} className="flex flex-col gap-5">
+    <form
+      action={formAction}
+      onSubmit={checkScores}
+      className="flex flex-col gap-5"
+    >
       {/* Which film this is. Hidden because the member does not type it,
           but the server still treats it as untrusted, like everything else. */}
       <input type="hidden" name="tmdb_id" value={tmdbId} />
@@ -94,7 +133,8 @@ export function RatingForm({ tmdbId, initialRating, rewatch = false }: Props) {
         onChange={setQuality}
         lowLabel={SCALE_END_LABELS.quality.low}
         highLabel={SCALE_END_LABELS.quality.high}
-        invalid={errorField === "quality"}
+        invalid={errorField === "quality" || Boolean(missing?.quality)}
+        inputRef={qualityInput}
       />
       <ScoreSlider
         name="enjoyment"
@@ -104,7 +144,8 @@ export function RatingForm({ tmdbId, initialRating, rewatch = false }: Props) {
         onChange={setEnjoyment}
         lowLabel={SCALE_END_LABELS.enjoyment.low}
         highLabel={SCALE_END_LABELS.enjoyment.high}
-        invalid={errorField === "enjoyment"}
+        invalid={errorField === "enjoyment" || Boolean(missing?.enjoyment)}
+        inputRef={enjoymentInput}
       />
 
       <PlacementPreview quality={quality} enjoyment={enjoyment} />
@@ -133,8 +174,12 @@ export function RatingForm({ tmdbId, initialRating, rewatch = false }: Props) {
         </p>
       </div>
 
-      {state.status === "error" ? (
+      {missingMessage ? (
         // role="alert" makes screen readers announce the problem (NFR15).
+        <p role="alert" className={errorText}>
+          {missingMessage}
+        </p>
+      ) : state.status === "error" ? (
         <p role="alert" className={errorText}>
           {state.message}
         </p>

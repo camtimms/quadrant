@@ -2281,6 +2281,11 @@ _Satisfies: R92, R93, E22, E78–E80, NFR12, NFR15_
   _Rejected:_ a separate "unset" value sent to the server, or buttons in
   place of a slider. The first teaches the database about a state that must
   never be stored; the second loses the slider members already know.
+  _(Corrected during T45: hiding only the handle still left the browser's
+  fill running to the middle, which read as "half way". While unset, the
+  browser's own drawing is switched off and replaced by one even line. The
+  hidden handle must keep a real size: with none, Chrome read every tap as
+  0. Both found by trying it in a browser at 375 px.)_
 - **Setting it:** the slider's change event covers drags and keys. A tap
   where the value would not change (the middle, E78) fires no change
   event, so a click or pointer-up on an unset slider also reads its value.
